@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import type { Die, DieValue, GameState } from './types';
-import { calculateScore, isFarkle } from './scoring';
-import Dice from './components/Dice';
+import { useState, useEffect } from "react";
+import type { Die, DieValue, GameState } from "./types";
+import { calculateScore, isSparkle } from "./scoring";
+import Dice from "./components/Dice";
 
 const WINNING_SCORE = 10000;
 const MIN_SCORE_TO_GET_ON_BOARD = 500;
@@ -29,28 +29,29 @@ const initialState: GameState = {
 
 export default function Home() {
   const [gameState, setGameState] = useState<GameState>(initialState);
-  const [message, setMessage] = useState('Roll the dice to start!');
+  const [message, setMessage] = useState("Roll the dice to start!");
 
   useEffect(() => {
-    setGameState(prev => ({ ...prev, dice: rollDice(6) }));
+    setGameState((prev) => ({ ...prev, dice: rollDice(6) }));
   }, []);
 
-  const selectedDice = gameState.dice.filter(d => d.selected && !d.banked);
-  const activeDice = gameState.dice.filter(d => !d.banked);
+  const selectedDice = gameState.dice.filter((d) => d.selected && !d.banked);
+  const activeDice = gameState.dice.filter((d) => !d.banked);
+  const bankedDice = gameState.dice.filter((d) => d.banked);
   const selectedScore = calculateScore(selectedDice);
 
   const toggleDie = (id: number) => {
     if (gameState.gameOver) return;
 
-    setGameState(prev => ({
+    setGameState((prev) => ({
       ...prev,
-      dice: prev.dice.map(die =>
+      dice: prev.dice.map((die) =>
         die.id === id && !die.banked
           ? { ...die, selected: !die.selected }
-          : die
+          : die,
       ),
     }));
-    setMessage('');
+    setMessage("");
   };
 
   const handleRoll = () => {
@@ -58,60 +59,87 @@ export default function Home() {
 
     const newDice = rollDice(activeDice.length);
 
-    setGameState(prev => ({
-      ...prev,
-      dice: newDice,
-    }));
+    setGameState((prev) => {
+      const bankedDice = prev.dice.filter((d) => d.banked);
+      return {
+        ...prev,
+        dice: [...bankedDice, ...newDice],
+      };
+    });
 
-    // Check for farkle
-    if (isFarkle(newDice)) {
-      setMessage('💥 FARKLE! You lost all points this turn!');
+    // Check for sparkle
+    if (isSparkle(newDice)) {
+      setMessage("💥 FARKLE! You lost all points this turn!");
       setTimeout(() => {
         endTurn(true);
       }, 2000);
     } else {
-      setMessage('Select scoring dice and bank them, or roll again!');
+      setMessage("Select scoring dice and bank them, or roll again!");
     }
   };
 
   const handleBank = () => {
     if (selectedDice.length === 0) {
-      setMessage('Select some dice first!');
+      setMessage("Select some dice first!");
       return;
     }
 
     if (selectedScore === 0) {
-      setMessage('Selected dice do not score!');
+      setMessage("Selected dice do not score!");
       return;
     }
 
     const newBankedScore = gameState.bankedScore + selectedScore;
     const allDiceUsed = activeDice.length === selectedDice.length;
 
-    setGameState(prev => ({
-      ...prev,
-      dice: allDiceUsed ? rollDice(6) : prev.dice.map(die =>
-        die.selected ? { ...die, selected: false, banked: true } : die
-      ),
-      bankedScore: newBankedScore,
-      currentScore: prev.currentScore + selectedScore,
-    }));
+    setGameState((prev) => {
+      if (allDiceUsed) {
+        // Hot dice: bank current selection and roll 6 new dice
+        const bankedDice = prev.dice.map((die) =>
+          die.selected ? { ...die, selected: false, banked: true } : die,
+        );
+        const newDice = rollDice(6);
+        return {
+          ...prev,
+          dice: [...bankedDice, ...newDice],
+          bankedScore: newBankedScore,
+          currentScore: prev.currentScore + selectedScore,
+        };
+      } else {
+        // Normal bank: just mark selected dice as banked
+        return {
+          ...prev,
+          dice: prev.dice.map((die) =>
+            die.selected ? { ...die, selected: false, banked: true } : die,
+          ),
+          bankedScore: newBankedScore,
+          currentScore: prev.currentScore + selectedScore,
+        };
+      }
+    });
 
     if (allDiceUsed) {
-      setMessage(`Banked ${selectedScore} points! Hot dice! Rolling all 6 dice again...`);
+      setMessage(
+        `Banked ${selectedScore} points! Hot dice! Rolling all 6 dice again...`,
+      );
     } else {
       setMessage(`Banked ${selectedScore} points! Roll again or end turn.`);
     }
   };
 
-  const endTurn = (isFarkled: boolean = false) => {
-    const totalTurnScore = isFarkled ? 0 : gameState.currentScore + selectedScore;
+  const endTurn = (isSparkled: boolean = false) => {
+    const totalTurnScore = isSparkled
+      ? 0
+      : gameState.currentScore + selectedScore;
     const newTotalScore = gameState.totalScore + totalTurnScore;
-    const canGetOnBoard = !gameState.isOnBoard && totalTurnScore >= MIN_SCORE_TO_GET_ON_BOARD;
+    const canGetOnBoard =
+      !gameState.isOnBoard && totalTurnScore >= MIN_SCORE_TO_GET_ON_BOARD;
     const nowOnBoard = gameState.isOnBoard || canGetOnBoard;
 
     if (!gameState.isOnBoard && !canGetOnBoard && totalTurnScore > 0) {
-      setMessage(`Need ${MIN_SCORE_TO_GET_ON_BOARD} points to get on the board. You only scored ${totalTurnScore}. Try again!`);
+      setMessage(
+        `Need ${MIN_SCORE_TO_GET_ON_BOARD} points to get on the board. You only scored ${totalTurnScore}. Try again!`,
+      );
     }
 
     const finalScore = nowOnBoard ? newTotalScore : gameState.totalScore;
@@ -129,7 +157,7 @@ export default function Home() {
 
     if (gameOver) {
       setMessage(`🎉 You win! Final score: ${finalScore}`);
-    } else if (!isFarkled) {
+    } else if (!isSparkled) {
       if (canGetOnBoard) {
         setMessage(`You're on the board! Scored ${totalTurnScore} points!`);
       } else if (nowOnBoard) {
@@ -140,12 +168,12 @@ export default function Home() {
 
   const handleEndTurn = () => {
     if (gameState.bankedScore === 0 && selectedScore === 0) {
-      setMessage('You must bank some points before ending your turn!');
+      setMessage("You must bank some points before ending your turn!");
       return;
     }
 
     if (selectedScore > 0) {
-      setMessage('Bank your selected dice first!');
+      setMessage("Bank your selected dice first!");
       return;
     }
 
@@ -162,31 +190,34 @@ export default function Home() {
       turnNumber: 1,
       gameOver: false,
     });
-    setMessage('New game started! Roll the dice!');
+    setMessage("New game started! Roll the dice!");
   };
 
-  const canRoll = activeDice.length > 0 &&
-                 selectedDice.length === 0 &&
-                 !gameState.gameOver;
+  const canRoll =
+    activeDice.length > 0 && selectedDice.length === 0 && !gameState.gameOver;
 
   return (
     <div className="min-h-screen bg-black p-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8">Farkle</h1>
+        <h1 className="text-4xl font-bold text-white mb-8">Sparkle</h1>
 
         <div className="flex gap-8 mb-6 text-sm">
           <div>
             <div className="text-gray-400">Score</div>
-            <div className="text-2xl font-bold text-white">{gameState.totalScore}</div>
+            <div className="text-2xl font-bold text-white">
+              {gameState.totalScore}
+            </div>
           </div>
           <div>
             <div className="text-gray-400">This Turn</div>
-            <div className="text-2xl font-bold text-white">{gameState.currentScore + selectedScore}</div>
+            <div className="text-2xl font-bold text-white">
+              {gameState.currentScore + selectedScore}
+            </div>
           </div>
           <div>
             <div className="text-gray-400">Turn {gameState.turnNumber}</div>
             <div className="text-sm text-gray-300">
-              {gameState.isOnBoard ? 'On Board' : 'Not On Board'}
+              {gameState.isOnBoard ? "On Board" : "Not On Board"}
             </div>
           </div>
         </div>
@@ -198,11 +229,26 @@ export default function Home() {
         )}
 
         <div className="mb-8">
-          <Dice dice={gameState.dice} onToggleDie={toggleDie} />
+          <div className="mb-6">
+            <h2 className="text-lg font-medium text-white mb-3">Active Dice</h2>
+            <Dice dice={activeDice} onToggleDie={toggleDie} />
 
-          {selectedScore > 0 && (
-            <div className="text-center mt-4 text-sm text-gray-300">
-              Selected: <span className="font-bold text-white">{selectedScore} points</span>
+            {selectedScore > 0 && (
+              <div className="text-center mt-4 text-sm text-gray-300">
+                Selected:{" "}
+                <span className="font-bold text-white">
+                  {selectedScore} points
+                </span>
+              </div>
+            )}
+          </div>
+
+          {bankedDice.length > 0 && (
+            <div className="pt-6 border-t border-gray-800">
+              <h2 className="text-lg font-medium text-white mb-3">
+                Banked Dice
+              </h2>
+              <Dice dice={bankedDice} onToggleDie={toggleDie} />
             </div>
           )}
         </div>
@@ -247,12 +293,18 @@ export default function Home() {
         </div>
 
         <details className="text-sm">
-          <summary className="cursor-pointer font-medium text-white mb-3">Rules</summary>
+          <summary className="cursor-pointer font-medium text-white mb-3">
+            Rules
+          </summary>
           <table className="w-full mt-2 border-collapse">
             <thead>
               <tr className="border-b border-gray-700">
-                <th className="text-left py-2 text-white font-medium">Combination</th>
-                <th className="text-right py-2 text-white font-medium">Points</th>
+                <th className="text-left py-2 text-white font-medium">
+                  Combination
+                </th>
+                <th className="text-right py-2 text-white font-medium">
+                  Points
+                </th>
               </tr>
             </thead>
             <tbody className="text-gray-400">

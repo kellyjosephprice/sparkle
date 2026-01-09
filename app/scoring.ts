@@ -1,12 +1,12 @@
-import type { Die, DieValue } from './types';
+import type { Die, DieValue } from "./types";
 
 export function calculateScore(selectedDice: Die[]): number {
   if (selectedDice.length === 0) return 0;
 
-  const values = selectedDice.map(d => d.value);
+  const values = selectedDice.map((d) => d.value);
   const counts = new Map<DieValue, number>();
 
-  values.forEach(val => {
+  values.forEach((val) => {
     counts.set(val, (counts.get(val) || 0) + 1);
   });
 
@@ -16,7 +16,7 @@ export function calculateScore(selectedDice: Die[]): number {
   }
 
   // Check for three pairs
-  const pairs = Array.from(counts.values()).filter(count => count === 2);
+  const pairs = Array.from(counts.values()).filter((count) => count === 2);
   if (pairs.length === 3) {
     return 1500;
   }
@@ -27,7 +27,7 @@ export function calculateScore(selectedDice: Die[]): number {
   counts.forEach((count, value) => {
     if (count >= 3) {
       // Three or more of a kind
-      let baseScore = value === 1 ? 1000 : value * 100;
+      const baseScore = value === 1 ? 1000 : value * 100;
 
       if (count === 3) {
         score += baseScore;
@@ -55,12 +55,12 @@ export function hasAnyScore(dice: Die[]): boolean {
   return calculateScore(dice) > 0;
 }
 
-export function isFarkle(dice: Die[]): boolean {
+export function isSparkle(dice: Die[]): boolean {
   // Check if any single die or combination can score
-  const values = dice.map(d => d.value);
+  const values = dice.map((d) => d.value);
   const counts = new Map<DieValue, number>();
 
-  values.forEach(val => {
+  values.forEach((val) => {
     counts.set(val, (counts.get(val) || 0) + 1);
   });
 
@@ -70,7 +70,7 @@ export function isFarkle(dice: Die[]): boolean {
   }
 
   // Check for three pairs
-  const pairs = Array.from(counts.values()).filter(count => count === 2);
+  const pairs = Array.from(counts.values()).filter((count) => count === 2);
   if (pairs.length === 3) {
     return false;
   }
