@@ -94,14 +94,11 @@ export default function Home() {
 
     setGameState((prev) => {
       if (allDiceUsed) {
-        // Hot dice: bank current selection and roll 6 new dice
-        const bankedDice = prev.dice.map((die) =>
-          die.selected ? { ...die, selected: false, banked: true } : die,
-        );
+        // Hot dice: clear banked dice and roll 6 new dice
         const newDice = rollDice(6);
         return {
           ...prev,
-          dice: [...bankedDice, ...newDice],
+          dice: newDice,
           bankedScore: newBankedScore,
           currentScore: prev.currentScore + selectedScore,
         };
@@ -194,7 +191,10 @@ export default function Home() {
   };
 
   const canRoll =
-    activeDice.length > 0 && selectedDice.length === 0 && !gameState.gameOver;
+    activeDice.length > 0 &&
+    selectedDice.length === 0 &&
+    !gameState.gameOver &&
+    gameState.bankedScore > 0; // Must bank at least once before rolling again
 
   return (
     <div className="min-h-screen bg-black p-8">
