@@ -1,21 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Die, DieValue, GameState } from "./types";
-import { calculateScore, isSparkle } from "./scoring";
+import type { GameState } from "./types";
+import { actions } from "./types";
+import {
+  gameReducer,
+  createDice,
+  getActiveDice,
+  getBankedDice,
+  getSelectedScore,
+  canRoll,
+  canBank,
+  canEndTurn,
+} from "./game";
 import Dice from "./components/Dice";
-
-const WINNING_SCORE = 10000;
-const MIN_SCORE_TO_GET_ON_BOARD = 500;
-
-function rollDice(count: number): Die[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: Date.now() + i,
-    value: (Math.floor(Math.random() * 6) + 1) as DieValue,
-    selected: false,
-    banked: false,
-  }));
-}
 
 const initialState: GameState = {
   dice: [],
@@ -32,169 +30,76 @@ export default function Home() {
   const [message, setMessage] = useState("Roll the dice to start!");
 
   useEffect(() => {
-    setGameState((prev) => ({ ...prev, dice: rollDice(6) }));
+    setGameState((prev) => ({ ...prev, dice: createDice(6) }));
   }, []);
 
-  const selectedDice = gameState.dice.filter((d) => d.selected && !d.banked);
-  const activeDice = gameState.dice.filter((d) => !d.banked);
-  const bankedDice = gameState.dice.filter((d) => d.banked);
-  const selectedScore = calculateScore(selectedDice);
+  // Use selectors for derived values
+  const activeDice = getActiveDice(gameState);
+  const bankedDice = getBankedDice(gameState);
+  const selectedScore = getSelectedScore(gameState);
 
   const toggleDie = (id: number) => {
-    if (gameState.gameOver) return;
-
-    setGameState((prev) => ({
-      ...prev,
-      dice: prev.dice.map((die) =>
-        die.id === id && !die.banked
-          ? { ...die, selected: !die.selected }
-          : die,
-      ),
-    }));
-    setMessage("");
+    const result = gameReducer(gameState, actions.toggleDie(id));
+    setGameState(result.state);
+    if (result.message !== undefined) {
+      setMessage(result.message);
+    }
   };
 
   const handleRoll = () => {
-    if (gameState.gameOver) return;
+    const result = gameReducer(gameState, actions.roll());
+    setGameState(result.state);
+    if (result.message) {
+      setMessage(result.message);
+    }
 
-    const newDice = rollDice(activeDice.length);
-
-    setGameState((prev) => {
-      const bankedDice = prev.dice.filter((d) => d.banked);
-      return {
-        ...prev,
-        dice: [...bankedDice, ...newDice],
-      };
-    });
-
-    // Check for sparkle
-    if (isSparkle(newDice)) {
-      setMessage("💥 FARKLE! You lost all points this turn!");
+    // Handle delayed action (e.g., auto-end turn after sparkle)
+    if (result.delayedAction) {
       setTimeout(() => {
-        endTurn(true);
-      }, 2000);
-    } else {
-      setMessage("Select scoring dice and bank them, or roll again!");
+        const endTurnResult = gameReducer(
+          result.state,
+          actions.endTurn(result.delayedAction!.isFarkled)
+        );
+        setGameState(endTurnResult.state);
+        if (endTurnResult.message) {
+          setMessage(endTurnResult.message);
+        }
+      }, result.delayedAction.delay);
     }
   };
 
   const handleBank = () => {
-    if (selectedDice.length === 0) {
-      setMessage("Select some dice first!");
-      return;
-    }
-
-    if (selectedScore === 0) {
-      setMessage("Selected dice do not score!");
-      return;
-    }
-
-    const newBankedScore = gameState.bankedScore + selectedScore;
-    const allDiceUsed = activeDice.length === selectedDice.length;
-
-    setGameState((prev) => {
-      if (allDiceUsed) {
-        // Hot dice: clear banked dice and roll 6 new dice
-        const newDice = rollDice(6);
-        return {
-          ...prev,
-          dice: newDice,
-          bankedScore: newBankedScore,
-          currentScore: prev.currentScore + selectedScore,
-        };
-      } else {
-        // Normal bank: just mark selected dice as banked
-        return {
-          ...prev,
-          dice: prev.dice.map((die) =>
-            die.selected ? { ...die, selected: false, banked: true } : die,
-          ),
-          bankedScore: newBankedScore,
-          currentScore: prev.currentScore + selectedScore,
-        };
-      }
-    });
-
-    if (allDiceUsed) {
-      setMessage(
-        `Banked ${selectedScore} points! Hot dice! Rolling all 6 dice again...`,
-      );
-    } else {
-      setMessage(`Banked ${selectedScore} points! Roll again or end turn.`);
-    }
-  };
-
-  const endTurn = (isSparkled: boolean = false) => {
-    const totalTurnScore = isSparkled
-      ? 0
-      : gameState.currentScore + selectedScore;
-    const newTotalScore = gameState.totalScore + totalTurnScore;
-    const canGetOnBoard =
-      !gameState.isOnBoard && totalTurnScore >= MIN_SCORE_TO_GET_ON_BOARD;
-    const nowOnBoard = gameState.isOnBoard || canGetOnBoard;
-
-    if (!gameState.isOnBoard && !canGetOnBoard && totalTurnScore > 0) {
-      setMessage(
-        `Need ${MIN_SCORE_TO_GET_ON_BOARD} points to get on the board. You only scored ${totalTurnScore}. Try again!`,
-      );
-    }
-
-    const finalScore = nowOnBoard ? newTotalScore : gameState.totalScore;
-    const gameOver = finalScore >= WINNING_SCORE;
-
-    setGameState({
-      dice: rollDice(6),
-      currentScore: 0,
-      bankedScore: 0,
-      totalScore: finalScore,
-      isOnBoard: nowOnBoard,
-      turnNumber: gameState.turnNumber + 1,
-      gameOver,
-    });
-
-    if (gameOver) {
-      setMessage(`🎉 You win! Final score: ${finalScore}`);
-    } else if (!isSparkled) {
-      if (canGetOnBoard) {
-        setMessage(`You're on the board! Scored ${totalTurnScore} points!`);
-      } else if (nowOnBoard) {
-        setMessage(`Turn over! You scored ${totalTurnScore} points!`);
-      }
+    const result = gameReducer(gameState, actions.bank());
+    setGameState(result.state);
+    if (result.message) {
+      setMessage(result.message);
     }
   };
 
   const handleEndTurn = () => {
-    if (gameState.bankedScore === 0 && selectedScore === 0) {
-      setMessage("You must bank some points before ending your turn!");
+    if (!canEndTurn(gameState)) {
+      if (gameState.bankedScore === 0 && selectedScore === 0) {
+        setMessage("You must bank some points before ending your turn!");
+      } else if (selectedScore > 0) {
+        setMessage("Bank your selected dice first!");
+      }
       return;
     }
 
-    if (selectedScore > 0) {
-      setMessage("Bank your selected dice first!");
-      return;
+    const result = gameReducer(gameState, actions.endTurn(false));
+    setGameState(result.state);
+    if (result.message) {
+      setMessage(result.message);
     }
-
-    endTurn(false);
   };
 
   const resetGame = () => {
-    setGameState({
-      dice: rollDice(6),
-      currentScore: 0,
-      bankedScore: 0,
-      totalScore: 0,
-      isOnBoard: false,
-      turnNumber: 1,
-      gameOver: false,
-    });
-    setMessage("New game started! Roll the dice!");
+    const result = gameReducer(gameState, actions.reset());
+    setGameState(result.state);
+    if (result.message) {
+      setMessage(result.message);
+    }
   };
-
-  const canRoll =
-    activeDice.length > 0 &&
-    selectedDice.length === 0 &&
-    !gameState.gameOver &&
-    gameState.bankedScore > 0; // Must bank at least once before rolling again
 
   return (
     <div className="min-h-screen bg-black p-8">
@@ -256,7 +161,7 @@ export default function Home() {
         <div className="flex gap-3 mb-8">
           <button
             onClick={handleRoll}
-            disabled={!canRoll}
+            disabled={!canRoll(gameState)}
             className="px-4 py-2 border-2 border-white text-white hover:bg-white hover:text-black
                      disabled:border-gray-700 disabled:text-gray-700 disabled:hover:bg-transparent
                      disabled:cursor-not-allowed transition-colors font-medium"
@@ -266,7 +171,7 @@ export default function Home() {
 
           <button
             onClick={handleBank}
-            disabled={selectedDice.length === 0 || gameState.gameOver}
+            disabled={!canBank(gameState)}
             className="px-4 py-2 border-2 border-white text-white hover:bg-white hover:text-black
                      disabled:border-gray-700 disabled:text-gray-700 disabled:hover:bg-transparent
                      disabled:cursor-not-allowed transition-colors font-medium"
