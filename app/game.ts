@@ -210,11 +210,11 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       }
 
       const finalScore = nowOnBoard ? newTotalScore : state.totalScore;
-      const gameOver = finalScore >= WINNING_SCORE;
+      const gameOver = action.isSparkled || false;
 
-      if (gameOver) {
-        message = `🎉 You win! Final score: ${finalScore}`;
-      } else if (!action.isSparkled) {
+      if (action.isSparkled) {
+        message = `💥 Game Over! Final score: ${finalScore}`;
+      } else {
         if (canGetOnBoard) {
           message = `You're on the board! Scored ${totalTurnScore} points!`;
         } else if (nowOnBoard) {

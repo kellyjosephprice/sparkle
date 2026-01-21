@@ -186,39 +186,39 @@ export default function Home() {
             </thead>
             <tbody className="text-gray-400">
               <tr className="border-b border-gray-800">
-                <td className="py-2">Single 1</td>
+                <td className="py-2">1</td>
                 <td className="text-right">100</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Single 5</td>
+                <td className="py-2">5</td>
                 <td className="text-right">50</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Three 1s</td>
+                <td className="py-2">111</td>
                 <td className="text-right">1,000</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Three of any other</td>
+                <td className="py-2">222/333/444/555/666</td>
                 <td className="text-right">value × 100</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Four of a kind</td>
+                <td className="py-2">XXXX</td>
                 <td className="text-right">double</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Five of a kind</td>
-                <td className="text-right">quadruple</td>
+                <td className="py-2">XXXXX</td>
+                <td className="text-right">4×</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Six of a kind</td>
+                <td className="py-2">XXXXXX</td>
                 <td className="text-right">8×</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Straight (1-2-3-4-5-6)</td>
+                <td className="py-2">1-2-3-4-5-6</td>
                 <td className="text-right">1,500</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Three pairs</td>
+                <td className="py-2">XXYYZZ</td>
                 <td className="text-right">1,500</td>
               </tr>
               <tr className="border-b border-gray-800">
@@ -226,8 +226,8 @@ export default function Home() {
                 <td className="text-right">500 minimum</td>
               </tr>
               <tr>
-                <td className="py-2">Win</td>
-                <td className="text-right">10,000</td>
+                <td className="py-2">Sparkle</td>
+                <td className="text-right">Game Over</td>
               </tr>
             </tbody>
           </table>

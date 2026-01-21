@@ -474,7 +474,7 @@ describe('Game Reducer', () => {
       expect(result.state.message).toContain('Need');
     });
 
-    it('should set gameOver when reaching winning score', () => {
+    it('should continue game regardless of score', () => {
       const state: GameState = {
         dice: [],
         currentScore: 1000,
@@ -487,11 +487,12 @@ describe('Game Reducer', () => {
       };
 
       const result = gameReducer(state, actions.endTurn(false));
-      expect(result.state.gameOver).toBe(true);
-      expect(result.state.message).toContain('win');
+      expect(result.state.gameOver).toBe(false); // No win condition
+      expect(result.state.totalScore).toBe(WINNING_SCORE); // Score continues to accumulate
+      expect(result.state.message).toContain('Turn over');
     });
 
-    it('should reset score to 0 when sparkled', () => {
+    it('should end game and reset score to 0 when sparkled', () => {
       const state: GameState = {
         dice: [],
         currentScore: 500,
@@ -504,8 +505,11 @@ describe('Game Reducer', () => {
       };
 
       const result = gameReducer(state, actions.endTurn(true));
+      expect(result.state.gameOver).toBe(true); // Game ends on sparkle
       expect(result.state.totalScore).toBe(1000); // No change, lost turn points
       expect(result.state.currentScore).toBe(0);
+      expect(result.state.message).toContain('Game Over');
+      expect(result.state.message).toContain('1000'); // Shows final score
     });
   });
 
