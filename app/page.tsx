@@ -8,9 +8,10 @@ import {
   createDice,
   getActiveDice,
   getBankedDice,
+  getSelectedDice,
   getSelectedScore,
   canRoll,
-  canBank,
+  canEndTurn,
   calculateThreshold,
 } from "./game";
 import Dice from "./components/Dice";
@@ -28,15 +29,34 @@ const initialState: GameState = {
 
 export default function Home() {
   const [gameState, setGameState] = useState<GameState>(initialState);
+  const [rolling, setRolling] = useState(false);
+  const [displayDice, setDisplayDice] = useState<typeof initialState.dice>([]);
 
   useEffect(() => {
     setGameState((prev) => ({ ...prev, dice: createDice(6) }));
   }, []);
 
-  // Use selectors for derived values
-  const activeDice = getActiveDice(gameState);
-  const bankedDice = getBankedDice(gameState);
+  // Update display dice when game state changes (and not rolling)
+  useEffect(() => {
+    if (!rolling) {
+      setDisplayDice(gameState.dice);
+    }
+  }, [gameState.dice, rolling]);
+
+  // Use selectors for derived values (use displayDice for visual, gameState for logic)
+  const activeDice = getActiveDice({ ...gameState, dice: displayDice });
+  const bankedDice = getBankedDice({ ...gameState, dice: displayDice });
   const selectedScore = getSelectedScore(gameState);
+
+  // Helper to shuffle dice values during animation (only active dice)
+  const shuffleDiceValues = () => {
+    setDisplayDice(prev => prev.map(die =>
+      die.banked ? die : {
+        ...die,
+        value: (Math.floor(Math.random() * 6) + 1) as typeof die.value,
+      }
+    ));
+  };
 
   const toggleDie = (id: number) => {
     const result = gameReducer(gameState, actions.toggleDie(id));
@@ -44,8 +64,35 @@ export default function Home() {
   };
 
   const handleRoll = () => {
-    const result = gameReducer(gameState, actions.roll());
+    let currentState = gameState;
+
+    // Auto-bank selected dice first if any
+    const selectedDice = getSelectedDice(currentState);
+    if (selectedDice.length > 0) {
+      const bankResult = gameReducer(currentState, actions.bank());
+      currentState = bankResult.state;
+      setGameState(currentState);
+    }
+
+    // Then roll
+    const result = gameReducer(currentState, actions.roll());
     setGameState(result.state);
+
+    // Immediately update display dice to show new state (with banked dice in place)
+    setDisplayDice(result.state.dice);
+
+    // Trigger roll animation
+    setRolling(true);
+
+    // Shuffle only active dice values during animation
+    const shuffleInterval = setInterval(shuffleDiceValues, 50);
+
+    // End animation after 500ms
+    setTimeout(() => {
+      clearInterval(shuffleInterval);
+      setRolling(false);
+      setDisplayDice(result.state.dice);
+    }, 500);
 
     // Handle delayed action (e.g., auto-end turn after sparkle)
     if (result.delayedAction) {
@@ -59,19 +106,68 @@ export default function Home() {
     }
   };
 
-  const handleBank = () => {
-    const result = gameReducer(gameState, actions.bank());
-    setGameState(result.state);
-  };
-
   const handleEndTurn = () => {
-    const result = gameReducer(gameState, actions.endTurn(false));
+    let currentState = gameState;
+
+    // Auto-bank selected dice first if any
+    const selectedDice = getSelectedDice(currentState);
+    if (selectedDice.length > 0) {
+      const bankResult = gameReducer(currentState, actions.bank());
+      currentState = bankResult.state;
+      setGameState(currentState);
+    }
+
+    // Then end turn
+    const result = gameReducer(currentState, actions.endTurn(false));
     setGameState(result.state);
+
+    // Trigger roll animation for new turn dice
+    if (!result.state.gameOver) {
+      // Immediately update display dice to show new state
+      setDisplayDice(result.state.dice);
+
+      setRolling(true);
+
+      // Shuffle dice values during animation
+      const shuffleInterval = setInterval(shuffleDiceValues, 50);
+
+      setTimeout(() => {
+        clearInterval(shuffleInterval);
+        setRolling(false);
+        setDisplayDice(result.state.dice);
+      }, 500);
+    }
+
+    // Handle delayed action (e.g., auto-end turn after sparkle on new turn)
+    if (result.delayedAction) {
+      setTimeout(() => {
+        const endTurnResult = gameReducer(
+          result.state,
+          actions.endTurn(result.delayedAction!.isSparkled)
+        );
+        setGameState(endTurnResult.state);
+      }, result.delayedAction.delay);
+    }
   };
 
   const resetGame = () => {
     const result = gameReducer(gameState, actions.reset());
     setGameState(result.state);
+
+    // Immediately update display dice to show new state
+    setDisplayDice(result.state.dice);
+
+    // Trigger roll animation for new game dice
+    setRolling(true);
+
+    // Shuffle dice values during animation
+    const shuffleInterval = setInterval(shuffleDiceValues, 50);
+
+    setTimeout(() => {
+      clearInterval(shuffleInterval);
+      setRolling(false);
+      setDisplayDice(result.state.dice);
+    }, 500);
   };
 
   return (
@@ -109,26 +205,31 @@ export default function Home() {
         <div className="mb-8">
           <div className="mb-6">
             <h2 className="text-lg font-medium text-white mb-3">Active Dice</h2>
-            <Dice dice={activeDice} onToggleDie={toggleDie} />
-
-            {selectedScore > 0 && (
-              <div className="text-center mt-4 text-sm text-gray-300">
-                Selected:{" "}
-                <span className="font-bold text-white">
-                  {selectedScore} points
-                </span>
-              </div>
-            )}
+            <Dice
+              dice={activeDice.filter(d => !d.selected)}
+              onToggleDie={toggleDie}
+              rolling={rolling}
+            />
           </div>
 
-          {bankedDice.length > 0 && (
-            <div className="pt-6 border-t border-gray-800">
-              <h2 className="text-lg font-medium text-white mb-3">
-                Banked Dice
-              </h2>
-              <Dice dice={bankedDice} onToggleDie={toggleDie} />
-            </div>
-          )}
+          <div className="pt-6 border-t border-gray-800">
+            <h2 className="text-lg font-medium text-white mb-3">
+              Banked Dice
+              {selectedScore > 0 && (
+                <span className="text-sm text-gray-400 font-normal ml-2">
+                  ({selectedScore} points staged)
+                </span>
+              )}
+            </h2>
+            <Dice
+              dice={[...bankedDice, ...activeDice.filter(d => d.selected)]}
+              onToggleDie={toggleDie}
+              rolling={false}
+            />
+            {bankedDice.length === 0 && activeDice.filter(d => d.selected).length === 0 && (
+              <div className="text-gray-600 text-sm italic">No dice banked yet</div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-3 mb-8">
@@ -143,18 +244,8 @@ export default function Home() {
           </button>
 
           <button
-            onClick={handleBank}
-            disabled={!canBank(gameState)}
-            className="px-4 py-2 border-2 border-white text-white hover:bg-white hover:text-black
-                     disabled:border-gray-700 disabled:text-gray-700 disabled:hover:bg-transparent
-                     disabled:cursor-not-allowed transition-colors font-medium"
-          >
-            Bank
-          </button>
-
-          <button
             onClick={handleEndTurn}
-            disabled={gameState.gameOver}
+            disabled={!canEndTurn(gameState)}
             className="px-4 py-2 border-2 border-white text-white hover:bg-white hover:text-black
                      disabled:border-gray-700 disabled:text-gray-700 disabled:hover:bg-transparent
                      disabled:cursor-not-allowed transition-colors font-medium"

@@ -3,6 +3,7 @@ import type { Die } from '../types';
 interface DiceProps {
   dice: Die[];
   onToggleDie: (id: number) => void;
+  rolling?: boolean;
 }
 
 const DiceFace = ({ value, selected }: { value: number; selected: boolean }) => {
@@ -39,16 +40,17 @@ const DiceFace = ({ value, selected }: { value: number; selected: boolean }) => 
   );
 };
 
-export default function Dice({ dice, onToggleDie }: DiceProps) {
+export default function Dice({ dice, onToggleDie, rolling = false }: DiceProps) {
   return (
     <div className="flex flex-wrap gap-4 justify-center">
       {dice.map((die) => (
         <button
           key={die.id}
           onClick={() => onToggleDie(die.id)}
-          disabled={die.banked}
+          disabled={die.banked || rolling}
           className={`
             w-16 h-16 border-2 transition-colors
+            ${rolling && !die.banked ? 'animate-roll' : ''}
             ${die.banked ? 'opacity-20 cursor-not-allowed border-gray-800 bg-gray-900' :
               die.selected ? 'border-white bg-white' :
               'border-gray-600 bg-black hover:border-white'}

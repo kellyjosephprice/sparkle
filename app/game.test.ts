@@ -103,7 +103,7 @@ describe('Validation Functions', () => {
       expect(canRoll(state)).toBe(false);
     });
 
-    it('should return false when dice are selected', () => {
+    it('should return true when scoring dice are selected', () => {
       const state: GameState = {
         dice: [{ id: 1, value: 1, selected: true, banked: false }],
         currentScore: 0,
@@ -114,10 +114,24 @@ describe('Validation Functions', () => {
         turnNumber: 1,
         gameOver: false,
       };
-      expect(canRoll(state)).toBe(false);
+      expect(canRoll(state)).toBe(true); // Selected dice will be auto-banked
     });
 
-    it('should return false when bankedScore is 0', () => {
+    it('should return false when selected dice do not score', () => {
+      const state: GameState = {
+        dice: [{ id: 1, value: 2, selected: true, banked: false }],
+        currentScore: 0,
+        bankedScore: 100,
+        totalScore: 0,
+        threshold: calculateThreshold(1),
+        message: "",
+        turnNumber: 1,
+        gameOver: false,
+      };
+      expect(canRoll(state)).toBe(false); // Selected dice don't score
+    });
+
+    it('should return false when no dice are selected', () => {
       const state: GameState = {
         dice: [{ id: 1, value: 1, selected: false, banked: false }],
         currentScore: 0,
@@ -131,7 +145,7 @@ describe('Validation Functions', () => {
       expect(canRoll(state)).toBe(false);
     });
 
-    it('should return true when conditions are met', () => {
+    it('should return false even with banked score if no dice selected', () => {
       const state: GameState = {
         dice: [{ id: 1, value: 1, selected: false, banked: false }],
         currentScore: 0,
@@ -142,7 +156,7 @@ describe('Validation Functions', () => {
         turnNumber: 1,
         gameOver: false,
       };
-      expect(canRoll(state)).toBe(true);
+      expect(canRoll(state)).toBe(false);
     });
   });
 
@@ -205,7 +219,7 @@ describe('Validation Functions', () => {
       expect(canEndTurn(state)).toBe(false);
     });
 
-    it('should return false when dice are still selected', () => {
+    it('should return true when scoring dice are selected', () => {
       const state: GameState = {
         dice: [{ id: 1, value: 1, selected: true, banked: false }],
         currentScore: 0,
@@ -216,7 +230,21 @@ describe('Validation Functions', () => {
         turnNumber: 1,
         gameOver: false,
       };
-      expect(canEndTurn(state)).toBe(false);
+      expect(canEndTurn(state)).toBe(true); // Selected dice will be auto-banked
+    });
+
+    it('should return false when selected dice do not score', () => {
+      const state: GameState = {
+        dice: [{ id: 1, value: 2, selected: true, banked: false }],
+        currentScore: 0,
+        bankedScore: 0,
+        totalScore: 0,
+        threshold: calculateThreshold(1),
+        message: "",
+        turnNumber: 1,
+        gameOver: false,
+      };
+      expect(canEndTurn(state)).toBe(false); // Selected dice don't score
     });
 
     it('should return true when points are banked and no selection', () => {

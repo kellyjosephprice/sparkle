@@ -1,8 +1,12 @@
-import type { Die, DieValue, GameState, GameAction, GameReducerResult } from "./types";
+import type {
+  Die,
+  DieValue,
+  GameState,
+  GameAction,
+  GameReducerResult,
+} from "./types";
 import { calculateScore, isSparkle } from "./scoring";
 
-export const WINNING_SCORE = 10000;
-export const MIN_SCORE_TO_GET_ON_BOARD = 500;
 export const BASE_THRESHOLD = 100;
 
 // Utility/Selector Functions
@@ -40,14 +44,10 @@ export function getSelectedScore(state: GameState): number {
 
 export function canRoll(state: GameState): boolean {
   const activeDice = getActiveDice(state);
-  const selectedDice = getSelectedDice(state);
+  const selectedScore = getSelectedScore(state);
 
-  return (
-    activeDice.length > 0 &&
-    selectedDice.length === 0 &&
-    !state.gameOver &&
-    state.bankedScore > 0
-  );
+  // Can only roll if you have selected dice that score (will be auto-banked)
+  return activeDice.length > 0 && !state.gameOver && selectedScore > 0;
 }
 
 export function canBank(state: GameState): boolean {
@@ -60,18 +60,18 @@ export function canBank(state: GameState): boolean {
 export function canEndTurn(state: GameState): boolean {
   const selectedScore = getSelectedScore(state);
 
-  return (
-    !state.gameOver &&
-    (state.bankedScore > 0 || selectedScore > 0) &&
-    selectedScore === 0
-  );
+  // Can end turn if there are points to bank (either already banked or selected)
+  return !state.gameOver && (state.bankedScore > 0 || selectedScore > 0);
 }
 
 // Game Reducer
 
-export function gameReducer(state: GameState, action: GameAction): GameReducerResult {
+export function gameReducer(
+  state: GameState,
+  action: GameAction,
+): GameReducerResult {
   switch (action.type) {
-    case 'TOGGLE_DIE': {
+    case "TOGGLE_DIE": {
       if (state.gameOver) {
         return { state };
       }
@@ -81,7 +81,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
         dice: state.dice.map((die) =>
           die.id === action.dieId && !die.banked
             ? { ...die, selected: !die.selected }
-            : die
+            : die,
         ),
         message: "",
       };
@@ -89,7 +89,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       return { state: newState };
     }
 
-    case 'ROLL': {
+    case "ROLL": {
       if (state.gameOver) {
         return { state };
       }
@@ -107,7 +107,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
             message: "💥 SPARKLE! You lost all points this turn!",
           },
           delayedAction: {
-            type: 'END_TURN',
+            type: "END_TURN",
             delay: 2000,
             isSparkled: true,
           },
@@ -123,7 +123,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       };
     }
 
-    case 'BANK': {
+    case "BANK": {
       const selectedDice = getSelectedDice(state);
       const selectedScore = getSelectedScore(state);
 
@@ -167,7 +167,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
           state: {
             ...state,
             dice: state.dice.map((die) =>
-              die.selected ? { ...die, selected: false, banked: true } : die
+              die.selected ? { ...die, selected: false, banked: true } : die,
             ),
             bankedScore: newBankedScore,
             currentScore: state.currentScore + selectedScore,
@@ -177,7 +177,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       }
     }
 
-    case 'END_TURN': {
+    case "END_TURN": {
       const selectedScore = getSelectedScore(state);
       const totalTurnScore = action.isSparkled
         ? 0
@@ -226,9 +226,33 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
         message = `Turn over! You scored ${totalTurnScore} points!`;
       }
 
+      // Create new dice for next turn (if not game over)
+      const newDice = gameOver ? state.dice : createDice(6);
+
+      // Check if new turn dice sparkle
+      if (!gameOver && isSparkle(newDice)) {
+        return {
+          state: {
+            dice: newDice,
+            currentScore: 0,
+            bankedScore: 0,
+            totalScore: newTotalScore,
+            threshold: nextThreshold,
+            turnNumber: nextTurnNumber,
+            gameOver: false,
+            message: `Turn over! You scored ${totalTurnScore} points!`,
+          },
+          delayedAction: {
+            type: "END_TURN",
+            delay: 2000,
+            isSparkled: true,
+          },
+        };
+      }
+
       return {
         state: {
-          dice: gameOver ? state.dice : createDice(6),
+          dice: newDice,
           currentScore: 0,
           bankedScore: 0,
           totalScore: newTotalScore,
@@ -240,7 +264,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       };
     }
 
-    case 'RESET': {
+    case "RESET": {
       return {
         state: {
           dice: createDice(6),
