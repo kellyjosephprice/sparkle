@@ -268,7 +268,7 @@ describe('Game Reducer', () => {
       };
 
       const result = gameReducer(state, actions.toggleDie(1));
-      expect(result.message).toBe('');
+      expect(result.state.message).toBe('');
     });
   });
 
@@ -306,7 +306,7 @@ describe('Game Reducer', () => {
 
       const result = gameReducer(state, actions.roll());
       // Message will vary based on if it's a sparkle or not
-      expect(result.message).toBeDefined();
+      expect(result.state.message).toBeDefined();
     });
   });
 
@@ -320,11 +320,14 @@ describe('Game Reducer', () => {
         isOnBoard: false,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.bank());
-      expect(result.message).toBe('Select some dice first!');
-      expect(result.state).toEqual(state);
+      expect(result.state.message).toBe('Select some dice first!');
+      // State is updated with error message
+      expect(result.state.dice).toEqual(state.dice);
+      expect(result.state.currentScore).toBe(state.currentScore);
     });
 
     it('should return error when selected dice do not score', () => {
@@ -339,7 +342,7 @@ describe('Game Reducer', () => {
       };
 
       const result = gameReducer(state, actions.bank());
-      expect(result.message).toBe('Selected dice do not score!');
+      expect(result.state.message).toBe('Selected dice do not score!');
     });
 
     it('should bank selected dice and update scores', () => {
@@ -376,12 +379,46 @@ describe('Game Reducer', () => {
 
       const result = gameReducer(state, actions.bank());
       expect(result.state.dice).toHaveLength(6); // Rolled 6 new dice
-      expect(result.message).toContain('Hot dice');
+      expect(result.state.message).toContain('Hot dice');
       expect(result.state.dice.every(d => !d.banked)).toBe(true); // All dice are active
     });
   });
 
   describe('END_TURN', () => {
+    it('should return error when no points are banked', () => {
+      const state: GameState = {
+        dice: [{ id: 1, value: 1, selected: false, banked: false }],
+        currentScore: 0,
+        bankedScore: 0,
+        totalScore: 0,
+        isOnBoard: false,
+        turnNumber: 1,
+        gameOver: false,
+        message: "",
+      };
+
+      const result = gameReducer(state, actions.endTurn(false));
+      expect(result.state.message).toBe("You must bank some points before ending your turn!");
+      expect(result.state.turnNumber).toBe(1); // Turn not ended
+    });
+
+    it('should return error when dice are still selected', () => {
+      const state: GameState = {
+        dice: [{ id: 1, value: 1, selected: true, banked: false }],
+        currentScore: 0,
+        bankedScore: 100,
+        totalScore: 0,
+        isOnBoard: false,
+        turnNumber: 1,
+        gameOver: false,
+        message: "",
+      };
+
+      const result = gameReducer(state, actions.endTurn(false));
+      expect(result.state.message).toBe("Bank your selected dice first!");
+      expect(result.state.turnNumber).toBe(1); // Turn not ended
+    });
+
     it('should reset dice and increment turn number', () => {
       const state: GameState = {
         dice: [{ id: 1, value: 1, selected: false, banked: true }],
@@ -391,6 +428,7 @@ describe('Game Reducer', () => {
         isOnBoard: false,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
@@ -409,12 +447,13 @@ describe('Game Reducer', () => {
         isOnBoard: false,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
       expect(result.state.isOnBoard).toBe(true);
       expect(result.state.totalScore).toBe(MIN_SCORE_TO_GET_ON_BOARD);
-      expect(result.message).toContain('on the board');
+      expect(result.state.message).toContain('on the board');
     });
 
     it('should not update score when not on board and below minimum', () => {
@@ -426,12 +465,13 @@ describe('Game Reducer', () => {
         isOnBoard: false,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
       expect(result.state.isOnBoard).toBe(false);
       expect(result.state.totalScore).toBe(0);
-      expect(result.message).toContain('Need');
+      expect(result.state.message).toContain('Need');
     });
 
     it('should set gameOver when reaching winning score', () => {
@@ -443,14 +483,15 @@ describe('Game Reducer', () => {
         isOnBoard: true,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
       expect(result.state.gameOver).toBe(true);
-      expect(result.message).toContain('win');
+      expect(result.state.message).toContain('win');
     });
 
-    it('should reset score to 0 when farkled', () => {
+    it('should reset score to 0 when sparkled', () => {
       const state: GameState = {
         dice: [],
         currentScore: 500,
@@ -459,6 +500,7 @@ describe('Game Reducer', () => {
         isOnBoard: true,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(true));
@@ -487,7 +529,7 @@ describe('Game Reducer', () => {
       expect(result.state.isOnBoard).toBe(false);
       expect(result.state.turnNumber).toBe(1);
       expect(result.state.gameOver).toBe(false);
-      expect(result.message).toContain('New game');
+      expect(result.state.message).toContain('New game');
     });
   });
 });

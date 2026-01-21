@@ -78,9 +78,10 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
             ? { ...die, selected: !die.selected }
             : die
         ),
+        message: "",
       };
 
-      return { state: newState, message: "" };
+      return { state: newState };
     }
 
     case 'ROLL': {
@@ -92,27 +93,28 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       const newDice = createDice(activeDice.length);
       const bankedDice = getBankedDice(state);
 
-      const newState: GameState = {
-        ...state,
-        dice: [...bankedDice, ...newDice],
-      };
-
       // Check for sparkle
       if (isSparkle(newDice)) {
         return {
-          state: newState,
-          message: "💥 FARKLE! You lost all points this turn!",
+          state: {
+            ...state,
+            dice: [...bankedDice, ...newDice],
+            message: "💥 SPARKLE! You lost all points this turn!",
+          },
           delayedAction: {
             type: 'END_TURN',
             delay: 2000,
-            isFarkled: true,
+            isSparkled: true,
           },
         };
       }
 
       return {
-        state: newState,
-        message: "Select scoring dice and bank them, or roll again!",
+        state: {
+          ...state,
+          dice: [...bankedDice, ...newDice],
+          message: "Select scoring dice and bank them, or roll again!",
+        },
       };
     }
 
@@ -121,11 +123,21 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       const selectedScore = getSelectedScore(state);
 
       if (selectedDice.length === 0) {
-        return { state, message: "Select some dice first!" };
+        return {
+          state: {
+            ...state,
+            message: "Select some dice first!",
+          },
+        };
       }
 
       if (selectedScore === 0) {
-        return { state, message: "Selected dice do not score!" };
+        return {
+          state: {
+            ...state,
+            message: "Selected dice do not score!",
+          },
+        };
       }
 
       const activeDice = getActiveDice(state);
@@ -135,38 +147,56 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       if (allDiceUsed) {
         // Hot dice: clear banked dice and roll 6 new dice
         const newDice = createDice(6);
-        const newState: GameState = {
-          ...state,
-          dice: newDice,
-          bankedScore: newBankedScore,
-          currentScore: state.currentScore + selectedScore,
-        };
-
         return {
-          state: newState,
-          message: `Banked ${selectedScore} points! Hot dice! Rolling all 6 dice again...`,
+          state: {
+            ...state,
+            dice: newDice,
+            bankedScore: newBankedScore,
+            currentScore: state.currentScore + selectedScore,
+            message: `Banked ${selectedScore} points! Hot dice! Rolling all 6 dice again...`,
+          },
         };
       } else {
         // Normal bank: just mark selected dice as banked
-        const newState: GameState = {
-          ...state,
-          dice: state.dice.map((die) =>
-            die.selected ? { ...die, selected: false, banked: true } : die
-          ),
-          bankedScore: newBankedScore,
-          currentScore: state.currentScore + selectedScore,
-        };
-
         return {
-          state: newState,
-          message: `Banked ${selectedScore} points! Roll again or end turn.`,
+          state: {
+            ...state,
+            dice: state.dice.map((die) =>
+              die.selected ? { ...die, selected: false, banked: true } : die
+            ),
+            bankedScore: newBankedScore,
+            currentScore: state.currentScore + selectedScore,
+            message: `Banked ${selectedScore} points! Roll again or end turn.`,
+          },
         };
       }
     }
 
     case 'END_TURN': {
       const selectedScore = getSelectedScore(state);
-      const totalTurnScore = action.isFarkled
+
+      // Validation (only if not sparkled - sparkle auto-ends turn)
+      if (!action.isSparkled) {
+        if (state.bankedScore === 0 && selectedScore === 0) {
+          return {
+            state: {
+              ...state,
+              message: "You must bank some points before ending your turn!",
+            },
+          };
+        }
+
+        if (selectedScore > 0) {
+          return {
+            state: {
+              ...state,
+              message: "Bank your selected dice first!",
+            },
+          };
+        }
+      }
+
+      const totalTurnScore = action.isSparkled
         ? 0
         : state.currentScore + selectedScore;
       const newTotalScore = state.totalScore + totalTurnScore;
@@ -182,19 +212,9 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
       const finalScore = nowOnBoard ? newTotalScore : state.totalScore;
       const gameOver = finalScore >= WINNING_SCORE;
 
-      const newState: GameState = {
-        dice: createDice(6),
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: finalScore,
-        isOnBoard: nowOnBoard,
-        turnNumber: state.turnNumber + 1,
-        gameOver,
-      };
-
       if (gameOver) {
         message = `🎉 You win! Final score: ${finalScore}`;
-      } else if (!action.isFarkled) {
+      } else if (!action.isSparkled) {
         if (canGetOnBoard) {
           message = `You're on the board! Scored ${totalTurnScore} points!`;
         } else if (nowOnBoard) {
@@ -202,23 +222,32 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
         }
       }
 
-      return { state: newState, message };
+      return {
+        state: {
+          dice: createDice(6),
+          currentScore: 0,
+          bankedScore: 0,
+          totalScore: finalScore,
+          isOnBoard: nowOnBoard,
+          turnNumber: state.turnNumber + 1,
+          gameOver,
+          message,
+        },
+      };
     }
 
     case 'RESET': {
-      const newState: GameState = {
-        dice: createDice(6),
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        isOnBoard: false,
-        turnNumber: 1,
-        gameOver: false,
-      };
-
       return {
-        state: newState,
-        message: "New game started! Roll the dice!",
+        state: {
+          dice: createDice(6),
+          currentScore: 0,
+          bankedScore: 0,
+          totalScore: 0,
+          isOnBoard: false,
+          turnNumber: 1,
+          gameOver: false,
+          message: "New game started! Roll the dice!",
+        },
       };
     }
 

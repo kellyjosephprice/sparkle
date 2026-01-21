@@ -15,6 +15,7 @@ export interface GameState {
   isOnBoard: boolean;
   turnNumber: number;
   gameOver: boolean;
+  message: string;
 }
 
 export type ScoringCombination =
@@ -31,16 +32,15 @@ export type GameAction =
   | { type: 'ROLL' }
   | { type: 'TOGGLE_DIE'; dieId: number }
   | { type: 'BANK' }
-  | { type: 'END_TURN'; isFarkled?: boolean }
+  | { type: 'END_TURN'; isSparkled?: boolean }
   | { type: 'RESET' };
 
 export interface GameReducerResult {
   state: GameState;
-  message?: string;
   delayedAction?: {
     type: 'END_TURN';
     delay: number;
-    isFarkled: boolean;
+    isSparkled: boolean;
   };
 }
 
@@ -48,6 +48,6 @@ export const actions = {
   roll: (): GameAction => ({ type: 'ROLL' }),
   toggleDie: (dieId: number): GameAction => ({ type: 'TOGGLE_DIE', dieId }),
   bank: (): GameAction => ({ type: 'BANK' }),
-  endTurn: (isFarkled?: boolean): GameAction => ({ type: 'END_TURN', isFarkled }),
+  endTurn: (isSparkled?: boolean): GameAction => ({ type: 'END_TURN', isSparkled }),
   reset: (): GameAction => ({ type: 'RESET' }),
 };

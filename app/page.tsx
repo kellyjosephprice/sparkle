@@ -11,7 +11,6 @@ import {
   getSelectedScore,
   canRoll,
   canBank,
-  canEndTurn,
 } from "./game";
 import Dice from "./components/Dice";
 
@@ -23,11 +22,11 @@ const initialState: GameState = {
   isOnBoard: false,
   turnNumber: 1,
   gameOver: false,
+  message: "Roll the dice to start!",
 };
 
 export default function Home() {
   const [gameState, setGameState] = useState<GameState>(initialState);
-  const [message, setMessage] = useState("Roll the dice to start!");
 
   useEffect(() => {
     setGameState((prev) => ({ ...prev, dice: createDice(6) }));
@@ -41,29 +40,20 @@ export default function Home() {
   const toggleDie = (id: number) => {
     const result = gameReducer(gameState, actions.toggleDie(id));
     setGameState(result.state);
-    if (result.message !== undefined) {
-      setMessage(result.message);
-    }
   };
 
   const handleRoll = () => {
     const result = gameReducer(gameState, actions.roll());
     setGameState(result.state);
-    if (result.message) {
-      setMessage(result.message);
-    }
 
     // Handle delayed action (e.g., auto-end turn after sparkle)
     if (result.delayedAction) {
       setTimeout(() => {
         const endTurnResult = gameReducer(
           result.state,
-          actions.endTurn(result.delayedAction!.isFarkled)
+          actions.endTurn(result.delayedAction!.isSparkled)
         );
         setGameState(endTurnResult.state);
-        if (endTurnResult.message) {
-          setMessage(endTurnResult.message);
-        }
       }, result.delayedAction.delay);
     }
   };
@@ -71,34 +61,16 @@ export default function Home() {
   const handleBank = () => {
     const result = gameReducer(gameState, actions.bank());
     setGameState(result.state);
-    if (result.message) {
-      setMessage(result.message);
-    }
   };
 
   const handleEndTurn = () => {
-    if (!canEndTurn(gameState)) {
-      if (gameState.bankedScore === 0 && selectedScore === 0) {
-        setMessage("You must bank some points before ending your turn!");
-      } else if (selectedScore > 0) {
-        setMessage("Bank your selected dice first!");
-      }
-      return;
-    }
-
     const result = gameReducer(gameState, actions.endTurn(false));
     setGameState(result.state);
-    if (result.message) {
-      setMessage(result.message);
-    }
   };
 
   const resetGame = () => {
     const result = gameReducer(gameState, actions.reset());
     setGameState(result.state);
-    if (result.message) {
-      setMessage(result.message);
-    }
   };
 
   return (
@@ -127,9 +99,9 @@ export default function Home() {
           </div>
         </div>
 
-        {message && (
+        {gameState.message && (
           <div className="border-l-4 border-white bg-gray-900 p-3 mb-6 text-sm text-white">
-            {message}
+            {gameState.message}
           </div>
         )}
 

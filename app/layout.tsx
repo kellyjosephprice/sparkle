@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Sparkle",
-  description: "A dice scoring game based on farkle",
+  description: "A dice scoring game - a sparkle derivative",
 };
 
 export default function RootLayout({
