@@ -22,6 +22,7 @@ const initialState: GameState = {
   bankedScore: 0,
   totalScore: 0,
   threshold: calculateThreshold(1),
+  thresholdLevel: 1,
   turnNumber: 1,
   gameOver: false,
   message: "Roll the dice to start!",

@@ -96,6 +96,7 @@ describe('Validation Functions', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -110,6 +111,7 @@ describe('Validation Functions', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -124,6 +126,7 @@ describe('Validation Functions', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -138,6 +141,7 @@ describe('Validation Functions', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -152,6 +156,7 @@ describe('Validation Functions', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -168,6 +173,7 @@ describe('Validation Functions', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -182,6 +188,7 @@ describe('Validation Functions', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -196,6 +203,7 @@ describe('Validation Functions', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -212,6 +220,7 @@ describe('Validation Functions', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -226,6 +235,7 @@ describe('Validation Functions', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -240,6 +250,7 @@ describe('Validation Functions', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -254,6 +265,7 @@ describe('Validation Functions', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -272,6 +284,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -288,6 +301,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -304,6 +318,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -325,6 +340,7 @@ describe('Game Reducer', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -343,6 +359,7 @@ describe('Game Reducer', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -362,6 +379,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -381,6 +399,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -400,6 +419,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -419,6 +439,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -439,6 +460,7 @@ describe('Game Reducer', () => {
         bankedScore: 0,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -456,6 +478,7 @@ describe('Game Reducer', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -473,6 +496,7 @@ describe('Game Reducer', () => {
         bankedScore: 100,
         totalScore: 0,
         threshold: calculateThreshold(1),
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
@@ -491,15 +515,18 @@ describe('Game Reducer', () => {
         currentScore: 100,
         bankedScore: 100,
         totalScore: 0,
-        threshold: calculateThreshold(1), // 100 for turn 1
+        threshold: calculateThreshold(1), // 100 for level 1
+        thresholdLevel: 1,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
       expect(result.state.totalScore).toBe(100);
       expect(result.state.turnNumber).toBe(2);
-      expect(result.state.threshold).toBe(calculateThreshold(2)); // 200 for turn 2
+      expect(result.state.threshold).toBe(calculateThreshold(2)); // 200 for level 2
+      expect(result.state.thresholdLevel).toBe(2);
       expect(result.state.message).toContain('Turn over');
     });
 
@@ -509,16 +536,18 @@ describe('Game Reducer', () => {
         currentScore: 50,
         bankedScore: 50,
         totalScore: 0,
-        threshold: calculateThreshold(1), // 100 for turn 1
+        threshold: calculateThreshold(1), // 100 for level 1
+        thresholdLevel: 1,
         turnNumber: 1,
         gameOver: false,
+        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
       expect(result.state.totalScore).toBe(0); // No score added
       expect(result.state.turnNumber).toBe(1); // Turn not incremented
       expect(result.state.message).toContain('Need');
-      expect(result.state.message).toContain('100'); // Mentions threshold
+      expect(result.state.message).toContain('total score of 100'); // Mentions cumulative threshold
     });
 
     it('should continue game regardless of score', () => {
@@ -538,24 +567,47 @@ describe('Game Reducer', () => {
       expect(result.state.message).toContain('Turn over');
     });
 
-    it('should end game and reset score to 0 when sparkled', () => {
+    it('should continue game when sparkled but total score is above threshold', () => {
       const state: GameState = {
         dice: [],
         currentScore: 500,
         bankedScore: 500,
         totalScore: 1000,
-        threshold: calculateThreshold(1),
+        threshold: calculateThreshold(1), // 100
+        thresholdLevel: 1,
         message: "",
         turnNumber: 1,
         gameOver: false,
       };
 
       const result = gameReducer(state, actions.endTurn(true));
-      expect(result.state.gameOver).toBe(true); // Game ends on sparkle
+      expect(result.state.gameOver).toBe(false); // Game continues (1000 >= 100)
       expect(result.state.totalScore).toBe(1000); // No change, lost turn points
       expect(result.state.currentScore).toBe(0);
+      expect(result.state.message).toContain('SPARKLE');
+      expect(result.state.message).toContain('continue');
+    });
+
+    it('should end game when sparkled and total score is below threshold', () => {
+      const state: GameState = {
+        dice: [],
+        currentScore: 50,
+        bankedScore: 50,
+        totalScore: 50,
+        threshold: calculateThreshold(1), // 100
+        thresholdLevel: 1,
+        message: "",
+        turnNumber: 1,
+        gameOver: false,
+      };
+
+      const result = gameReducer(state, actions.endTurn(true));
+      expect(result.state.gameOver).toBe(true); // Game ends (50 < 100)
+      expect(result.state.totalScore).toBe(50); // No change, lost turn points
+      expect(result.state.currentScore).toBe(0);
+      expect(result.state.message).toContain('SPARKLE');
       expect(result.state.message).toContain('Game Over');
-      expect(result.state.message).toContain('1000'); // Shows final score
+      expect(result.state.message).toContain('50'); // Shows final score
     });
   });
 

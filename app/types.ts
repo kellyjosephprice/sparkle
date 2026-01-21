@@ -13,6 +13,7 @@ export interface GameState {
   bankedScore: number;
   totalScore: number;
   threshold: number;
+  thresholdLevel: number;
   turnNumber: number;
   gameOver: boolean;
   message: string;
