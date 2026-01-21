@@ -3,8 +3,13 @@ import { calculateScore, isSparkle } from "./scoring";
 
 export const WINNING_SCORE = 10000;
 export const MIN_SCORE_TO_GET_ON_BOARD = 500;
+export const BASE_THRESHOLD = 100;
 
 // Utility/Selector Functions
+
+export function calculateThreshold(turnNumber: number): number {
+  return BASE_THRESHOLD * Math.pow(2, turnNumber - 1);
+}
 
 export function createDice(count: number): Die[] {
   return Array.from({ length: count }, (_, i) => ({
@@ -174,6 +179,9 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
 
     case 'END_TURN': {
       const selectedScore = getSelectedScore(state);
+      const totalTurnScore = action.isSparkled
+        ? 0
+        : state.currentScore + selectedScore;
 
       // Validation (only if not sparkled - sparkle auto-ends turn)
       if (!action.isSparkled) {
@@ -194,42 +202,38 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
             },
           };
         }
+
+        // Check if threshold is met
+        if (totalTurnScore < state.threshold) {
+          return {
+            state: {
+              ...state,
+              message: `Need ${state.threshold} points to end turn. You only scored ${totalTurnScore}. Keep rolling!`,
+            },
+          };
+        }
       }
 
-      const totalTurnScore = action.isSparkled
-        ? 0
-        : state.currentScore + selectedScore;
       const newTotalScore = state.totalScore + totalTurnScore;
-      const canGetOnBoard =
-        !state.isOnBoard && totalTurnScore >= MIN_SCORE_TO_GET_ON_BOARD;
-      const nowOnBoard = state.isOnBoard || canGetOnBoard;
+      const gameOver = action.isSparkled || false;
+      const nextTurnNumber = state.turnNumber + 1;
+      const nextThreshold = calculateThreshold(nextTurnNumber);
 
       let message = "";
-      if (!state.isOnBoard && !canGetOnBoard && totalTurnScore > 0) {
-        message = `Need ${MIN_SCORE_TO_GET_ON_BOARD} points to get on the board. You only scored ${totalTurnScore}. Try again!`;
-      }
-
-      const finalScore = nowOnBoard ? newTotalScore : state.totalScore;
-      const gameOver = action.isSparkled || false;
-
       if (action.isSparkled) {
-        message = `💥 Game Over! Final score: ${finalScore}`;
+        message = `💥 Game Over! Final score: ${newTotalScore}`;
       } else {
-        if (canGetOnBoard) {
-          message = `You're on the board! Scored ${totalTurnScore} points!`;
-        } else if (nowOnBoard) {
-          message = `Turn over! You scored ${totalTurnScore} points!`;
-        }
+        message = `Turn over! You scored ${totalTurnScore} points!`;
       }
 
       return {
         state: {
-          dice: createDice(6),
+          dice: gameOver ? state.dice : createDice(6),
           currentScore: 0,
           bankedScore: 0,
-          totalScore: finalScore,
-          isOnBoard: nowOnBoard,
-          turnNumber: state.turnNumber + 1,
+          totalScore: newTotalScore,
+          threshold: nextThreshold,
+          turnNumber: nextTurnNumber,
           gameOver,
           message,
         },
@@ -243,7 +247,7 @@ export function gameReducer(state: GameState, action: GameAction): GameReducerRe
           currentScore: 0,
           bankedScore: 0,
           totalScore: 0,
-          isOnBoard: false,
+          threshold: calculateThreshold(1),
           turnNumber: 1,
           gameOver: false,
           message: "New game started! Roll the dice!",

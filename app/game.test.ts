@@ -9,8 +9,8 @@ import {
   canRoll,
   canBank,
   canEndTurn,
-  WINNING_SCORE,
-  MIN_SCORE_TO_GET_ON_BOARD,
+  calculateThreshold,
+  BASE_THRESHOLD,
 } from './game';
 import { actions } from './types';
 import type { GameState, Die } from './types';
@@ -39,9 +39,10 @@ describe('Game Selectors', () => {
       currentScore: 0,
       bankedScore: 0,
       totalScore: 0,
-      isOnBoard: false,
+      threshold: calculateThreshold(1),
       turnNumber: 1,
       gameOver: false,
+      message: "",
     };
   });
 
@@ -94,7 +95,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -107,7 +109,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -120,7 +123,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -133,7 +137,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -148,7 +153,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -161,7 +167,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -174,7 +181,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -189,7 +197,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -202,7 +211,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -215,7 +225,8 @@ describe('Validation Functions', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -232,7 +243,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -247,7 +259,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -262,7 +275,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -282,7 +296,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -299,7 +314,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -317,10 +333,10 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
-        message: "",
       };
 
       const result = gameReducer(state, actions.bank());
@@ -336,7 +352,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -354,7 +371,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -372,7 +390,8 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
       };
@@ -391,10 +410,10 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 0,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
-        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
@@ -408,10 +427,10 @@ describe('Game Reducer', () => {
         currentScore: 0,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
-        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
@@ -425,10 +444,10 @@ describe('Game Reducer', () => {
         currentScore: 100,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
-        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
@@ -438,40 +457,40 @@ describe('Game Reducer', () => {
       expect(result.state.bankedScore).toBe(0);
     });
 
-    it('should get player on board when scoring enough points', () => {
-      const state: GameState = {
-        dice: [],
-        currentScore: MIN_SCORE_TO_GET_ON_BOARD,
-        bankedScore: MIN_SCORE_TO_GET_ON_BOARD,
-        totalScore: 0,
-        isOnBoard: false,
-        turnNumber: 1,
-        gameOver: false,
-        message: "",
-      };
-
-      const result = gameReducer(state, actions.endTurn(false));
-      expect(result.state.isOnBoard).toBe(true);
-      expect(result.state.totalScore).toBe(MIN_SCORE_TO_GET_ON_BOARD);
-      expect(result.state.message).toContain('on the board');
-    });
-
-    it('should not update score when not on board and below minimum', () => {
+    it('should end turn when meeting the threshold', () => {
       const state: GameState = {
         dice: [],
         currentScore: 100,
         bankedScore: 100,
         totalScore: 0,
-        isOnBoard: false,
+        threshold: calculateThreshold(1), // 100 for turn 1
         turnNumber: 1,
         gameOver: false,
-        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
-      expect(result.state.isOnBoard).toBe(false);
-      expect(result.state.totalScore).toBe(0);
+      expect(result.state.totalScore).toBe(100);
+      expect(result.state.turnNumber).toBe(2);
+      expect(result.state.threshold).toBe(calculateThreshold(2)); // 200 for turn 2
+      expect(result.state.message).toContain('Turn over');
+    });
+
+    it('should not end turn when below threshold', () => {
+      const state: GameState = {
+        dice: [],
+        currentScore: 50,
+        bankedScore: 50,
+        totalScore: 0,
+        threshold: calculateThreshold(1), // 100 for turn 1
+        turnNumber: 1,
+        gameOver: false,
+      };
+
+      const result = gameReducer(state, actions.endTurn(false));
+      expect(result.state.totalScore).toBe(0); // No score added
+      expect(result.state.turnNumber).toBe(1); // Turn not incremented
       expect(result.state.message).toContain('Need');
+      expect(result.state.message).toContain('100'); // Mentions threshold
     });
 
     it('should continue game regardless of score', () => {
@@ -479,16 +498,15 @@ describe('Game Reducer', () => {
         dice: [],
         currentScore: 1000,
         bankedScore: 1000,
-        totalScore: WINNING_SCORE - 1000,
-        isOnBoard: true,
+        totalScore: 9000,
+        threshold: calculateThreshold(1),
         turnNumber: 1,
         gameOver: false,
-        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(false));
       expect(result.state.gameOver).toBe(false); // No win condition
-      expect(result.state.totalScore).toBe(WINNING_SCORE); // Score continues to accumulate
+      expect(result.state.totalScore).toBe(10000); // Score continues to accumulate
       expect(result.state.message).toContain('Turn over');
     });
 
@@ -498,10 +516,10 @@ describe('Game Reducer', () => {
         currentScore: 500,
         bankedScore: 500,
         totalScore: 1000,
-        isOnBoard: true,
+        threshold: calculateThreshold(1),
+        message: "",
         turnNumber: 1,
         gameOver: false,
-        message: "",
       };
 
       const result = gameReducer(state, actions.endTurn(true));
@@ -520,9 +538,10 @@ describe('Game Reducer', () => {
         currentScore: 500,
         bankedScore: 300,
         totalScore: 5000,
-        isOnBoard: true,
+        threshold: calculateThreshold(10),
         turnNumber: 10,
         gameOver: true,
+        message: "Game over!",
       };
 
       const result = gameReducer(state, actions.reset());
@@ -530,7 +549,7 @@ describe('Game Reducer', () => {
       expect(result.state.currentScore).toBe(0);
       expect(result.state.bankedScore).toBe(0);
       expect(result.state.totalScore).toBe(0);
-      expect(result.state.isOnBoard).toBe(false);
+      expect(result.state.threshold).toBe(calculateThreshold(1));
       expect(result.state.turnNumber).toBe(1);
       expect(result.state.gameOver).toBe(false);
       expect(result.state.message).toContain('New game');

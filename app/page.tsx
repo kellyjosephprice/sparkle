@@ -11,6 +11,7 @@ import {
   getSelectedScore,
   canRoll,
   canBank,
+  calculateThreshold,
 } from "./game";
 import Dice from "./components/Dice";
 
@@ -19,7 +20,7 @@ const initialState: GameState = {
   currentScore: 0,
   bankedScore: 0,
   totalScore: 0,
-  isOnBoard: false,
+  threshold: calculateThreshold(1),
   turnNumber: 1,
   gameOver: false,
   message: "Roll the dice to start!",
@@ -94,7 +95,7 @@ export default function Home() {
           <div>
             <div className="text-gray-400">Turn {gameState.turnNumber}</div>
             <div className="text-sm text-gray-300">
-              {gameState.isOnBoard ? "On Board" : "Not On Board"}
+              Threshold: {gameState.threshold}
             </div>
           </div>
         </div>
@@ -222,8 +223,8 @@ export default function Home() {
                 <td className="text-right">1,500</td>
               </tr>
               <tr className="border-b border-gray-800">
-                <td className="py-2">Get on board</td>
-                <td className="text-right">500 minimum</td>
+                <td className="py-2">Threshold</td>
+                <td className="text-right">100 × 2^(turn-1)</td>
               </tr>
               <tr>
                 <td className="py-2">Sparkle</td>
