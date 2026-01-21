@@ -1,18 +1,5 @@
-import type {
-  Die,
-  DieValue,
-  GameState,
-  GameAction,
-  GameReducerResult,
-} from "./types";
-import { calculateScore, isSparkle } from "./scoring";
-import {
-  toggleDieReducer,
-  rollReducer,
-  bankReducer,
-  endTurnReducer,
-  resetReducer,
-} from "./reducers";
+import type { Die, DieValue, GameState } from "./types";
+import { calculateScore } from "./scoring";
 
 export const BASE_THRESHOLD = 100;
 
@@ -69,31 +56,4 @@ export function canEndTurn(state: GameState): boolean {
 
   // Can end turn if there are points to bank (either already banked or selected)
   return !state.gameOver && (state.bankedScore > 0 || selectedScore > 0);
-}
-
-// Game Reducer
-
-export function gameReducer(
-  state: GameState,
-  action: GameAction,
-): GameReducerResult {
-  switch (action.type) {
-    case "TOGGLE_DIE":
-      return toggleDieReducer(state, action);
-
-    case "ROLL":
-      return rollReducer(state, action);
-
-    case "BANK":
-      return bankReducer(state, action);
-
-    case "END_TURN":
-      return endTurnReducer(state, action);
-
-    case "RESET":
-      return resetReducer(state, action);
-
-    default:
-      return { state };
-  }
 }

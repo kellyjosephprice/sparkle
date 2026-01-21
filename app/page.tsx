@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { GameState } from "./types";
-import { actions } from "./types";
 import {
-  gameReducer,
   createDice,
   getActiveDice,
   getBankedDice,
@@ -14,6 +12,8 @@ import {
   canEndTurn,
   calculateThreshold,
 } from "./game";
+import { gameEngine, eventBus } from "./messaging";
+import type { GameEvent } from "./messaging";
 import Dice from "./components/Dice";
 
 const initialState: GameState = {
@@ -35,6 +35,20 @@ export default function Home() {
 
   useEffect(() => {
     setGameState((prev) => ({ ...prev, dice: createDice(6) }));
+
+    // Subscribe to events
+    const unsubscribe = eventBus.subscribe((event: GameEvent) => {
+      if (event.type === "DELAYED_ACTION") {
+        setTimeout(() => {
+          setGameState((currentState) => {
+            const result = gameEngine.processCommand(currentState, event.action);
+            return result.state;
+          });
+        }, event.delay);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Update display dice when game state changes (and not rolling)
@@ -60,7 +74,10 @@ export default function Home() {
   };
 
   const toggleDie = (id: number) => {
-    const result = gameReducer(gameState, actions.toggleDie(id));
+    const result = gameEngine.processCommand(gameState, {
+      type: "TOGGLE_DIE",
+      dieId: id,
+    });
     setGameState(result.state);
   };
 
@@ -70,13 +87,17 @@ export default function Home() {
     // Auto-bank selected dice first if any
     const selectedDice = getSelectedDice(currentState);
     if (selectedDice.length > 0) {
-      const bankResult = gameReducer(currentState, actions.bank());
+      const bankResult = gameEngine.processCommand(currentState, {
+        type: "BANK_DICE",
+      });
       currentState = bankResult.state;
       setGameState(currentState);
     }
 
     // Then roll
-    const result = gameReducer(currentState, actions.roll());
+    const result = gameEngine.processCommand(currentState, {
+      type: "ROLL_DICE",
+    });
     setGameState(result.state);
 
     // Immediately update display dice to show new state (with banked dice in place)
@@ -94,17 +115,6 @@ export default function Home() {
       setRolling(false);
       setDisplayDice(result.state.dice);
     }, 500);
-
-    // Handle delayed action (e.g., auto-end turn after sparkle)
-    if (result.delayedAction) {
-      setTimeout(() => {
-        const endTurnResult = gameReducer(
-          result.state,
-          actions.endTurn(result.delayedAction!.isSparkled)
-        );
-        setGameState(endTurnResult.state);
-      }, result.delayedAction.delay);
-    }
   };
 
   const handleEndTurn = () => {
@@ -113,13 +123,18 @@ export default function Home() {
     // Auto-bank selected dice first if any
     const selectedDice = getSelectedDice(currentState);
     if (selectedDice.length > 0) {
-      const bankResult = gameReducer(currentState, actions.bank());
+      const bankResult = gameEngine.processCommand(currentState, {
+        type: "BANK_DICE",
+      });
       currentState = bankResult.state;
       setGameState(currentState);
     }
 
     // Then end turn
-    const result = gameReducer(currentState, actions.endTurn(false));
+    const result = gameEngine.processCommand(currentState, {
+      type: "END_TURN",
+      isSparkled: false,
+    });
     setGameState(result.state);
 
     // Trigger roll animation for new turn dice
@@ -138,21 +153,12 @@ export default function Home() {
         setDisplayDice(result.state.dice);
       }, 500);
     }
-
-    // Handle delayed action (e.g., auto-end turn after sparkle on new turn)
-    if (result.delayedAction) {
-      setTimeout(() => {
-        const endTurnResult = gameReducer(
-          result.state,
-          actions.endTurn(result.delayedAction!.isSparkled)
-        );
-        setGameState(endTurnResult.state);
-      }, result.delayedAction.delay);
-    }
   };
 
   const resetGame = () => {
-    const result = gameReducer(gameState, actions.reset());
+    const result = gameEngine.processCommand(gameState, {
+      type: "RESET_GAME",
+    });
     setGameState(result.state);
 
     // Immediately update display dice to show new state

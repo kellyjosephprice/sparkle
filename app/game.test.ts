@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
-  gameReducer,
   createDice,
   getActiveDice,
   getBankedDice,
@@ -12,7 +11,7 @@ import {
   calculateThreshold,
   BASE_THRESHOLD,
 } from './game';
-import { actions } from './types';
+import { gameEngine } from './messaging';
 import type { GameState, Die } from './types';
 
 // Helper to create a dice array with specific values
@@ -290,7 +289,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.toggleDie(1));
+      const result = gameEngine.processCommand(state, { type: "TOGGLE_DIE", dieId: 1 });
       expect(result.state.dice[0].selected).toBe(true);
     });
 
@@ -307,7 +306,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.toggleDie(1));
+      const result = gameEngine.processCommand(state, { type: "TOGGLE_DIE", dieId: 1 });
       expect(result.state.dice[0].selected).toBe(false);
     });
 
@@ -324,7 +323,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.toggleDie(1));
+      const result = gameEngine.processCommand(state, { type: "TOGGLE_DIE", dieId: 1 });
       expect(result.state.message).toBe('');
     });
   });
@@ -346,7 +345,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.roll());
+      const result = gameEngine.processCommand(state, { type: "ROLL_DICE" });
       const bankedDice = result.state.dice.filter(d => d.banked);
       expect(bankedDice).toHaveLength(1);
       expect(bankedDice[0].id).toBe(1);
@@ -365,7 +364,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.roll());
+      const result = gameEngine.processCommand(state, { type: "ROLL_DICE" });
       // Message will vary based on if it's a sparkle or not
       expect(result.state.message).toBeDefined();
     });
@@ -385,7 +384,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.bank());
+      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
       expect(result.state.message).toBe('Select some dice first!');
       // State is updated with error message
       expect(result.state.dice).toEqual(state.dice);
@@ -405,7 +404,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.bank());
+      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
       expect(result.state.message).toBe('Selected dice do not score!');
     });
 
@@ -425,7 +424,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.bank());
+      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
       expect(result.state.dice[0].banked).toBe(true);
       expect(result.state.dice[0].selected).toBe(false);
       expect(result.state.bankedScore).toBe(100);
@@ -445,7 +444,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.bank());
+      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
       expect(result.state.dice).toHaveLength(6); // Rolled 6 new dice
       expect(result.state.message).toContain('Hot dice');
       expect(result.state.dice.every(d => !d.banked)).toBe(true); // All dice are active
@@ -466,7 +465,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.endTurn(false));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: false });
       expect(result.state.message).toBe("You must bank some points before ending your turn!");
       expect(result.state.turnNumber).toBe(1); // Turn not ended
     });
@@ -484,7 +483,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.endTurn(false));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: false });
       expect(result.state.message).toBe("Bank your selected dice first!");
       expect(result.state.turnNumber).toBe(1); // Turn not ended
     });
@@ -502,7 +501,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.endTurn(false));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: false });
       expect(result.state.dice).toHaveLength(6);
       expect(result.state.turnNumber).toBe(2);
       expect(result.state.currentScore).toBe(0);
@@ -522,7 +521,7 @@ describe('Game Reducer', () => {
         message: "",
       };
 
-      const result = gameReducer(state, actions.endTurn(false));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: false });
       expect(result.state.totalScore).toBe(100);
       expect(result.state.turnNumber).toBe(2);
       expect(result.state.threshold).toBe(calculateThreshold(2)); // 200 for level 2
@@ -543,7 +542,7 @@ describe('Game Reducer', () => {
         message: "",
       };
 
-      const result = gameReducer(state, actions.endTurn(false));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: false });
       expect(result.state.totalScore).toBe(0); // No score added
       expect(result.state.turnNumber).toBe(1); // Turn not incremented
       expect(result.state.message).toContain('Need');
@@ -561,7 +560,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.endTurn(false));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: false });
       expect(result.state.gameOver).toBe(false); // No win condition
       expect(result.state.totalScore).toBe(10000); // Score continues to accumulate
       expect(result.state.message).toContain('Turn over');
@@ -580,7 +579,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.endTurn(true));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: true });
       expect(result.state.gameOver).toBe(false); // Game continues (1000 >= 100)
       expect(result.state.totalScore).toBe(1000); // No change, lost turn points
       expect(result.state.currentScore).toBe(0);
@@ -601,7 +600,7 @@ describe('Game Reducer', () => {
         gameOver: false,
       };
 
-      const result = gameReducer(state, actions.endTurn(true));
+      const result = gameEngine.processCommand(state, { type: "END_TURN", isSparkled: true });
       expect(result.state.gameOver).toBe(true); // Game ends (50 < 100)
       expect(result.state.totalScore).toBe(50); // No change, lost turn points
       expect(result.state.currentScore).toBe(0);
@@ -624,7 +623,7 @@ describe('Game Reducer', () => {
         message: "Game over!",
       };
 
-      const result = gameReducer(state, actions.reset());
+      const result = gameEngine.processCommand(state, { type: "RESET_GAME" });
       expect(result.state.dice).toHaveLength(6);
       expect(result.state.currentScore).toBe(0);
       expect(result.state.bankedScore).toBe(0);
