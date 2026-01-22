@@ -1,13 +1,13 @@
-import type { GameState } from "../types";
-import type { GameCommand, CommandResult } from "./types";
+import type { GameState } from "../../src/types";
+import { eventBus } from "./eventBus";
 import {
-  handleToggleDie,
-  handleRoll,
   handleBank,
   handleEndTurn,
   handleReset,
+  handleRoll,
+  handleToggleDie,
 } from "./handlers";
-import { eventBus } from "./eventBus";
+import type { CommandResult, GameCommand } from "./types";
 
 export class GameEngine {
   processCommand(state: GameState, command: GameCommand): CommandResult {
@@ -19,11 +19,11 @@ export class GameEngine {
         break;
 
       case "ROLL_DICE":
-        result = handleRoll(state, command);
+        result = handleRoll(state);
         break;
 
       case "BANK_DICE":
-        result = handleBank(state, command);
+        result = handleBank(state);
         break;
 
       case "END_TURN":
@@ -31,7 +31,7 @@ export class GameEngine {
         break;
 
       case "RESET_GAME":
-        result = handleReset(state, command);
+        result = handleReset();
         break;
 
       default:

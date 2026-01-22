@@ -1,4 +1,4 @@
-import type { GameEvent, EventHandler } from "./types";
+import type { EventHandler, GameEvent } from "./types";
 
 class EventBus {
   private handlers: EventHandler[] = [];

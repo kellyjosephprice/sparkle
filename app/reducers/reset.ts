@@ -1,10 +1,7 @@
-import type { GameState, GameAction, GameReducerResult } from "../types";
-import { createDice, calculateThreshold } from "../game";
+import { calculateThreshold, createDice } from "../game";
+import type { GameReducerResult } from "../types";
 
-export function resetReducer(
-  state: GameState,
-  action: Extract<GameAction, { type: "RESET" }>
-): GameReducerResult {
+export function resetReducer(): GameReducerResult {
   return {
     state: {
       dice: createDice(6),

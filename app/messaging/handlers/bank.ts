@@ -1,16 +1,13 @@
-import type { GameState } from "../../types";
-import type { GameCommand, CommandResult } from "../types";
 import {
+  createDice,
+  getActiveDice,
   getSelectedDice,
   getSelectedScore,
-  getActiveDice,
-  createDice,
-} from "../../game";
+} from "../../../src/game";
+import type { GameState } from "../../../src/types";
+import type { CommandResult } from "../types";
 
-export function handleBank(
-  state: GameState,
-  command: Extract<GameCommand, { type: "BANK_DICE" }>
-): CommandResult {
+export function handleBank(state: GameState): CommandResult {
   const selectedDice = getSelectedDice(state);
   const selectedScore = getSelectedScore(state);
 
@@ -51,7 +48,7 @@ export function handleBank(
       state: {
         ...state,
         dice: state.dice.map((die) =>
-          die.selected ? { ...die, selected: false, banked: true } : die
+          die.selected ? { ...die, selected: false, banked: true } : die,
         ),
         bankedScore: newBankedScore,
         currentScore: state.currentScore + selectedScore,

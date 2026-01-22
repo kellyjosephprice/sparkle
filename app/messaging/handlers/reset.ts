@@ -1,11 +1,7 @@
-import type { GameState } from "../../types";
-import type { GameCommand, CommandResult } from "../types";
-import { createDice, calculateThreshold } from "../../game";
+import { calculateThreshold, createDice } from "../../../src/game";
+import type { CommandResult } from "../types";
 
-export function handleReset(
-  state: GameState,
-  command: Extract<GameCommand, { type: "RESET_GAME" }>
-): CommandResult {
+export function handleReset(): CommandResult {
   return {
     state: {
       dice: createDice(6),

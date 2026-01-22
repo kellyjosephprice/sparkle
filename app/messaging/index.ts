@@ -1,3 +1,3 @@
-export { gameEngine } from "./gameEngine";
 export { eventBus } from "./eventBus";
-export type { GameCommand, GameEvent, CommandResult, EventHandler } from "./types";
+export { gameEngine } from "./gameEngine";
+export type { CommandResult, EventHandler,GameCommand, GameEvent } from "./types";

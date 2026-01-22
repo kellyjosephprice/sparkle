@@ -1,10 +1,14 @@
-import type { GameState, GameAction, GameReducerResult } from "../types";
-import { getSelectedScore, createDice, calculateThreshold } from "../game";
-import { isSparkle } from "../scoring";
+import {
+  calculateThreshold,
+  createDice,
+  getSelectedScore,
+} from "../../src/game";
+import { isSparkle } from "../../src/scoring";
+import type { GameAction, GameReducerResult, GameState } from "../../src/types";
 
 export function endTurnReducer(
   state: GameState,
-  action: Extract<GameAction, { type: "END_TURN" }>
+  action: Extract<GameAction, { type: "END_TURN" }>,
 ): GameReducerResult {
   const selectedScore = getSelectedScore(state);
   const totalTurnScore = action.isSparkled
@@ -48,7 +52,8 @@ export function endTurnReducer(
 
   // When sparkled, game only ends if total score is below threshold
   // (you can't continue if you can't meet the threshold to end turn)
-  const gameOver = action.isSparkled === true && newTotalScore < state.threshold;
+  const gameOver =
+    action.isSparkled === true && newTotalScore < state.threshold;
 
   // Increment threshold level if we've passed the current threshold
   let newThresholdLevel = state.thresholdLevel;

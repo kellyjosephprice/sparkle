@@ -1,4 +1,4 @@
-import type { Die } from '../types';
+import type { Die } from "../../src/types";
 
 interface DiceProps {
   dice: Die[];
@@ -6,24 +6,38 @@ interface DiceProps {
   rolling?: boolean;
 }
 
-const DiceFace = ({ value, selected }: { value: number; selected: boolean }) => {
-  const dots = {
-    1: ['center'],
-    2: ['top-left', 'bottom-right'],
-    3: ['top-left', 'center', 'bottom-right'],
-    4: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-    5: ['top-left', 'top-right', 'center', 'bottom-left', 'bottom-right'],
-    6: ['top-left', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-right']
-  }[value] || [];
+const DiceFace = ({
+  value,
+  selected,
+}: {
+  value: number;
+  selected: boolean;
+}) => {
+  const dots =
+    {
+      1: ["center"],
+      2: ["top-left", "bottom-right"],
+      3: ["top-left", "center", "bottom-right"],
+      4: ["top-left", "top-right", "bottom-left", "bottom-right"],
+      5: ["top-left", "top-right", "center", "bottom-left", "bottom-right"],
+      6: [
+        "top-left",
+        "top-right",
+        "middle-left",
+        "middle-right",
+        "bottom-left",
+        "bottom-right",
+      ],
+    }[value] || [];
 
   const dotPositions: Record<string, string> = {
-    'top-left': 'top-[20%] left-[20%]',
-    'top-right': 'top-[20%] right-[20%]',
-    'middle-left': 'top-[50%] left-[20%] -translate-y-1/2',
-    'middle-right': 'top-[50%] right-[20%] -translate-y-1/2',
-    'bottom-left': 'bottom-[20%] left-[20%]',
-    'bottom-right': 'bottom-[20%] right-[20%]',
-    'center': 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+    "top-left": "top-[20%] left-[20%]",
+    "top-right": "top-[20%] right-[20%]",
+    "middle-left": "top-[50%] left-[20%] -translate-y-1/2",
+    "middle-right": "top-[50%] right-[20%] -translate-y-1/2",
+    "bottom-left": "bottom-[20%] left-[20%]",
+    "bottom-right": "bottom-[20%] right-[20%]",
+    center: "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
   };
 
   return (
@@ -32,7 +46,7 @@ const DiceFace = ({ value, selected }: { value: number; selected: boolean }) => 
         <div
           key={idx}
           className={`absolute w-2.5 h-2.5 rounded-full ${dotPositions[position]} ${
-            selected ? 'bg-black' : 'bg-white'
+            selected ? "bg-black" : "bg-white"
           }`}
         />
       ))}
@@ -40,7 +54,11 @@ const DiceFace = ({ value, selected }: { value: number; selected: boolean }) => 
   );
 };
 
-export default function Dice({ dice, onToggleDie, rolling = false }: DiceProps) {
+export default function Dice({
+  dice,
+  onToggleDie,
+  rolling = false,
+}: DiceProps) {
   return (
     <div className="flex flex-wrap gap-4 justify-center">
       {dice.map((die) => (
@@ -50,10 +68,14 @@ export default function Dice({ dice, onToggleDie, rolling = false }: DiceProps) 
           disabled={die.banked || rolling}
           className={`
             w-16 h-16 border-2 transition-colors
-            ${rolling && !die.banked ? 'animate-roll' : ''}
-            ${die.banked ? 'opacity-20 cursor-not-allowed border-gray-800 bg-gray-900' :
-              die.selected ? 'border-white bg-white' :
-              'border-gray-600 bg-black hover:border-white'}
+            ${rolling && !die.banked ? "animate-roll" : ""}
+            ${
+              die.banked
+                ? "opacity-20 cursor-not-allowed border-gray-800 bg-gray-900"
+                : die.selected
+                  ? "border-white bg-white"
+                  : "border-gray-600 bg-black hover:border-white"
+            }
           `}
         >
           <DiceFace value={die.value} selected={die.selected} />

@@ -1,4 +1,4 @@
-import type { GameState, GameAction, GameReducerResult } from "../types";
+import type { GameAction, GameReducerResult, GameState } from "../types";
 
 export function toggleDieReducer(
   state: GameState,

@@ -1,11 +1,8 @@
-import type { GameState, GameAction, GameReducerResult } from "../types";
 import { createDice, getActiveDice, getBankedDice } from "../game";
 import { isSparkle } from "../scoring";
+import type { GameReducerResult, GameState } from "../types";
 
-export function rollReducer(
-  state: GameState,
-  action: Extract<GameAction, { type: "ROLL" }>
-): GameReducerResult {
+export function rollReducer(state: GameState): GameReducerResult {
   if (state.gameOver) {
     return { state };
   }

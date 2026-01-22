@@ -1,5 +1,5 @@
 import type { GameState } from "../../types";
-import type { GameCommand, CommandResult } from "../types";
+import type { CommandResult, GameCommand } from "../types";
 
 export function handleToggleDie(
   state: GameState,

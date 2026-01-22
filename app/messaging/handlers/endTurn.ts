@@ -1,14 +1,20 @@
-import type { GameState } from "../../types";
-import type { GameCommand, CommandResult, GameEvent } from "../types";
-import { getSelectedScore, createDice, calculateThreshold } from "../../game";
-import { isSparkle } from "../../scoring";
+import {
+  calculateThreshold,
+  createDice,
+  getSelectedScore,
+} from "../../../src/game";
+import { isSparkle } from "../../../src/scoring";
+import type { GameState } from "../../../src/types";
+import type { CommandResult, GameCommand, GameEvent } from "../types";
 
 export function handleEndTurn(
   state: GameState,
-  command: Extract<GameCommand, { type: "END_TURN" }>
+  command: Extract<GameCommand, { type: "END_TURN" }>,
 ): CommandResult {
   const selectedScore = getSelectedScore(state);
-  const totalTurnScore = command.isSparkled ? 0 : state.currentScore + selectedScore;
+  const totalTurnScore = command.isSparkled
+    ? 0
+    : state.currentScore + selectedScore;
 
   // Validation (only if not sparkled - sparkle auto-ends turn)
   if (!command.isSparkled) {

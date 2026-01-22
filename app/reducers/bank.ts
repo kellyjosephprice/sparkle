@@ -1,15 +1,12 @@
-import type { GameState, GameAction, GameReducerResult } from "../types";
 import {
+  createDice,
+  getActiveDice,
   getSelectedDice,
   getSelectedScore,
-  getActiveDice,
-  createDice,
 } from "../game";
+import type { GameReducerResult, GameState } from "../types";
 
-export function bankReducer(
-  state: GameState,
-  action: Extract<GameAction, { type: "BANK" }>
-): GameReducerResult {
+export function bankReducer(state: GameState): GameReducerResult {
   const selectedDice = getSelectedDice(state);
   const selectedScore = getSelectedScore(state);
 
@@ -53,7 +50,7 @@ export function bankReducer(
       state: {
         ...state,
         dice: state.dice.map((die) =>
-          die.selected ? { ...die, selected: false, banked: true } : die
+          die.selected ? { ...die, selected: false, banked: true } : die,
         ),
         bankedScore: newBankedScore,
         currentScore: state.currentScore + selectedScore,

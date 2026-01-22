@@ -1,12 +1,9 @@
-import type { GameState } from "../../types";
-import type { GameCommand, CommandResult, GameEvent } from "../types";
-import { createDice, getActiveDice, getBankedDice } from "../../game";
-import { isSparkle } from "../../scoring";
+import { createDice, getActiveDice, getBankedDice } from "../../../src/game";
+import { isSparkle } from "../../../src/scoring";
+import type { GameState } from "../../../src/types";
+import type { CommandResult, GameEvent } from "../types";
 
-export function handleRoll(
-  state: GameState,
-  command: Extract<GameCommand, { type: "ROLL_DICE" }>
-): CommandResult {
+export function handleRoll(state: GameState): CommandResult {
   if (state.gameOver) {
     return { state, events: [] };
   }
