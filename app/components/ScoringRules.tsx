@@ -1,6 +1,5 @@
 "use client";
 
-import { DEFAULT_RULES } from "../../src/scoring";
 import type { ScoringRule } from "../../src/types";
 
 interface ScoringRulesProps {
@@ -51,5 +50,3 @@ export default function ScoringRules({
     </details>
   );
 }
-
-export { DEFAULT_RULES };

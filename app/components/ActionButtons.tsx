@@ -14,13 +14,17 @@ export default function ActionButtons({
   onReset,
 }: ActionButtonsProps) {
   const buttonClass =
-    "px-4 py-2 border-2 border-white text-white hover:bg-white hover:text-black " +
+    "px-4 py-2 border-2 border-white rounded-lg text-white hover:bg-white hover:text-black " +
     "disabled:border-gray-700 disabled:text-gray-700 disabled:hover:bg-transparent " +
     "disabled:cursor-not-allowed transition-colors font-medium";
 
   return (
     <div className="flex gap-3 mb-8">
-      <button onClick={onRoll} disabled={!canRollAction} className={buttonClass}>
+      <button
+        onClick={onRoll}
+        disabled={!canRollAction}
+        className={buttonClass}
+      >
         Roll
       </button>
 
@@ -34,7 +38,7 @@ export default function ActionButtons({
 
       <button
         onClick={onReset}
-        className="px-4 py-2 border-2 border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors ml-auto font-medium"
+        className="px-4 py-2 border-2 rounded-lg border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors ml-auto font-medium"
       >
         New Game
       </button>

@@ -3,41 +3,26 @@
 import { useEffect, useState } from "react";
 
 import {
-  calculateThreshold,
   canEndTurn,
   canRoll,
   createDice,
-  getActiveDice,
-  getBankedDice,
   getSelectedScore,
+  initialState,
 } from "../src/game";
 import type { GameEvent } from "../src/messaging";
 import { eventBus, gameEngine } from "../src/messaging";
+import type { GameState, ScoringRuleId } from "../src/types";
 import ActionButtons from "./components/ActionButtons";
-import DiceSections from "./components/DiceSections";
+import Dice from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
 import ScoreDisplay from "./components/ScoreDisplay";
-import ScoringRules, { DEFAULT_RULES } from "./components/ScoringRules";
+import ScoringRules from "./components/ScoringRules";
 import {
   handleEndTurn,
   handleRoll,
   resetGame,
   toggleDie,
 } from "./hooks/useGameHandlers";
-import type { GameState, ScoringRuleId } from "./types";
-
-const initialState: GameState = {
-  dice: [],
-  currentScore: 0,
-  bankedScore: 0,
-  totalScore: 0,
-  threshold: calculateThreshold(1),
-  thresholdLevel: 1,
-  turnNumber: 1,
-  gameOver: false,
-  message: "Roll the dice to start!",
-  scoringRules: DEFAULT_RULES,
-};
 
 export default function Home() {
   const [gameState, setGameState] = useState<GameState>(() => ({
@@ -56,7 +41,7 @@ export default function Home() {
     const unsubscribe = eventBus.subscribe((event: GameEvent) => {
       if (event.type === "DELAYED_ACTION") {
         setTimeout(() => {
-          setGameState((currentState) => {
+          setGameState((currentState: GameState) => {
             const result = gameEngine.processCommand(
               currentState,
               event.action,
@@ -74,8 +59,6 @@ export default function Home() {
     ...gameState,
     dice: uiState.rolling ? uiState.displayDice : gameState.dice,
   };
-  const activeDice = getActiveDice(visualState);
-  const bankedDice = getBankedDice(visualState);
   const selectedScore = getSelectedScore(gameState);
 
   return (
@@ -92,10 +75,8 @@ export default function Home() {
 
         {gameState.message && <MessageBanner message={gameState.message} />}
 
-        <DiceSections
-          activeDice={activeDice}
-          bankedDice={bankedDice}
-          selectedScore={selectedScore}
+        <Dice
+          dice={visualState.dice}
           onToggleDie={(id) => setGameState(toggleDie(gameState, id))}
           rolling={uiState.rolling}
         />

@@ -26,6 +26,9 @@ const threeOfKindChecker: RuleChecker = (values, counts) => {
       const baseScore = value === 1 ? 1000 : value * 100;
       score += baseScore;
       activatedRules.push("three_of_kind");
+      // Exclude individual scoring for these dice
+      if (value === 1) activatedRules.push("single_one");
+      if (value === 5) activatedRules.push("single_five");
     }
   });
 
@@ -43,6 +46,9 @@ const fourOfKindChecker: RuleChecker = (values, counts) => {
       const baseScore = value === 1 ? 1000 : value * 100;
       score += baseScore * 2;
       activatedRules.push("four_of_kind");
+      // Exclude individual scoring for these dice
+      if (value === 1) activatedRules.push("single_one");
+      if (value === 5) activatedRules.push("single_five");
     }
   });
 
@@ -60,6 +66,9 @@ const fiveOfKindChecker: RuleChecker = (values, counts) => {
       const baseScore = value === 1 ? 1000 : value * 100;
       score += baseScore * 4;
       activatedRules.push("five_of_kind");
+      // Exclude individual scoring for these dice
+      if (value === 1) activatedRules.push("single_one");
+      if (value === 5) activatedRules.push("single_five");
     }
   });
 
@@ -77,6 +86,9 @@ const sixOfKindChecker: RuleChecker = (values, counts) => {
       const baseScore = value === 1 ? 1000 : value * 100;
       score += baseScore * 8;
       activatedRules.push("six_of_kind");
+      // Exclude individual scoring for these dice
+      if (value === 1) activatedRules.push("single_one");
+      if (value === 5) activatedRules.push("single_five");
     }
   });
 
@@ -85,13 +97,30 @@ const sixOfKindChecker: RuleChecker = (values, counts) => {
 
 const straightChecker: RuleChecker = (values) => {
   const match = values.length === 6 && new Set(values).size === 6;
-  return { match, score: 1500, activatedRules: match ? ["straight"] : [] };
+  const activatedRules: ScoringRuleId[] = [];
+  if (match) {
+    activatedRules.push("straight");
+    // Exclude individual scoring for all dice in straight
+    activatedRules.push("single_one", "single_five");
+  }
+  return { match, score: 1500, activatedRules };
 };
 
 const threePairsChecker: RuleChecker = (values, counts) => {
   const pairs = Array.from(counts.values()).filter((count) => count === 2);
   const match = pairs.length === 3;
-  return { match, score: 1500, activatedRules: match ? ["three_pairs"] : [] };
+  const activatedRules: ScoringRuleId[] = [];
+  if (match) {
+    activatedRules.push("three_pairs");
+    // Exclude individual scoring for 1s and 5s if they're in pairs
+    counts.forEach((count, value) => {
+      if (count === 2) {
+        if (value === 1) activatedRules.push("single_one");
+        if (value === 5) activatedRules.push("single_five");
+      }
+    });
+  }
+  return { match, score: 1500, activatedRules };
 };
 
 const ruleCheckers: Record<ScoringRuleId, RuleChecker> = {
@@ -122,15 +151,8 @@ export const DEFAULT_RULES: ScoringRule[] = [
   },
   {
     id: "three_of_kind",
-    description: "111",
-    score: 1000,
-    enabled: true,
-    activationCount: 0,
-  },
-  {
-    id: "three_of_kind",
-    description: "222/333/444/555/666",
-    score: "value × 100",
+    description: "Three of a kind",
+    score: "1000 (111) or value×100",
     enabled: true,
     activationCount: 0,
   },
@@ -189,10 +211,23 @@ export function calculateScore(
 
   const enabledRules = rules.filter((r) => r.enabled);
 
-  for (const rule of enabledRules) {
-    if (checkedRuleIds.has(rule.id)) continue;
+  // Priority order: higher combinations first
+  const priorityOrder: ScoringRuleId[] = [
+    "six_of_kind",
+    "five_of_kind", 
+    "four_of_kind",
+    "straight",
+    "three_pairs",
+    "three_of_kind",
+    "single_one",
+    "single_five",
+  ];
 
-    const checker = ruleCheckers[rule.id];
+  for (const ruleId of priorityOrder) {
+    const rule = enabledRules.find((r) => r.id === ruleId);
+    if (!rule || checkedRuleIds.has(ruleId)) continue;
+
+    const checker = ruleCheckers[ruleId];
     const result = checker(values, counts);
 
     if (result.match && result.score > 0) {

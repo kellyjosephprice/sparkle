@@ -1,7 +1,20 @@
-import { calculateScore } from "./scoring";
+import { calculateScore, DEFAULT_RULES } from "./scoring";
 import type { Die, DieValue, GameState } from "./types";
 
 export const BASE_THRESHOLD = 100;
+
+export const initialState: GameState = {
+  dice: [],
+  currentScore: 0,
+  bankedScore: 0,
+  totalScore: 0,
+  threshold: calculateThreshold(1),
+  thresholdLevel: 1,
+  turnNumber: 1,
+  gameOver: false,
+  message: "Roll the dice to start!",
+  scoringRules: DEFAULT_RULES,
+};
 
 // Utility/Selector Functions
 
