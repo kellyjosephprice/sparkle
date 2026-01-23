@@ -1,6 +1,6 @@
-import { getSelectedDice } from "../game";
-import { gameEngine } from "../messaging";
-import type { Die,GameState } from "../types";
+import { getSelectedDice } from "../../src/game";
+import { gameEngine } from "../../src/messaging";
+import type { Die, GameState } from "../../src/types";
 
 export type SetGameState = React.Dispatch<React.SetStateAction<GameState>>;
 export type SetUIState = React.Dispatch<

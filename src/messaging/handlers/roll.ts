@@ -1,6 +1,6 @@
-import { createDice, getActiveDice, getBankedDice } from "../../../src/game";
-import { isSparkle } from "../../../src/scoring";
-import type { GameState } from "../../../src/types";
+import { createDice, getActiveDice, getBankedDice } from "../../game";
+import { isSparkle } from "../../scoring";
+import type { GameState } from "../../types";
 import type { CommandResult, GameEvent } from "../types";
 
 export function handleRoll(state: GameState): CommandResult {
@@ -11,7 +11,7 @@ export function handleRoll(state: GameState): CommandResult {
   const activeDice = getActiveDice(state);
   const newDice = createDice(activeDice.length);
   const bankedDice = getBankedDice(state);
-  const sparkled = isSparkle(newDice);
+  const sparkled = isSparkle(newDice, state.scoringRules);
 
   const newState: GameState = {
     ...state,

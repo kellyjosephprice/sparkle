@@ -31,7 +31,7 @@ export function getSelectedDice(state: GameState): Die[] {
 }
 
 export function getSelectedScore(state: GameState): number {
-  return calculateScore(getSelectedDice(state));
+  return calculateScore(getSelectedDice(state), state.scoringRules);
 }
 
 // Validation Functions

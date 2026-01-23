@@ -1,12 +1,7 @@
 "use client";
 
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 
-import ActionButtons from "./components/ActionButtons";
-import DiceSections from "./components/DiceSections";
-import MessageBanner from "./components/MessageBanner";
-import RulesSection from "./components/RulesSection";
-import ScoreDisplay from "./components/ScoreDisplay";
 import {
   calculateThreshold,
   canEndTurn,
@@ -15,16 +10,21 @@ import {
   getActiveDice,
   getBankedDice,
   getSelectedScore,
-} from "./game";
+} from "../src/game";
+import type { GameEvent } from "../src/messaging";
+import { eventBus, gameEngine } from "../src/messaging";
+import ActionButtons from "./components/ActionButtons";
+import DiceSections from "./components/DiceSections";
+import MessageBanner from "./components/MessageBanner";
+import ScoreDisplay from "./components/ScoreDisplay";
+import ScoringRules, { DEFAULT_RULES } from "./components/ScoringRules";
 import {
   handleEndTurn,
   handleRoll,
   resetGame,
   toggleDie,
 } from "./hooks/useGameHandlers";
-import type { GameEvent } from "./messaging";
-import { eventBus, gameEngine } from "./messaging";
-import type { GameState } from "./types";
+import type { GameState, ScoringRuleId } from "./types";
 
 const initialState: GameState = {
   dice: [],
@@ -36,6 +36,7 @@ const initialState: GameState = {
   turnNumber: 1,
   gameOver: false,
   message: "Roll the dice to start!",
+  scoringRules: DEFAULT_RULES,
 };
 
 export default function Home() {
@@ -107,7 +108,16 @@ export default function Home() {
           onReset={() => resetGame(gameState, setGameState, setUIState)}
         />
 
-        <RulesSection />
+        <ScoringRules
+          rules={gameState.scoringRules}
+          onToggleRule={(ruleId) => {
+            const result = gameEngine.processCommand(gameState, {
+              type: "TOGGLE_SCORING_RULE",
+              ruleId: ruleId as ScoringRuleId,
+            });
+            setGameState(result.state);
+          }}
+        />
       </div>
     </div>
   );

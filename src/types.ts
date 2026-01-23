@@ -7,6 +7,24 @@ export interface Die {
   banked: boolean;
 }
 
+export type ScoringRuleId =
+  | "single_one"
+  | "single_five"
+  | "three_of_kind"
+  | "four_of_kind"
+  | "five_of_kind"
+  | "six_of_kind"
+  | "straight"
+  | "three_pairs";
+
+export interface ScoringRule {
+  id: ScoringRuleId;
+  description: string;
+  score: string | number;
+  enabled: boolean;
+  activationCount: number;
+}
+
 export interface GameState {
   dice: Die[];
   currentScore: number;
@@ -17,6 +35,7 @@ export interface GameState {
   turnNumber: number;
   gameOver: boolean;
   message: string;
+  scoringRules: ScoringRule[];
 }
 
 export type ScoringCombination =

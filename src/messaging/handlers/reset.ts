@@ -1,4 +1,5 @@
-import { calculateThreshold, createDice } from "../../../src/game";
+import { calculateThreshold, createDice } from "../../game";
+import { DEFAULT_RULES } from "../../scoring";
 import type { CommandResult } from "../types";
 
 export function handleReset(): CommandResult {
@@ -13,6 +14,7 @@ export function handleReset(): CommandResult {
       turnNumber: 1,
       gameOver: false,
       message: "New game started! Roll the dice!",
+      scoringRules: DEFAULT_RULES,
     },
     events: [{ type: "GAME_RESET" }],
   };

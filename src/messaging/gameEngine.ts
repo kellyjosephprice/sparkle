@@ -1,11 +1,13 @@
-import type { GameState } from "../../src/types";
+import type { GameState } from "../types";
 import { eventBus } from "./eventBus";
 import {
   handleBank,
   handleEndTurn,
   handleReset,
+  handleResetScoringRuleCounts,
   handleRoll,
   handleToggleDie,
+  handleToggleScoringRule,
 } from "./handlers";
 import type { CommandResult, GameCommand } from "./types";
 
@@ -32,6 +34,14 @@ export class GameEngine {
 
       case "RESET_GAME":
         result = handleReset();
+        break;
+
+      case "TOGGLE_SCORING_RULE":
+        result = handleToggleScoringRule(state, command);
+        break;
+
+      case "RESET_SCORING_RULE_COUNTS":
+        result = handleResetScoringRuleCounts(state, command);
         break;
 
       default:
