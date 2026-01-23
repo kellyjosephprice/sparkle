@@ -1,6 +1,7 @@
 "use client";
 
-import { DEFAULT_RULES, type ScoringRule } from "../../src/scoring";
+import { DEFAULT_RULES } from "../../src/scoring";
+import type { ScoringRule } from "../../src/types";
 
 interface ScoringRulesProps {
   rules: ScoringRule[];
