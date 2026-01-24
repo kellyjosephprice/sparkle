@@ -75,7 +75,7 @@ export function endTurnReducer(
   }
 
   // Create new dice for next turn (if not game over)
-  const newDice = gameOver ? state.dice : createDice(6);
+  const newDice = gameOver ? state.dice : createDice(6, state.dice);
 
   // Check if new turn dice sparkle
   if (!gameOver && isSparkle(newDice)) {
@@ -90,6 +90,7 @@ export function endTurnReducer(
         turnNumber: nextTurnNumber,
         gameOver: false,
         message: `Turn over! You scored ${totalTurnScore} points!`,
+        scoringRules: state.scoringRules,
       },
       delayedAction: {
         type: "END_TURN",
@@ -110,6 +111,7 @@ export function endTurnReducer(
       turnNumber: nextTurnNumber,
       gameOver: gameOver,
       message: message,
+      scoringRules: state.scoringRules,
     },
   };
 }

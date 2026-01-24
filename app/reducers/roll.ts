@@ -1,6 +1,6 @@
-import { createDice, getActiveDice, getBankedDice } from "../game";
-import { isSparkle } from "../scoring";
-import type { GameReducerResult, GameState } from "../types";
+import { createDice, getActiveDice, getBankedDice } from "../../src/game";
+import { isSparkle } from "../../src/scoring";
+import type { GameReducerResult, GameState } from "../../src/types";
 
 export function rollReducer(state: GameState): GameReducerResult {
   if (state.gameOver) {
@@ -8,7 +8,7 @@ export function rollReducer(state: GameState): GameReducerResult {
   }
 
   const activeDice = getActiveDice(state);
-  const newDice = createDice(activeDice.length);
+  const newDice = createDice(activeDice.length, activeDice);
   const bankedDice = getBankedDice(state);
 
   // Check for sparkle

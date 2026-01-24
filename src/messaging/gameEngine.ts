@@ -4,10 +4,10 @@ import {
   handleBank,
   handleEndTurn,
   handleReset,
-  handleResetScoringRuleCounts,
+  handleResetRuleCounts,
   handleRoll,
   handleToggleDie,
-  handleToggleScoringRule,
+  handleToggleRule,
 } from "./handlers";
 import type { CommandResult, GameCommand } from "./types";
 
@@ -37,11 +37,11 @@ export class GameEngine {
         break;
 
       case "TOGGLE_SCORING_RULE":
-        result = handleToggleScoringRule(state, command);
+        result = handleToggleRule(state, command);
         break;
 
       case "RESET_SCORING_RULE_COUNTS":
-        result = handleResetScoringRuleCounts(state, command);
+        result = handleResetRuleCounts(state, command);
         break;
 
       default:

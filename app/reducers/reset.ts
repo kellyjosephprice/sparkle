@@ -1,5 +1,6 @@
-import { calculateThreshold, createDice } from "../game";
-import type { GameReducerResult } from "../types";
+import { calculateThreshold, createDice } from "../../src/game";
+import { DEFAULT_RULES } from "../../src/scoring";
+import type { GameReducerResult } from "../../src/types";
 
 export function resetReducer(): GameReducerResult {
   return {
@@ -13,6 +14,7 @@ export function resetReducer(): GameReducerResult {
       turnNumber: 1,
       gameOver: false,
       message: "New game started! Roll the dice!",
+      scoringRules: DEFAULT_RULES,
     },
   };
 }

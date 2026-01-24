@@ -85,7 +85,7 @@ export function handleEndTurn(
   }
 
   // Create new dice for next turn (if not game over)
-  const newDice = gameOver ? state.dice : createDice(6);
+  const newDice = gameOver ? state.dice : createDice(6, state.dice);
 
   const events: GameEvent[] = [
     {
@@ -116,6 +116,7 @@ export function handleEndTurn(
       turnNumber: nextTurnNumber,
       gameOver: gameOver,
       message: message,
+      scoringRules: state.scoringRules,
     },
     events,
   };

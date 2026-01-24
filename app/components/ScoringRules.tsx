@@ -1,16 +1,16 @@
 "use client";
 
-import type { ScoringRule } from "../../src/types";
+import type { Rule } from "../../src/types";
 
-interface ScoringRulesProps {
-  rules: ScoringRule[];
+interface RulesProps {
+  rules: Rule[];
   onToggleRule: (ruleId: string) => void;
 }
 
-export default function ScoringRules({
+export default function Rules({
   rules,
   onToggleRule,
-}: ScoringRulesProps) {
+}: RulesProps) {
   return (
     <details className="text-sm">
       <summary className="cursor-pointer font-medium text-white mb-3">

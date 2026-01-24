@@ -9,7 +9,7 @@ export function handleRoll(state: GameState): CommandResult {
   }
 
   const activeDice = getActiveDice(state);
-  const newDice = createDice(activeDice.length);
+  const newDice = createDice(activeDice.length, activeDice);
   const bankedDice = getBankedDice(state);
   const sparkled = isSparkle(newDice, state.scoringRules);
 

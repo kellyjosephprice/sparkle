@@ -1,4 +1,4 @@
-import type { Die, GameState, ScoringRuleId } from "../types";
+import type { Die, GameState, RuleId } from "../types";
 
 // Commands - what the UI wants to do
 export type GameCommand =
@@ -7,7 +7,7 @@ export type GameCommand =
   | { type: "BANK_DICE" }
   | { type: "END_TURN"; isSparkled?: boolean }
   | { type: "RESET_GAME" }
-  | { type: "TOGGLE_SCORING_RULE"; ruleId: ScoringRuleId }
+  | { type: "TOGGLE_SCORING_RULE"; ruleId: RuleId }
   | { type: "RESET_SCORING_RULE_COUNTS" };
 
 // Events - what happened in the game

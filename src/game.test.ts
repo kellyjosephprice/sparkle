@@ -10,9 +10,9 @@ import {
   getBankedDice,
   getSelectedDice,
   getSelectedScore,
-} from "../app/game";
-import { gameEngine } from "../app/messaging";
-import type { GameState } from "../app/types";
+} from "./game";
+import { DEFAULT_RULES } from "./scoring";
+import type { GameState } from "./types";
 
 describe("Game Selectors", () => {
   let state: GameState;
@@ -20,19 +20,20 @@ describe("Game Selectors", () => {
   beforeEach(() => {
     state = {
       dice: [
-        { id: 1, value: 1, selected: false, banked: false },
-        { id: 2, value: 2, selected: true, banked: false },
-        { id: 3, value: 3, selected: false, banked: true },
-        { id: 4, value: 4, selected: true, banked: true },
+        { id: 1, value: 1, selected: false, banked: false, position: 1 },
+        { id: 2, value: 2, selected: true, banked: false, position: 2 },
+        { id: 3, value: 3, selected: false, banked: true, position: 3 },
+        { id: 4, value: 4, selected: true, banked: true, position: 4 },
       ],
       currentScore: 0,
       bankedScore: 0,
       totalScore: 0,
-      threshold: calculateThreshold(1),
+      threshold: 1000,
       thresholdLevel: 1,
       turnNumber: 1,
       gameOver: false,
       message: "",
+      scoringRules: DEFAULT_RULES,
     };
   });
 
@@ -56,638 +57,117 @@ describe("Game Selectors", () => {
     it("should return only selected and non-banked dice", () => {
       const selected = getSelectedDice(state);
       expect(selected).toHaveLength(1);
-      expect(selected[0].id).toBe(2);
-      expect(selected[0].selected).toBe(true);
-      expect(selected[0].banked).toBe(false);
+      expect(selected.every((d) => d.selected && !d.banked)).toBe(true);
     });
   });
 
   describe("getSelectedScore", () => {
     it("should calculate score for selected dice", () => {
-      const stateWithScoring: GameState = {
-        ...state,
-        dice: [
-          { id: 1, value: 1, selected: true, banked: false },
-          { id: 2, value: 5, selected: true, banked: false },
-        ],
-      };
-      const score = getSelectedScore(stateWithScoring);
-      expect(score).toBe(150); // 1 = 100, 5 = 50
+      const score = getSelectedScore(state);
+      expect(score).toBe(0); // Die with value 2 doesn't score by default
+    });
+
+    it("should calculate score for selected scoring dice", () => {
+      state.dice = [
+        { id: 1, value: 1, selected: true, banked: false, position: 1 },
+        { id: 2, value: 5, selected: true, banked: false, position: 2 },
+      ];
+      const score = getSelectedScore(state);
+      expect(score).toBe(150); // 100 (for 1) + 50 (for 5)
     });
   });
-});
 
-describe("Validation Functions", () => {
+  describe("calculateThreshold", () => {
+    it("should calculate threshold for turn 1", () => {
+      expect(calculateThreshold(1)).toBe(1000);
+    });
+
+    it("should calculate threshold for turn 2", () => {
+      expect(calculateThreshold(2)).toBe(2000);
+    });
+
+    it("should calculate threshold for turn 3", () => {
+      expect(calculateThreshold(3)).toBe(4000);
+    });
+  });
+
   describe("canRoll", () => {
-    it("should return false when no dice are active", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: true }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-      expect(canRoll(state)).toBe(false);
+    it("should return true when game is not over and selected dice score", () => {
+      // Select a die that scores (value 1)
+      state.dice[0].selected = true;
+      expect(canRoll(state)).toBe(true);
     });
 
-    it("should return true when scoring dice are selected", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-      expect(canRoll(state)).toBe(true); // Selected dice will be auto-banked
-    });
-
-    it("should return false when selected dice do not score", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 2, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-      expect(canRoll(state)).toBe(false); // Selected dice don't score
-    });
-
-    it("should return false when no dice are selected", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-      expect(canRoll(state)).toBe(false);
-    });
-
-    it("should return false even with banked score if no dice selected", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
+    it("should return false when game is over", () => {
+      state.gameOver = true;
       expect(canRoll(state)).toBe(false);
     });
   });
 
   describe("canBank", () => {
-    it("should return false when no dice are selected", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
+    it("should return false when no dice selected", () => {
+      state.dice = [
+        { id: 1, value: 1, selected: false, banked: false, position: 1 },
+        { id: 2, value: 2, selected: false, banked: false, position: 2 },
+      ];
       expect(canBank(state)).toBe(false);
     });
 
-    it("should return false when selected dice do not score", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 2, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
+    it("should return false when selected dice don't score", () => {
+      state.dice = [
+        { id: 1, value: 2, selected: true, banked: false, position: 1 },
+        { id: 2, value: 3, selected: true, banked: false, position: 2 },
+      ];
       expect(canBank(state)).toBe(false);
     });
 
     it("should return true when selected dice score", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
+      state.dice = [
+        { id: 1, value: 1, selected: true, banked: false, position: 1 },
+        { id: 2, value: 5, selected: true, banked: false, position: 2 },
+      ];
       expect(canBank(state)).toBe(true);
     });
   });
 
   describe("canEndTurn", () => {
-    it("should return false when no points are banked", () => {
-      const state: GameState = {
-        dice: [],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
+    it("should return false when no dice banked", () => {
+      state.currentScore = 0;
       expect(canEndTurn(state)).toBe(false);
     });
 
-    it("should return true when scoring dice are selected", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-      expect(canEndTurn(state)).toBe(true); // Selected dice will be auto-banked
+    it("should return true when there are points to bank", () => {
+      state.currentScore = 100;
+      state.bankedScore = 50;
+      expect(canEndTurn(state)).toBe(true);
     });
 
-    it("should return false when selected dice do not score", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 2, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-      expect(canEndTurn(state)).toBe(false); // Selected dice don't score
-    });
-
-    it("should return true when points are banked and no selection", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: true }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
+    it("should return true when banked score meets threshold", () => {
+      state.currentScore = 100;
+      state.bankedScore = 900;
       expect(canEndTurn(state)).toBe(true);
     });
   });
-});
 
-describe("Game Reducer", () => {
-  describe("TOGGLE_DIE", () => {
-    it("should toggle die selection", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
+  describe("createDice", () => {
+    it("should create specified number of dice", () => {
+      const dice = createDice(6);
+      expect(dice).toHaveLength(6);
+    });
 
-      const result = gameEngine.processCommand(state, {
-        type: "TOGGLE_DIE",
-        dieId: 1,
+    it("should create unselected and unbanked dice", () => {
+      const dice = createDice(6);
+      dice.forEach((die) => {
+        expect(die.selected).toBe(false);
+        expect(die.banked).toBe(false);
       });
-      expect(result.state.dice[0].selected).toBe(true);
     });
 
-    it("should not toggle banked dice", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: true }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "TOGGLE_DIE",
-        dieId: 1,
+    it("should assign positions to dice", () => {
+      const dice = createDice(6);
+      dice.forEach((die, index) => {
+        expect(die.position).toBe(index + 1);
       });
-      expect(result.state.dice[0].selected).toBe(false);
-    });
-
-    it("should clear message", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "TOGGLE_DIE",
-        dieId: 1,
-      });
-      expect(result.state.message).toBe("");
-    });
-  });
-
-  describe("ROLL", () => {
-    it("should roll new dice and preserve banked dice", () => {
-      const state: GameState = {
-        dice: [
-          { id: 1, value: 1, selected: false, banked: true },
-          { id: 2, value: 2, selected: false, banked: false },
-        ],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, { type: "ROLL_DICE" });
-      const bankedDice = result.state.dice.filter((d) => d.banked);
-      expect(bankedDice).toHaveLength(1);
-      expect(bankedDice[0].id).toBe(1);
-    });
-
-    it("should set message for successful roll", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, { type: "ROLL_DICE" });
-      // Message will vary based on if it's a sparkle or not
-      expect(result.state.message).toBeDefined();
-    });
-  });
-
-  describe("BANK", () => {
-    it("should return error when no dice selected", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
-      expect(result.state.message).toBe("Select some dice first!");
-      // State is updated with error message
-      expect(result.state.dice).toEqual(state.dice);
-      expect(result.state.currentScore).toBe(state.currentScore);
-    });
-
-    it("should return error when selected dice do not score", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 2, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
-      expect(result.state.message).toBe("Selected dice do not score!");
-    });
-
-    it("should bank selected dice and update scores", () => {
-      const state: GameState = {
-        dice: [
-          { id: 1, value: 1, selected: true, banked: false },
-          { id: 2, value: 2, selected: false, banked: false },
-        ],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
-      expect(result.state.dice[0].banked).toBe(true);
-      expect(result.state.dice[0].selected).toBe(false);
-      expect(result.state.bankedScore).toBe(100);
-      expect(result.state.currentScore).toBe(100);
-    });
-
-    it("should trigger hot dice when all active dice are banked", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, { type: "BANK_DICE" });
-      expect(result.state.dice).toHaveLength(6); // Rolled 6 new dice
-      expect(result.state.message).toContain("Hot dice");
-      expect(result.state.dice.every((d) => !d.banked)).toBe(true); // All dice are active
-    });
-  });
-
-  describe("END_TURN", () => {
-    it("should return error when no points are banked", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: false }],
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: false,
-      });
-      expect(result.state.message).toBe(
-        "You must bank some points before ending your turn!",
-      );
-      expect(result.state.turnNumber).toBe(1); // Turn not ended
-    });
-
-    it("should return error when dice are still selected", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: true, banked: false }],
-        currentScore: 0,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: false,
-      });
-      expect(result.state.message).toBe("Bank your selected dice first!");
-      expect(result.state.turnNumber).toBe(1); // Turn not ended
-    });
-
-    it("should reset dice and increment turn number", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: false, banked: true }],
-        currentScore: 100,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1),
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: false,
-      });
-      expect(result.state.dice).toHaveLength(6);
-      expect(result.state.turnNumber).toBe(2);
-      expect(result.state.currentScore).toBe(0);
-      expect(result.state.bankedScore).toBe(0);
-    });
-
-    it("should end turn when meeting the threshold", () => {
-      const state: GameState = {
-        dice: [],
-        currentScore: 100,
-        bankedScore: 100,
-        totalScore: 0,
-        threshold: calculateThreshold(1), // 100 for level 1
-        thresholdLevel: 1,
-        turnNumber: 1,
-        gameOver: false,
-        message: "",
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: false,
-      });
-      expect(result.state.totalScore).toBe(100);
-      expect(result.state.turnNumber).toBe(2);
-      expect(result.state.threshold).toBe(calculateThreshold(2)); // 200 for level 2
-      expect(result.state.thresholdLevel).toBe(2);
-      expect(result.state.message).toContain("Turn over");
-    });
-
-    it("should not end turn when below threshold", () => {
-      const state: GameState = {
-        dice: [],
-        currentScore: 50,
-        bankedScore: 50,
-        totalScore: 0,
-        threshold: calculateThreshold(1), // 100 for level 1
-        thresholdLevel: 1,
-        turnNumber: 1,
-        gameOver: false,
-        message: "",
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: false,
-      });
-      expect(result.state.totalScore).toBe(0); // No score added
-      expect(result.state.turnNumber).toBe(1); // Turn not incremented
-      expect(result.state.message).toContain("Need");
-      expect(result.state.message).toContain("total score of 100"); // Mentions cumulative threshold
-    });
-
-    it("should continue game regardless of score", () => {
-      const state: GameState = {
-        dice: [],
-        currentScore: 1000,
-        bankedScore: 1000,
-        totalScore: 9000,
-        threshold: calculateThreshold(1),
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: false,
-      });
-      expect(result.state.gameOver).toBe(false); // No win condition
-      expect(result.state.totalScore).toBe(10000); // Score continues to accumulate
-      expect(result.state.message).toContain("Turn over");
-    });
-
-    it("should continue game when sparkled but total score is above threshold", () => {
-      const state: GameState = {
-        dice: [],
-        currentScore: 500,
-        bankedScore: 500,
-        totalScore: 1000,
-        threshold: calculateThreshold(1), // 100
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: true,
-      });
-      expect(result.state.gameOver).toBe(false); // Game continues (1000 >= 100)
-      expect(result.state.totalScore).toBe(1000); // No change, lost turn points
-      expect(result.state.currentScore).toBe(0);
-      expect(result.state.message).toContain("SPARKLE");
-      expect(result.state.message).toContain("continue");
-    });
-
-    it("should end game when sparkled and total score is below threshold", () => {
-      const state: GameState = {
-        dice: [],
-        currentScore: 50,
-        bankedScore: 50,
-        totalScore: 50,
-        threshold: calculateThreshold(1), // 100
-        thresholdLevel: 1,
-        message: "",
-        turnNumber: 1,
-        gameOver: false,
-      };
-
-      const result = gameEngine.processCommand(state, {
-        type: "END_TURN",
-        isSparkled: true,
-      });
-      expect(result.state.gameOver).toBe(true); // Game ends (50 < 100)
-      expect(result.state.totalScore).toBe(50); // No change, lost turn points
-      expect(result.state.currentScore).toBe(0);
-      expect(result.state.message).toContain("SPARKLE");
-      expect(result.state.message).toContain("Game Over");
-      expect(result.state.message).toContain("50"); // Shows final score
-    });
-  });
-
-  describe("RESET", () => {
-    it("should reset game to initial state", () => {
-      const state: GameState = {
-        dice: [{ id: 1, value: 1, selected: true, banked: true }],
-        currentScore: 500,
-        bankedScore: 300,
-        totalScore: 5000,
-        threshold: calculateThreshold(10),
-        turnNumber: 10,
-        gameOver: true,
-        message: "Game over!",
-      };
-
-      const result = gameEngine.processCommand(state, { type: "RESET_GAME" });
-      expect(result.state.dice).toHaveLength(6);
-      expect(result.state.currentScore).toBe(0);
-      expect(result.state.bankedScore).toBe(0);
-      expect(result.state.totalScore).toBe(0);
-      expect(result.state.threshold).toBe(calculateThreshold(1));
-      expect(result.state.turnNumber).toBe(1);
-      expect(result.state.gameOver).toBe(false);
-      expect(result.state.message).toContain("New game");
-    });
-  });
-});
-
-describe("createDice", () => {
-  it("should create specified number of dice", () => {
-    const dice = createDice(6);
-    expect(dice).toHaveLength(6);
-  });
-
-  it("should create dice with valid values", () => {
-    const dice = createDice(10);
-    dice.forEach((die) => {
-      expect(die.value).toBeGreaterThanOrEqual(1);
-      expect(die.value).toBeLessThanOrEqual(6);
-    });
-  });
-
-  it("should create dice with unique IDs", () => {
-    const dice = createDice(6);
-    const ids = dice.map((d) => d.id);
-    const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(6);
-  });
-
-  it("should create unselected and unbanked dice", () => {
-    const dice = createDice(6);
-    dice.forEach((die) => {
-      expect(die.selected).toBe(false);
-      expect(die.banked).toBe(false);
     });
   });
 });

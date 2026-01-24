@@ -1,7 +1,7 @@
 import type { GameState } from "../../types";
 import type { CommandResult,GameCommand } from "../types";
 
-export function handleToggleScoringRule(
+export function handleToggleRule(
   state: GameState,
   command: Extract<GameCommand, { type: "TOGGLE_SCORING_RULE" }>,
 ): CommandResult {
@@ -20,7 +20,7 @@ export function handleToggleScoringRule(
   };
 }
 
-export function handleResetScoringRuleCounts(
+export function handleResetRuleCounts(
   state: GameState,
   _command: Extract<GameCommand, { type: "RESET_SCORING_RULE_COUNTS" }>,
 ): CommandResult {

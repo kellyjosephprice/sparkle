@@ -1,7 +1,7 @@
 import { calculateScore, DEFAULT_RULES } from "./scoring";
 import type { Die, DieValue, GameState } from "./types";
 
-export const BASE_THRESHOLD = 100;
+export const BASE_THRESHOLD = 200;
 
 export const initialState: GameState = {
   dice: [],
@@ -19,16 +19,22 @@ export const initialState: GameState = {
 // Utility/Selector Functions
 
 export function calculateThreshold(turnNumber: number): number {
-  return BASE_THRESHOLD * Math.pow(2, turnNumber - 1);
+  return (
+    BASE_THRESHOLD + (turnNumber >= 2 ? 100 * Math.pow(2, turnNumber - 1) : 0)
+  );
 }
 
-export function createDice(count: number): Die[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: Date.now() + i,
-    value: (Math.floor(Math.random() * 6) + 1) as DieValue,
-    selected: false,
-    banked: false,
-  }));
+export function createDice(count: number, existingDice?: Die[]): Die[] {
+  return Array.from({ length: count }, (_, i) => {
+    const existingDie = existingDice?.[i];
+    return {
+      id: Date.now() + i,
+      value: (Math.floor(Math.random() * 6) + 1) as DieValue,
+      selected: false,
+      banked: false,
+      position: existingDie?.position ?? i + 1, // Use existing position or assign new one
+    };
+  });
 }
 
 export function getActiveDice(state: GameState): Die[] {

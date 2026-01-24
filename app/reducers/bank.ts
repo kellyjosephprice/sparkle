@@ -3,8 +3,8 @@ import {
   getActiveDice,
   getSelectedDice,
   getSelectedScore,
-} from "../game";
-import type { GameReducerResult, GameState } from "../types";
+} from "../../src/game";
+import type { GameReducerResult, GameState } from "../../src/types";
 
 export function bankReducer(state: GameState): GameReducerResult {
   const selectedDice = getSelectedDice(state);
@@ -34,7 +34,7 @@ export function bankReducer(state: GameState): GameReducerResult {
 
   if (allDiceUsed) {
     // Hot dice: clear banked dice and roll 6 new dice
-    const newDice = createDice(6);
+    const newDice = createDice(6, state.dice);
     return {
       state: {
         ...state,

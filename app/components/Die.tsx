@@ -2,7 +2,6 @@ import type { Die } from "../../src/types";
 
 interface DiceProps {
   die: Die;
-  index: number;
   onToggleDie: (id: number) => void;
   rolling?: boolean;
 }
@@ -55,30 +54,24 @@ const DiceFace = ({
   );
 };
 
-export default function Die({
-  die,
-  index,
-  onToggleDie,
-  rolling = false,
-}: DiceProps) {
-  console.log(die, index);
+export default function Die({ die, onToggleDie, rolling = false }: DiceProps) {
   return (
     <button
       key={die.id}
       onClick={() => onToggleDie(die.id)}
       disabled={die.banked || rolling}
       className={`
-            w-16 h-16 border-2 transition-colors rounded-xl
+            w-16 h-16 border-2 transition-colors rounded-xl relative
             ${rolling && !die.banked ? "animate-roll" : ""}
             ${
               die.banked
-                ? "opacity-20 cursor-not-allowed border-gray-800 bg-gray-900"
+                ? "opacity-20 border-gray-600 bg-gray-600"
                 : die.selected
                   ? "border-white bg-white"
-                  : "border-gray-600 bg-black hover:border-white"
+                  : "border-gray-600 bg-gray-600 hover:border-white"
             }
           `}
-      style={{ gridColumn: index }}
+      style={{ gridColumn: die.position }}
     >
       <DiceFace value={die.value} selected={die.selected} />
     </button>
