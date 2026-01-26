@@ -33,13 +33,20 @@ const threeOfKindChecker: RuleChecker = (counts) => {
   let match = false;
   const scoredDice: Die[] = [];
 
-  Object.values(counts)
-    .filter((set) => set.length === 3)
-    .forEach((count, value) => {
+  console.log("threeOfKindChecker");
+  Object.entries(counts)
+    .filter(([, set]) => {
+      console.log(set);
+      return set.length === 3;
+    })
+    .forEach(([value, set]) => {
+      console.log({ value, set });
       score += value === 1 ? 1000 : value * 100;
       match = true;
-      scoredDice.push(...count);
+      scoredDice.push(...set);
     });
+
+  console.log({ counts, match });
 
   return { match, score, scoredDice };
 };
@@ -198,6 +205,8 @@ export function calculateScore(
   const scoredDice = new Set<Die>(selectedDice);
   const scoringRuleIds: RuleId[] = [];
   let counts = countDice([...scoredDice.values()]);
+
+  console.log(counts);
 
   // Priority order: higher combinations first
   const priorityOrder: RuleId[] = [

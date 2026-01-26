@@ -1,6 +1,6 @@
 # Sparkle
 
-A dice scoring game - a sparkle derivative built with Next.js, React, and TypeScript.
+A dice scoring game - a farkle derivative built with Next.js, React, and TypeScript.
 
 ## About
 
@@ -14,23 +14,23 @@ Score as many points as possible before you sparkle below the threshold. Your to
 
 ### Scoring Combinations
 
-| Combination  | Points                 |
-| ------------ | ---------------------- |
-| 1            | 100                    |
-| 5            | 50                     |
-| 111          | 1,000                  |
-| 222          | 200                    |
-| 333          | 300                    |
-| 444          | 400                    |
-| 555          | 500                    |
-| 666          | 600                    |
-| XXXX         | Double three of a kind |
-| XXXXX        | 4× three of a kind     |
-| XXXXXX       | 8× three of a kind     |
-| 1-2-3-4-5-6  | 1,500                  |
-| XXYYZZ       | 1,500                  |
-| Threshold    | 100 × 2^(level-1)      |
-| Sparkle      | Lose turn; Game Over if total < threshold |
+| Combination | Points                                    |
+| ----------- | ----------------------------------------- |
+| 1           | 100                                       |
+| 5           | 50                                        |
+| 111         | 1,000                                     |
+| 222         | 200                                       |
+| 333         | 300                                       |
+| 444         | 400                                       |
+| 555         | 500                                       |
+| 666         | 600                                       |
+| XXXX        | Double three of a kind                    |
+| XXXXX       | 4× three of a kind                        |
+| XXXXXX      | 8× three of a kind                        |
+| 1-2-3-4-5-6 | 1,500                                     |
+| XXYYZZ      | 1,500                                     |
+| Threshold   | 100 × 2^(level-1)                         |
+| Sparkle     | Lose turn; Game Over if total < threshold |
 
 ### Gameplay
 
