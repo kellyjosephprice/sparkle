@@ -1,16 +1,13 @@
 "use client";
 
-import type { Rule } from "../../src/types";
+import type { RuleMap } from "../../src/types";
 
 interface RulesProps {
-  rules: Rule[];
+  rules: RuleMap;
   onToggleRule: (ruleId: string) => void;
 }
 
-export default function Rules({
-  rules,
-  onToggleRule,
-}: RulesProps) {
+export default function Rules({ rules, onToggleRule }: RulesProps) {
   return (
     <details className="text-sm">
       <summary className="cursor-pointer font-medium text-white mb-3">
@@ -26,7 +23,7 @@ export default function Rules({
           </tr>
         </thead>
         <tbody className="text-gray-400">
-          {rules.map((rule) => (
+          {Object.values(rules).map((rule) => (
             <tr key={rule.id} className="border-b border-gray-800">
               <td className="py-2">{rule.description}</td>
               <td className="text-right">

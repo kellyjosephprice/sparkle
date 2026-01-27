@@ -24,9 +24,9 @@ Score as many points as possible before you sparkle below the threshold. Your to
 | 444         | 400                                       |
 | 555         | 500                                       |
 | 666         | 600                                       |
-| XXXX        | Double three of a kind                    |
-| XXXXX       | 4× three of a kind                        |
-| XXXXXX      | 8× three of a kind                        |
+| XXXX        | 1000                                      |
+| XXXXX       | 2000 g                                    |
+| XXXXXX      | 3000                                      |
 | 1-2-3-4-5-6 | 1,500                                     |
 | XXYYZZ      | 1,500                                     |
 | Threshold   | 100 × 2^(level-1)                         |

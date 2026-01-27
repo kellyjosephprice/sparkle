@@ -33,20 +33,13 @@ const threeOfKindChecker: RuleChecker = (counts) => {
   let match = false;
   const scoredDice: Die[] = [];
 
-  console.log("threeOfKindChecker");
-  Object.entries(counts)
-    .filter(([, set]) => {
-      console.log(set);
-      return set.length === 3;
-    })
-    .forEach(([value, set]) => {
-      console.log({ value, set });
-      score += value === 1 ? 1000 : value * 100;
-      match = true;
-      scoredDice.push(...set);
-    });
+  counts.forEach((set, value) => {
+    if (set.length !== 3) return;
 
-  console.log({ counts, match });
+    score += value === 1 ? 1000 : value * 100;
+    match = true;
+    scoredDice.push(...set);
+  });
 
   return { match, score, scoredDice };
 };
@@ -56,13 +49,13 @@ const fourOfKindChecker: RuleChecker = (counts) => {
   let match = false;
   const scoredDice: Die[] = [];
 
-  Object.values(counts)
-    .filter((set) => set.length === 4)
-    .forEach((count) => {
-      score += 1000;
-      match = true;
-      scoredDice.push(...count);
-    });
+  counts.forEach((set, value) => {
+    if (set.length !== 4) return;
+
+    score += value === 1 ? 1100 : 1000;
+    match = true;
+    scoredDice.push(...set);
+  });
 
   return { match, score, scoredDice };
 };
@@ -72,13 +65,13 @@ const fiveOfKindChecker: RuleChecker = (counts) => {
   let match = false;
   const scoredDice: Die[] = [];
 
-  Object.values(counts)
-    .filter((set) => set.length === 5)
-    .forEach((count) => {
-      score += 2000;
-      match = true;
-      scoredDice.push(...count);
-    });
+  counts.forEach((set) => {
+    if (set.length !== 5) return;
+
+    score += 2000;
+    match = true;
+    scoredDice.push(...set);
+  });
 
   return { match, score, scoredDice };
 };
@@ -88,20 +81,25 @@ const sixOfKindChecker: RuleChecker = (counts) => {
   let match = false;
   const scoredDice: Die[] = [];
 
-  Object.values(counts)
-    .filter((set) => set.length === 6)
-    .forEach((count) => {
-      score += 2000;
-      match = true;
-      scoredDice.push(...count);
-    });
+  counts.forEach((set) => {
+    if (set.length !== 6) return;
+
+    score += 3000;
+    match = true;
+    scoredDice.push(...set);
+  });
 
   return { match, score, scoredDice };
 };
 
 const straightChecker: RuleChecker = (counts) => {
-  const match = Object.keys(counts).length === 6;
-  return { match, score: 2500, scoredDice: Object.values(counts) };
+  const match = counts.size === 6;
+
+  return {
+    match,
+    score: 2500,
+    scoredDice: [...counts.values()].flatMap((s) => s),
+  };
 };
 
 const threePairsChecker: RuleChecker = (counts) => {
@@ -206,8 +204,6 @@ export function calculateScore(
   const scoringRuleIds: RuleId[] = [];
   let counts = countDice([...scoredDice.values()]);
 
-  console.log(counts);
-
   // Priority order: higher combinations first
   const priorityOrder: RuleId[] = [
     "six_of_kind",
@@ -230,6 +226,7 @@ export function calculateScore(
     if (result.match && result.score > 0) {
       totalScore += result.score;
       scoringRuleIds.push(ruleId);
+
       result.scoredDice.forEach((die) => scoredDice.delete(die));
       counts = countDice([...scoredDice.values()]);
     }

@@ -79,15 +79,15 @@ describe("Game Selectors", () => {
 
   describe("calculateThreshold", () => {
     it("should calculate threshold for turn 1", () => {
-      expect(calculateThreshold(1)).toBe(1000);
+      expect(calculateThreshold(1)).toBe(200);
     });
 
     it("should calculate threshold for turn 2", () => {
-      expect(calculateThreshold(2)).toBe(2000);
+      expect(calculateThreshold(2)).toBe(300);
     });
 
     it("should calculate threshold for turn 3", () => {
-      expect(calculateThreshold(3)).toBe(4000);
+      expect(calculateThreshold(3)).toBe(500);
     });
   });
 
@@ -171,3 +171,4 @@ describe("Game Selectors", () => {
     });
   });
 });
+

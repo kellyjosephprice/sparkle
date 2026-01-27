@@ -15,8 +15,8 @@ import type { GameState, RuleId } from "../src/types";
 import ActionButtons from "./components/ActionButtons";
 import Dice from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
-import ScoreDisplay from "./components/ScoreDisplay";
 import Rules from "./components/Rules";
+import ScoreDisplay from "./components/ScoreDisplay";
 import {
   handleEndTurn,
   handleRoll,
