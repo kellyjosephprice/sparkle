@@ -24,7 +24,7 @@ export function calculateThreshold(turnNumber: number): number {
   return (
     BASE_THRESHOLD +
     100 * turnNumber +
-    100 * Math.pow(Math.floor(turnNumber / 5), 2)
+    1000 * Math.pow(Math.floor(turnNumber / 5), 2)
   );
 }
 
