@@ -4,7 +4,11 @@ import type { Die, GameState } from "../../src/types";
 
 export type SetGameState = React.Dispatch<React.SetStateAction<GameState>>;
 export type SetUIState = React.Dispatch<
-  React.SetStateAction<{ rolling: boolean; displayDice: Die[] }>
+  React.SetStateAction<{
+    rolling: boolean;
+    displayDice: Die[];
+    focusedPosition: number | null;
+  }>
 >;
 
 function shuffleDiceValue(die: Die): Die {

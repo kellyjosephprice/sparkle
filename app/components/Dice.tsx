@@ -5,12 +5,16 @@ interface DiceSectionsProps {
   dice: DieType[];
   onToggleDie: (id: number) => void;
   rolling: boolean;
+  focusedPosition: number | null;
+  onFocusDie: (position: number) => void;
 }
 
 export default function Dice({
   dice,
   onToggleDie,
   rolling,
+  focusedPosition,
+  onFocusDie,
 }: DiceSectionsProps) {
   // Sort dice by position for consistent rendering
   const sortedDice = [...dice].sort((a, b) => a.position - b.position);
@@ -25,7 +29,14 @@ export default function Dice({
   const activeDiceWithPlaceholders = Array.from({ length: 6 }, (_, index) => {
     const die = activeDice.find((d) => d.position === index + 1);
     return die ? (
-      <Die key={die.id} die={die} onToggleDie={onToggleDie} rolling={rolling} />
+      <Die
+        key={die.id}
+        die={die}
+        onToggleDie={onToggleDie}
+        rolling={rolling}
+        focused={focusedPosition === die.position}
+        onFocus={() => onFocusDie(die.position)}
+      />
     ) : (
       <div key={`active-empty-${index}`} className="w-16 h-16" />
     );
@@ -41,6 +52,8 @@ export default function Dice({
           die={die}
           onToggleDie={onToggleDie}
           rolling={rolling}
+          focused={focusedPosition === die.position}
+          onFocus={() => onFocusDie(die.position)}
         />
       ) : (
         <div key={`selected-empty-${index}`} className="w-16 h-16" />

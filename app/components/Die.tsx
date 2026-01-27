@@ -4,6 +4,8 @@ interface DiceProps {
   die: Die;
   onToggleDie: (id: number) => void;
   rolling?: boolean;
+  focused?: boolean;
+  onFocus?: () => void;
 }
 
 const DiceFace = ({
@@ -54,14 +56,24 @@ const DiceFace = ({
   );
 };
 
-export default function Die({ die, onToggleDie, rolling = false }: DiceProps) {
+export default function Die({
+  die,
+  onToggleDie,
+  rolling = false,
+  focused = false,
+  onFocus,
+}: DiceProps) {
   return (
     <button
       key={die.id}
-      onClick={() => onToggleDie(die.id)}
+      onClick={() => {
+        onFocus?.(); // Set focus on click
+        onToggleDie(die.id);
+      }}
       disabled={die.banked || rolling}
       className={`
             w-16 h-16 border-2 transition-colors rounded-xl relative
+            ${focused ? "shadow-[0_0_0_3px_rgba(96,165,250,0.5)]" : ""} 
             ${rolling && !die.banked ? "animate-roll" : ""}
             ${
               die.banked

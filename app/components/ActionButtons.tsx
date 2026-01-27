@@ -24,6 +24,7 @@ export default function ActionButtons({
         onClick={onRoll}
         disabled={!canRollAction}
         className={buttonClass}
+        title="Roll dice (Space)"
       >
         Roll
       </button>
@@ -32,6 +33,7 @@ export default function ActionButtons({
         onClick={onEndTurn}
         disabled={!canEndTurnAction}
         className={buttonClass}
+        title="End turn (Enter)"
       >
         End Turn
       </button>
@@ -39,6 +41,7 @@ export default function ActionButtons({
       <button
         onClick={onReset}
         className="px-4 py-2 border-2 rounded-lg border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors ml-auto font-medium"
+        title="New game (Delete)"
       >
         New Game
       </button>

@@ -32,9 +32,11 @@ export default function Home() {
   const [uiState, setUIState] = useState<{
     rolling: boolean;
     displayDice: typeof initialState.dice;
+    focusedPosition: number | null;
   }>({
     rolling: false,
     displayDice: createDice(6),
+    focusedPosition: 1, // Start with position 1 focused
   });
 
   useEffect(() => {
@@ -60,9 +62,21 @@ export default function Home() {
     (event: KeyboardEvent) => {
       // Prevent default behavior for our keys
       if (
-        ["1", "2", "3", "4", "5", "6", " ", "Enter", "Delete"].includes(
-          event.key,
-        ) &&
+        [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          " ",
+          "Enter",
+          "Delete",
+          "ArrowLeft",
+          "ArrowRight",
+          "ArrowUp",
+          "ArrowDown",
+        ].includes(event.key) &&
         !event.shiftKey &&
         !event.ctrlKey &&
         !event.altKey
@@ -70,12 +84,54 @@ export default function Home() {
         event.preventDefault();
       }
 
-      // Handle die selection (keys 1-6)
+      // Handle die selection (keys 1-6) - Also sets focus
       if (event.key >= "1" && event.key <= "6") {
         const position = parseInt(event.key);
+        setUIState((prev) => ({ ...prev, focusedPosition: position }));
         const die = gameState.dice.find((d) => d.position === position);
-        console.log(position, die);
         if (die && !die.banked && !uiState.rolling) {
+          setGameState(toggleDie(gameState, die.id));
+        }
+      }
+
+      // Arrow Left: Move focus left with wraparound
+      if (event.key === "ArrowLeft" && !uiState.rolling) {
+        const currentPos = uiState.focusedPosition ?? 1;
+        const newPos = currentPos === 1 ? 6 : currentPos - 1;
+        setUIState((prev) => ({ ...prev, focusedPosition: newPos }));
+      }
+
+      // Arrow Right: Move focus right with wraparound
+      if (event.key === "ArrowRight" && !uiState.rolling) {
+        const currentPos = uiState.focusedPosition ?? 1;
+        const newPos = currentPos === 6 ? 1 : currentPos + 1;
+        setUIState((prev) => ({ ...prev, focusedPosition: newPos }));
+      }
+
+      // Arrow Down: Select focused die (move to banked)
+      if (
+        event.key === "ArrowDown" &&
+        uiState.focusedPosition &&
+        !uiState.rolling
+      ) {
+        const die = gameState.dice.find(
+          (d) => d.position === uiState.focusedPosition,
+        );
+        if (die && !die.banked && !die.selected) {
+          setGameState(toggleDie(gameState, die.id));
+        }
+      }
+
+      // Arrow Up: Unselect focused die (move to active)
+      if (
+        event.key === "ArrowUp" &&
+        uiState.focusedPosition &&
+        !uiState.rolling
+      ) {
+        const die = gameState.dice.find(
+          (d) => d.position === uiState.focusedPosition,
+        );
+        if (die && !die.banked && die.selected) {
           setGameState(toggleDie(gameState, die.id));
         }
       }
@@ -95,7 +151,7 @@ export default function Home() {
         resetGame(gameState, setGameState, setUIState);
       }
     },
-    [gameState, uiState.rolling],
+    [gameState, uiState.rolling, uiState.focusedPosition],
   );
 
   useEffect(() => {
@@ -128,6 +184,10 @@ export default function Home() {
           dice={visualState.dice}
           onToggleDie={(id) => setGameState(toggleDie(gameState, id))}
           rolling={uiState.rolling}
+          focusedPosition={uiState.focusedPosition}
+          onFocusDie={(position) =>
+            setUIState((prev) => ({ ...prev, focusedPosition: position }))
+          }
         />
 
         {gameState.message && <MessageBanner message={gameState.message} />}
