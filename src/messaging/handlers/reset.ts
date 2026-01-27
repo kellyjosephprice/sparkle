@@ -1,10 +1,12 @@
 import { calculateThreshold, createDice } from "../../game";
 import { DEFAULT_RULES } from "../../scoring";
+import type { GameState } from "../../types";
 import type { CommandResult } from "../types";
 
-export function handleReset(): CommandResult {
+export function handleReset(state: GameState): CommandResult {
   return {
     state: {
+      ...state,
       dice: createDice(6),
       currentScore: 0,
       bankedScore: 0,

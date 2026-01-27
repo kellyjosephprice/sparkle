@@ -7,6 +7,7 @@ import {
   canReRoll,
   canRoll,
   createDice,
+  getSelectedScore,
   initialState,
 } from "../src/game";
 import type { GameEvent } from "../src/messaging";
@@ -78,6 +79,14 @@ export default function Home() {
           "ArrowRight",
           "ArrowUp",
           "ArrowDown",
+          "w",
+          "a",
+          "s",
+          "d",
+          "W",
+          "A",
+          "S",
+          "D",
         ].includes(event.key) &&
         !event.shiftKey &&
         !event.ctrlKey &&
@@ -96,23 +105,29 @@ export default function Home() {
         }
       }
 
-      // Arrow Left: Move focus left with wraparound
-      if (event.key === "ArrowLeft" && !uiState.rolling) {
+      // Arrow Left / A: Move focus left with wraparound
+      if (
+        (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") &&
+        !uiState.rolling
+      ) {
         const currentPos = uiState.focusedPosition ?? 1;
         const newPos = currentPos === 1 ? 6 : currentPos - 1;
         setUIState((prev) => ({ ...prev, focusedPosition: newPos }));
       }
 
-      // Arrow Right: Move focus right with wraparound
-      if (event.key === "ArrowRight" && !uiState.rolling) {
+      // Arrow Right / D: Move focus right with wraparound
+      if (
+        (event.key === "ArrowRight" || event.key.toLowerCase() === "d") &&
+        !uiState.rolling
+      ) {
         const currentPos = uiState.focusedPosition ?? 1;
         const newPos = currentPos === 6 ? 1 : currentPos + 1;
         setUIState((prev) => ({ ...prev, focusedPosition: newPos }));
       }
 
-      // Arrow Down: Select focused die (move to banked)
+      // Arrow Down / S: Select focused die (move to banked)
       if (
-        event.key === "ArrowDown" &&
+        (event.key === "ArrowDown" || event.key.toLowerCase() === "s") &&
         uiState.focusedPosition &&
         !uiState.rolling
       ) {
@@ -124,9 +139,9 @@ export default function Home() {
         }
       }
 
-      // Arrow Up: Unselect focused die (move to active)
+      // Arrow Up / W: Unselect focused die (move to active)
       if (
-        event.key === "ArrowUp" &&
+        (event.key === "ArrowUp" || event.key.toLowerCase() === "w") &&
         uiState.focusedPosition &&
         !uiState.rolling
       ) {
@@ -178,17 +193,25 @@ export default function Home() {
     dice: uiState.rolling ? uiState.displayDice : gameState.dice,
   };
 
+  const activeDiceCount = gameState.dice.filter(
+    (d) => !d.banked && !d.selected,
+  ).length;
+
+  const selectedScore = getSelectedScore(gameState);
+
   return (
     <div className="min-h-screen bg-black p-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold text-white mb-8">Sparkle</h1>
 
         <ScoreDisplay
-          totalScore={gameState.totalScore}
           currentTurnScore={gameState.currentScore}
-          turnNumber={gameState.turnNumber}
-          threshold={gameState.threshold}
+          bankedScore={selectedScore}
+          highScore={gameState.highScore}
           rerollsAvailable={gameState.rerollsAvailable}
+          threshold={gameState.threshold}
+          totalScore={gameState.totalScore}
+          turnNumber={gameState.turnNumber}
         />
 
         <Dice
@@ -215,6 +238,7 @@ export default function Home() {
 
         <Rules
           rules={gameState.scoringRules}
+          activeDiceCount={activeDiceCount}
           onToggleRule={(ruleId) => {
             const result = gameEngine.processCommand(gameState, {
               type: "TOGGLE_SCORING_RULE",

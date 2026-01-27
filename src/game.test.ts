@@ -36,6 +36,7 @@ describe("Game Selectors", () => {
       scoringRules: DEFAULT_RULES,
       rerollsAvailable: 1,
       lastRollSparkled: false,
+      highScore: 0,
     };
   });
 

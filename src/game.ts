@@ -4,18 +4,19 @@ import type { Die, DieValue, GameState } from "./types";
 export const BASE_THRESHOLD = 100;
 
 export const initialState: GameState = {
-  dice: [],
-  currentScore: 0,
   bankedScore: 0,
-  totalScore: 0,
+  currentScore: 0,
+  dice: [],
+  gameOver: false,
+  highScore: 0,
+  lastRollSparkled: false,
+  message: "Roll the dice to start!",
+  rerollsAvailable: 1,
+  scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   thresholdLevel: 1,
+  totalScore: 0,
   turnNumber: 1,
-  gameOver: false,
-  message: "Roll the dice to start!",
-  scoringRules: DEFAULT_RULES,
-  rerollsAvailable: 1,
-  lastRollSparkled: false,
 };
 
 // Utility/Selector Functions

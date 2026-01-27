@@ -90,16 +90,20 @@ export function handleEndTurn(
   setUIState: SetUIState,
 ): void {
   const bankedState = autoBankSelectedDice(state);
-  setGameState(bankedState);
-
+  // Don't update state if auto-banking failed or returned the same state
+  // But usually handleEndTurn expects to process through the engine
   const result = gameEngine.processCommand(bankedState, {
     type: "END_TURN",
     isSparkled: false,
   });
-  setGameState(result.state);
 
-  if (!result.state.gameOver) {
+  // Only trigger animation if the turn actually changed
+  if (result.state.turnNumber > state.turnNumber && !result.state.gameOver) {
+    setGameState(result.state);
     startRollAnimation(result.state.dice, setUIState);
+  } else {
+    // Just update the state (likely an error message or threshold not met)
+    setGameState(result.state);
   }
 }
 

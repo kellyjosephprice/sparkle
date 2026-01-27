@@ -29,18 +29,19 @@ export interface Rule {
 export type RuleMap = Record<RuleId, Rule>;
 
 export interface GameState {
-  dice: Die[];
-  currentScore: number;
   bankedScore: number;
-  totalScore: number;
+  currentScore: number;
+  dice: Die[];
+  gameOver: boolean;
+  highScore: number;
+  lastRollSparkled: boolean;
+  message: string;
+  rerollsAvailable: number;
+  scoringRules: RuleMap;
   threshold: number;
   thresholdLevel: number;
+  totalScore: number;
   turnNumber: number;
-  gameOver: boolean;
-  message: string;
-  scoringRules: RuleMap;
-  rerollsAvailable: number;
-  lastRollSparkled: boolean;
 }
 
 export type ScoringCombination =

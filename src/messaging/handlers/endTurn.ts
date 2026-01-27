@@ -78,6 +78,8 @@ export function handleEndTurn(
     newThreshold = calculateThreshold(newThresholdLevel);
   }
 
+  const highScore = Math.max(state.highScore, newTotalScore);
+
   let message = "";
   if (command.isSparkled) {
     if (gameOver) {
@@ -106,18 +108,19 @@ export function handleEndTurn(
 
   return {
     state: {
-      dice: newDice,
-      currentScore: 0,
       bankedScore: 0,
-      totalScore: newTotalScore,
+      currentScore: 0,
+      dice: newDice,
+      gameOver: gameOver,
+      highScore,
+      lastRollSparkled: false,
+      message: message,
+      rerollsAvailable: newRerollsAvailable,
+      scoringRules: state.scoringRules,
       threshold: newThreshold,
       thresholdLevel: newThresholdLevel,
+      totalScore: newTotalScore,
       turnNumber: nextTurnNumber,
-      gameOver: gameOver,
-      message: message,
-      scoringRules: state.scoringRules,
-      rerollsAvailable: newRerollsAvailable,
-      lastRollSparkled: false,
     },
     events,
   };

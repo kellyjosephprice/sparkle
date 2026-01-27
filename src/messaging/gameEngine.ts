@@ -38,7 +38,7 @@ export class GameEngine {
         break;
 
       case "RESET_GAME":
-        result = handleReset();
+        result = handleReset(state);
         break;
 
       case "TOGGLE_SCORING_RULE":
