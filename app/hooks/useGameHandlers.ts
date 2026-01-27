@@ -1,4 +1,4 @@
-import { getSelectedDice } from "../../src/game";
+import { getStagedDice } from "../../src/game";
 import { gameEngine } from "../../src/messaging";
 import type { Die, GameState } from "../../src/types";
 
@@ -50,9 +50,9 @@ function startRollAnimation(
   return interval;
 }
 
-function autoBankSelectedDice(state: GameState): GameState {
-  const selectedDice = getSelectedDice(state);
-  if (selectedDice.length === 0) return state;
+function autoBankStagedDice(state: GameState): GameState {
+  const stagedDice = getStagedDice(state);
+  if (stagedDice.length === 0) return state;
 
   const result = gameEngine.processCommand(state, {
     type: "BANK_DICE",
@@ -73,7 +73,7 @@ export function handleRoll(
   setGameState: SetGameState,
   setUIState: SetUIState,
 ): void {
-  const bankedState = autoBankSelectedDice(state);
+  const bankedState = autoBankStagedDice(state);
   setGameState(bankedState);
 
   const result = gameEngine.processCommand(bankedState, {
@@ -89,12 +89,12 @@ export function handleEndTurn(
   setGameState: SetGameState,
   setUIState: SetUIState,
 ): void {
-  const bankedState = autoBankSelectedDice(state);
+  const bankedState = autoBankStagedDice(state);
   // Don't update state if auto-banking failed or returned the same state
   // But usually handleEndTurn expects to process through the engine
   const result = gameEngine.processCommand(bankedState, {
     type: "END_TURN",
-    isSparkled: false,
+    isSparkled: bankedState.lastRollSparkled,
   });
 
   // Only trigger animation if the turn actually changed

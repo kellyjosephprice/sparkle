@@ -1,32 +1,32 @@
 import {
   createDice,
   getActiveDice,
-  getSelectedDice,
-  getSelectedScore,
+  getStagedDice,
+  getStagedScore,
 } from "../../../src/game";
 import { calculateScore } from "../../../src/scoring";
 import type { GameState, RuleMap } from "../../../src/types";
 import type { CommandResult } from "../types";
 
 export function handleBank(state: GameState): CommandResult {
-  const selectedDice = getSelectedDice(state);
-  const selectedScore = getSelectedScore(state);
+  const stagedDice = getStagedDice(state);
+  const stagedScore = getStagedScore(state);
 
-  if (selectedDice.length === 0) {
+  if (stagedDice.length === 0) {
     return {
       state: { ...state, message: "Select some dice first!" },
       events: [{ type: "ERROR", message: "Select some dice first!" }],
     };
   }
 
-  if (selectedScore === 0) {
+  if (stagedScore === 0) {
     return {
       state: { ...state, message: "Selected dice do not score!" },
       events: [{ type: "ERROR", message: "Selected dice do not score!" }],
     };
   }
 
-  const { scoringRuleIds } = calculateScore(selectedDice, state.scoringRules);
+  const { scoringRuleIds } = calculateScore(stagedDice, state.scoringRules);
 
   // Increment activation counts for the rules that were used
   const updatedRules = Object.values(state.scoringRules).reduce<RuleMap>(
@@ -48,8 +48,8 @@ export function handleBank(state: GameState): CommandResult {
   );
 
   const activeDice = getActiveDice(state);
-  const newBankedScore = state.bankedScore + selectedScore;
-  const allDiceUsed = activeDice.length === selectedDice.length;
+  const newBankedScore = state.bankedScore + stagedScore;
+  const allDiceUsed = activeDice.length === stagedDice.length;
 
   if (allDiceUsed) {
     // Hot dice: clear banked dice and roll 6 new dice
@@ -59,28 +59,26 @@ export function handleBank(state: GameState): CommandResult {
         ...state,
         dice: newDice,
         bankedScore: newBankedScore,
-        currentScore: state.currentScore + selectedScore,
-        message: `Banked ${selectedScore} points! Hot dice! Rolling all 6 dice again...`,
+        message: `Banked ${stagedScore} points! Hot dice! Rolling all 6 dice again...`,
         scoringRules: updatedRules,
         lastRollSparkled: false,
       },
-      events: [{ type: "DICE_BANKED", score: selectedScore, hotDice: true }],
+      events: [{ type: "DICE_BANKED", score: stagedScore, hotDice: true }],
     };
   } else {
-    // Normal bank: just mark selected dice as banked
+    // Normal bank: just mark staged dice as banked
     return {
       state: {
         ...state,
         dice: state.dice.map((die) =>
-          die.selected ? { ...die, selected: false, banked: true } : die,
+          die.staged ? { ...die, staged: false, banked: true } : die,
         ),
         bankedScore: newBankedScore,
-        currentScore: state.currentScore + selectedScore,
-        message: `Banked ${selectedScore} points! Roll again or end turn.`,
+        message: `Banked ${stagedScore} points! Roll again or end turn.`,
         scoringRules: updatedRules,
         lastRollSparkled: false,
       },
-      events: [{ type: "DICE_BANKED", score: selectedScore, hotDice: false }],
+      events: [{ type: "DICE_BANKED", score: stagedScore, hotDice: false }],
     };
   }
 }

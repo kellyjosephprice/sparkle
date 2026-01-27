@@ -7,6 +7,7 @@ import {
   handleReset,
   handleResetRuleCounts,
   handleRoll,
+  handleSelectAll,
   handleToggleDie,
   handleToggleRule,
 } from "./handlers";
@@ -31,6 +32,10 @@ export class GameEngine {
 
       case "BANK_DICE":
         result = handleBank(state);
+        break;
+
+      case "SELECT_ALL":
+        result = handleSelectAll(state);
         break;
 
       case "END_TURN":

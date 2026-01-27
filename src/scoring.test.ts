@@ -8,8 +8,9 @@ function makeDice(values: number[]): Die[] {
   return values.map((value, i) => ({
     id: i,
     value: value as 1 | 2 | 3 | 4 | 5 | 6,
-    selected: false,
+    staged: false,
     banked: false,
+    position: i + 1,
   }));
 }
 

@@ -5,7 +5,6 @@ export const BASE_THRESHOLD = 100;
 
 export const initialState: GameState = {
   bankedScore: 0,
-  currentScore: 0,
   dice: [],
   gameOver: false,
   highScore: 0,
@@ -22,7 +21,11 @@ export const initialState: GameState = {
 // Utility/Selector Functions
 
 export function calculateThreshold(turnNumber: number): number {
-  return BASE_THRESHOLD * Math.pow(2, turnNumber - 1);
+  return (
+    BASE_THRESHOLD +
+    100 * turnNumber +
+    100 * Math.pow(Math.floor(turnNumber / 5), 2)
+  );
 }
 
 export function createDice(count: number, existingDice?: Die[]): Die[] {
@@ -31,7 +34,7 @@ export function createDice(count: number, existingDice?: Die[]): Die[] {
     return {
       id: Date.now() + i,
       value: (Math.floor(Math.random() * 6) + 1) as DieValue,
-      selected: false,
+      staged: false,
       banked: false,
       position: existingDie?.position ?? i + 1, // Use existing position or assign new one
     };
@@ -46,27 +49,27 @@ export function getBankedDice(state: GameState): Die[] {
   return state.dice.filter((d) => d.banked);
 }
 
-export function getSelectedDice(state: GameState): Die[] {
-  return state.dice.filter((d) => d.selected && !d.banked);
+export function getStagedDice(state: GameState): Die[] {
+  return state.dice.filter((d) => d.staged && !d.banked);
 }
 
-export function getSelectedScore(state: GameState): number {
-  return calculateScore(getSelectedDice(state), state.scoringRules).score;
+export function getStagedScore(state: GameState): number {
+  return calculateScore(getStagedDice(state), state.scoringRules).score;
 }
 
 // Validation Functions
 
 export function canRoll(state: GameState): boolean {
   const activeDice = getActiveDice(state);
-  const selectedScore = getSelectedScore(state);
+  const stagedScore = getStagedScore(state);
 
   // Can roll if:
-  // 1. Normal roll: Have selected dice that score (will be auto-banked), OR
-  // 2. After sparkle: Allow rolling to enable re-roll
+  // 1. Normal roll: Have staged dice that score (will be auto-banked)
   return (
     activeDice.length > 0 &&
     !state.gameOver &&
-    (selectedScore > 0 || state.lastRollSparkled)
+    !state.lastRollSparkled &&
+    stagedScore > 0
   );
 }
 
@@ -79,15 +82,25 @@ export function canReRoll(state: GameState): boolean {
 }
 
 export function canBank(state: GameState): boolean {
-  const selectedDice = getSelectedDice(state);
-  const selectedScore = getSelectedScore(state);
+  const stagedDice = getStagedDice(state);
+  const stagedScore = getStagedScore(state);
 
-  return selectedDice.length > 0 && selectedScore > 0 && !state.gameOver;
+  return stagedDice.length > 0 && stagedScore > 0 && !state.gameOver;
 }
 
 export function canEndTurn(state: GameState): boolean {
-  const selectedScore = getSelectedScore(state);
+  const stagedScore = getStagedScore(state);
+  const potentialTotalScore =
+    state.totalScore + state.bankedScore + stagedScore;
 
-  // Can end turn if there are points to bank (either already banked or selected)
-  return !state.gameOver && (state.bankedScore > 0 || selectedScore > 0);
+  if (state.gameOver) return false;
+
+  // If sparkled, must be able to end turn (to bust)
+  if (state.lastRollSparkled) return true;
+
+  // Otherwise, must have points AND meet threshold
+  return (
+    (state.bankedScore > 0 || stagedScore > 0) &&
+    potentialTotalScore >= state.threshold
+  );
 }

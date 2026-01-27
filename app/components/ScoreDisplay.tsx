@@ -1,6 +1,6 @@
 interface ScoreDisplayProps {
-  currentTurnScore: number;
   bankedScore: number;
+  stagedScore: number;
   highScore: number;
   rerollsAvailable: number;
   threshold: number;
@@ -9,14 +9,17 @@ interface ScoreDisplayProps {
 }
 
 export default function ScoreDisplay({
-  currentTurnScore,
   bankedScore,
+  stagedScore,
   highScore,
   rerollsAvailable,
   threshold,
   totalScore,
   turnNumber,
 }: ScoreDisplayProps) {
+  const potentialScore = totalScore + bankedScore + stagedScore;
+  const temperature = potentialScore - threshold;
+
   return (
     <>
       <div className="flex gap-8 mb-6 text-sm">
@@ -38,21 +41,23 @@ export default function ScoreDisplay({
       <div className="flex gap-8 mb-6 text-sm">
         <div>
           <div className="text-gray-400">Limit</div>
-          <div className="text-2xl font-bold text-white">{threshold}</div>
-        </div>
-        <div>
-          <div className="text-gray-400">Score</div>
-          <div className="text-2xl font-bold text-white">{totalScore}</div>
-        </div>
-        <div>
-          <div className="text-gray-400">This Turn</div>
-          <div className="text-2xl font-bold text-white">
-            {currentTurnScore}
+          <div
+            className={`text-2xl font-bold ${temperature > 0 ? "text-green-500" : temperature < 0 ? "text-red-500" : "text-orange-500"}`}
+          >
+            {threshold}
           </div>
+        </div>
+        <div>
+          <div className="text-gray-400">Total Score</div>
+          <div className="text-2xl font-bold text-white">{totalScore}</div>
         </div>
         <div>
           <div className="text-gray-400">Banked Score</div>
           <div className="text-2xl font-bold text-white">{bankedScore}</div>
+        </div>
+        <div>
+          <div className="text-gray-400">Staged Score</div>
+          <div className="text-2xl font-bold text-white">{stagedScore}</div>
         </div>
       </div>
     </>

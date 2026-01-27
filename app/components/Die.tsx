@@ -10,10 +10,10 @@ interface DiceProps {
 
 const DiceFace = ({
   value,
-  selected,
+  staged,
 }: {
   value: number;
-  selected: boolean;
+  staged: boolean;
 }) => {
   const dots =
     {
@@ -48,7 +48,7 @@ const DiceFace = ({
         <div
           key={idx}
           className={`absolute w-2.5 h-2.5 rounded-full ${dotPositions[position]} ${
-            selected ? "bg-black" : "bg-white"
+            staged ? "bg-black" : "bg-white"
           }`}
         />
       ))}
@@ -73,19 +73,19 @@ export default function Die({
       disabled={die.banked || rolling}
       className={`
             w-16 h-16 border-2 transition-colors rounded-xl relative
-            ${focused ? "shadow-[0_0_0_3px_rgba(96,165,250,0.5)]" : ""} 
+            ${focused ? "shadow-lg shadow-amber-500/50" : ""}
             ${rolling && !die.banked ? "animate-roll" : ""}
             ${
               die.banked
                 ? "opacity-20 border-gray-600 bg-gray-600"
-                : die.selected
+                : die.staged
                   ? "border-white bg-white"
                   : "border-gray-600 bg-gray-600 hover:border-white"
             }
           `}
       style={{ gridColumn: die.position }}
     >
-      <DiceFace value={die.value} selected={die.selected} />
+      <DiceFace value={die.value} staged={die.staged} />
     </button>
   );
 }

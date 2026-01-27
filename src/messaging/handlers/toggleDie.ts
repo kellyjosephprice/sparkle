@@ -13,7 +13,7 @@ export function handleToggleDie(
     ...state,
     dice: state.dice.map((die) =>
       die.id === command.dieId && !die.banked
-        ? { ...die, selected: !die.selected }
+        ? { ...die, staged: !die.staged }
         : die
     ),
     message: "",

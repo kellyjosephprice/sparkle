@@ -19,10 +19,10 @@ export default function Dice({
   // Sort dice by position for consistent rendering
   const sortedDice = [...dice].sort((a, b) => a.position - b.position);
 
-  // Separate active (non-selected, non-banked) and selected/banked dice
-  const activeDice = sortedDice.filter((die) => !die.selected && !die.banked);
-  const selectedOrBankedDice = sortedDice.filter(
-    (die) => die.selected || die.banked,
+  // Separate active (non-staged, non-banked) and staged/banked dice
+  const activeDice = sortedDice.filter((die) => !die.staged && !die.banked);
+  const stagedOrBankedDice = sortedDice.filter(
+    (die) => die.staged || die.banked,
   );
 
   // Create arrays with placeholders for all 6 positions
@@ -42,10 +42,10 @@ export default function Dice({
     );
   });
 
-  const selectedOrBankedWithPlaceholders = Array.from(
+  const stagedOrBankedWithPlaceholders = Array.from(
     { length: 6 },
     (_, index) => {
-      const die = selectedOrBankedDice.find((d) => d.position === index + 1);
+      const die = stagedOrBankedDice.find((d) => d.position === index + 1);
       return die ? (
         <Die
           key={die.id}
@@ -71,7 +71,7 @@ export default function Dice({
 
       <div className="p-6 bg-gray-900">
         <div className="grid grid-cols-6 justify-items-center">
-          {selectedOrBankedWithPlaceholders}
+          {stagedOrBankedWithPlaceholders}
         </div>
       </div>
     </div>

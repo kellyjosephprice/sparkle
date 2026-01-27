@@ -6,6 +6,7 @@ export type GameCommand =
   | { type: "ROLL_DICE" }
   | { type: "RE_ROLL" }
   | { type: "BANK_DICE" }
+  | { type: "SELECT_ALL" }
   | { type: "END_TURN"; isSparkled?: boolean }
   | { type: "RESET_GAME" }
   | { type: "TOGGLE_SCORING_RULE"; ruleId: RuleId }

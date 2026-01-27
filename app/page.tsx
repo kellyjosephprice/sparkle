@@ -7,7 +7,8 @@ import {
   canReRoll,
   canRoll,
   createDice,
-  getSelectedScore,
+  getStagedDice,
+  getStagedScore,
   initialState,
 } from "../src/game";
 import type { GameEvent } from "../src/messaging";
@@ -15,6 +16,7 @@ import { eventBus, gameEngine } from "../src/messaging";
 import type { GameState, RuleId } from "../src/types";
 import ActionButtons from "./components/ActionButtons";
 import Dice from "./components/Dice";
+import Hotkeys from "./components/Hotkeys";
 import MessageBanner from "./components/MessageBanner";
 import Rules from "./components/Rules";
 import ScoreDisplay from "./components/ScoreDisplay";
@@ -40,6 +42,21 @@ export default function Home() {
     displayDice: createDice(6),
     focusedPosition: 1, // Start with position 1 focused
   });
+
+  // Load high score from local storage
+  useEffect(() => {
+    const saved = localStorage.getItem("sparkle_high_score");
+    if (saved) {
+      setGameState((prev) => ({ ...prev, highScore: parseInt(saved, 10) }));
+    }
+  }, []);
+
+  // Save high score to local storage
+  useEffect(() => {
+    if (gameState.highScore > 0) {
+      localStorage.setItem("sparkle_high_score", gameState.highScore.toString());
+    }
+  }, [gameState.highScore]);
 
   useEffect(() => {
     const unsubscribe = eventBus.subscribe((event: GameEvent) => {
@@ -134,7 +151,7 @@ export default function Home() {
         const die = gameState.dice.find(
           (d) => d.position === uiState.focusedPosition,
         );
-        if (die && !die.banked && !die.selected) {
+        if (die && !die.banked && !die.staged) {
           setGameState(toggleDie(gameState, die.id));
         }
       }
@@ -148,7 +165,7 @@ export default function Home() {
         const die = gameState.dice.find(
           (d) => d.position === uiState.focusedPosition,
         );
-        if (die && !die.banked && die.selected) {
+        if (die && !die.banked && die.staged) {
           setGameState(toggleDie(gameState, die.id));
         }
       }
@@ -159,6 +176,11 @@ export default function Home() {
           handleReRoll(gameState, setGameState, setUIState);
         } else if (canRoll(gameState)) {
           handleRoll(gameState, setGameState, setUIState);
+        } else if (getStagedDice(gameState).length === 0) {
+          const result = gameEngine.processCommand(gameState, {
+            type: "SELECT_ALL",
+          });
+          setGameState(result.state);
         }
       }
 
@@ -194,10 +216,10 @@ export default function Home() {
   };
 
   const activeDiceCount = gameState.dice.filter(
-    (d) => !d.banked && !d.selected,
+    (d) => !d.banked && !d.staged,
   ).length;
 
-  const selectedScore = getSelectedScore(gameState);
+  const stagedScore = getStagedScore(gameState);
 
   return (
     <div className="min-h-screen bg-black p-8">
@@ -205,8 +227,8 @@ export default function Home() {
         <h1 className="text-4xl font-bold text-white mb-8">Sparkle</h1>
 
         <ScoreDisplay
-          currentTurnScore={gameState.currentScore}
-          bankedScore={selectedScore}
+          bankedScore={gameState.bankedScore}
+          stagedScore={stagedScore}
           highScore={gameState.highScore}
           rerollsAvailable={gameState.rerollsAvailable}
           threshold={gameState.threshold}
@@ -236,17 +258,9 @@ export default function Home() {
           onReRoll={() => handleReRoll(gameState, setGameState, setUIState)}
         />
 
-        <Rules
-          rules={gameState.scoringRules}
-          activeDiceCount={activeDiceCount}
-          onToggleRule={(ruleId) => {
-            const result = gameEngine.processCommand(gameState, {
-              type: "TOGGLE_SCORING_RULE",
-              ruleId: ruleId as RuleId,
-            });
-            setGameState(result.state);
-          }}
-        />
+        <Rules rules={gameState.scoringRules} activeDiceCount={activeDiceCount} />
+
+        <Hotkeys />
       </div>
     </div>
   );

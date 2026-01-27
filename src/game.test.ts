@@ -8,8 +8,8 @@ import {
   createDice,
   getActiveDice,
   getBankedDice,
-  getSelectedDice,
-  getSelectedScore,
+  getStagedDice,
+  getStagedScore,
 } from "./game";
 import { DEFAULT_RULES } from "./scoring";
 import type { GameState } from "./types";
@@ -20,12 +20,11 @@ describe("Game Selectors", () => {
   beforeEach(() => {
     state = {
       dice: [
-        { id: 1, value: 1, selected: false, banked: false, position: 1 },
-        { id: 2, value: 2, selected: true, banked: false, position: 2 },
-        { id: 3, value: 3, selected: false, banked: true, position: 3 },
-        { id: 4, value: 4, selected: true, banked: true, position: 4 },
+        { id: 1, value: 1, staged: false, banked: false, position: 1 },
+        { id: 2, value: 2, staged: true, banked: false, position: 2 },
+        { id: 3, value: 3, staged: false, banked: true, position: 3 },
+        { id: 4, value: 4, staged: true, banked: true, position: 4 },
       ],
-      currentScore: 0,
       bankedScore: 0,
       totalScore: 0,
       threshold: 1000,
@@ -56,37 +55,37 @@ describe("Game Selectors", () => {
     });
   });
 
-  describe("getSelectedDice", () => {
-    it("should return only selected and non-banked dice", () => {
-      const selected = getSelectedDice(state);
-      expect(selected).toHaveLength(1);
-      expect(selected.every((d) => d.selected && !d.banked)).toBe(true);
+  describe("getStagedDice", () => {
+    it("should return only staged and non-banked dice", () => {
+      const staged = getStagedDice(state);
+      expect(staged).toHaveLength(1);
+      expect(staged.every((d) => d.staged && !d.banked)).toBe(true);
     });
   });
 
-  describe("getSelectedScore", () => {
-    it("should calculate score for selected dice", () => {
-      const score = getSelectedScore(state);
+  describe("getStagedScore", () => {
+    it("should calculate score for staged dice", () => {
+      const score = getStagedScore(state);
       expect(score).toBe(0); // Die with value 2 doesn't score by default
     });
 
-    it("should calculate score for selected scoring dice", () => {
+    it("should calculate score for staged scoring dice", () => {
       state.dice = [
-        { id: 1, value: 1, selected: true, banked: false, position: 1 },
-        { id: 2, value: 5, selected: true, banked: false, position: 2 },
+        { id: 1, value: 1, staged: true, banked: false, position: 1 },
+        { id: 2, value: 5, staged: true, banked: false, position: 2 },
       ];
-      const score = getSelectedScore(state);
+      const score = getStagedScore(state);
       expect(score).toBe(150); // 100 (for 1) + 50 (for 5)
     });
   });
 
   describe("calculateThreshold", () => {
     it("should calculate threshold for turn 1", () => {
-      expect(calculateThreshold(1)).toBe(100);
+      expect(calculateThreshold(1)).toBe(200);
     });
 
     it("should calculate threshold for turn 2", () => {
-      expect(calculateThreshold(2)).toBe(200);
+      expect(calculateThreshold(2)).toBe(300);
     });
 
     it("should calculate threshold for turn 3", () => {
@@ -95,9 +94,9 @@ describe("Game Selectors", () => {
   });
 
   describe("canRoll", () => {
-    it("should return true when game is not over and selected dice score", () => {
-      // Select a die that scores (value 1)
-      state.dice[0].selected = true;
+    it("should return true when game is not over and staged dice score", () => {
+      // Stage a die that scores (value 1)
+      state.dice[0].staged = true;
       expect(canRoll(state)).toBe(true);
     });
 
@@ -108,46 +107,54 @@ describe("Game Selectors", () => {
   });
 
   describe("canBank", () => {
-    it("should return false when no dice selected", () => {
+    it("should return false when no dice staged", () => {
       state.dice = [
-        { id: 1, value: 1, selected: false, banked: false, position: 1 },
-        { id: 2, value: 2, selected: false, banked: false, position: 2 },
+        { id: 1, value: 1, staged: false, banked: false, position: 1 },
+        { id: 2, value: 2, staged: false, banked: false, position: 2 },
       ];
       expect(canBank(state)).toBe(false);
     });
 
-    it("should return false when selected dice don't score", () => {
+    it("should return false when staged dice don't score", () => {
       state.dice = [
-        { id: 1, value: 2, selected: true, banked: false, position: 1 },
-        { id: 2, value: 3, selected: true, banked: false, position: 2 },
+        { id: 1, value: 2, staged: true, banked: false, position: 1 },
+        { id: 2, value: 3, staged: true, banked: false, position: 2 },
       ];
       expect(canBank(state)).toBe(false);
     });
 
-    it("should return true when selected dice score", () => {
+    it("should return true when staged dice score", () => {
       state.dice = [
-        { id: 1, value: 1, selected: true, banked: false, position: 1 },
-        { id: 2, value: 5, selected: true, banked: false, position: 2 },
+        { id: 1, value: 1, staged: true, banked: false, position: 1 },
+        { id: 2, value: 5, staged: true, banked: false, position: 2 },
       ];
       expect(canBank(state)).toBe(true);
     });
   });
 
   describe("canEndTurn", () => {
-    it("should return false when no dice banked", () => {
-      state.currentScore = 0;
+    it("should return false when no dice banked and no staged score", () => {
+      state.bankedScore = 0;
       expect(canEndTurn(state)).toBe(false);
     });
 
-    it("should return true when there are points to bank", () => {
-      state.currentScore = 100;
-      state.bankedScore = 50;
+    it("should return false when points don't meet threshold", () => {
+      state.bankedScore = 1000;
+      state.threshold = 2000;
+      expect(canEndTurn(state)).toBe(false);
+    });
+
+    it("should return true when potential score meets threshold", () => {
+      state.totalScore = 500;
+      state.bankedScore = 500;
+      state.threshold = 1000;
       expect(canEndTurn(state)).toBe(true);
     });
 
-    it("should return true when banked score meets threshold", () => {
-      state.currentScore = 100;
-      state.bankedScore = 900;
+    it("should return true when sparkled regardless of threshold", () => {
+      state.lastRollSparkled = true;
+      state.totalScore = 0;
+      state.threshold = 1000;
       expect(canEndTurn(state)).toBe(true);
     });
   });
@@ -158,10 +165,10 @@ describe("Game Selectors", () => {
       expect(dice).toHaveLength(6);
     });
 
-    it("should create unselected and unbanked dice", () => {
+    it("should create unstaged and unbanked dice", () => {
       const dice = createDice(6);
       dice.forEach((die) => {
-        expect(die.selected).toBe(false);
+        expect(die.staged).toBe(false);
         expect(die.banked).toBe(false);
       });
     });

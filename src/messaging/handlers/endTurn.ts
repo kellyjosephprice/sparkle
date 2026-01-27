@@ -1,7 +1,7 @@
 import {
   calculateThreshold,
   createDice,
-  getSelectedScore,
+  getStagedScore,
 } from "../../../src/game";
 import type { GameState } from "../../../src/types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
@@ -10,14 +10,14 @@ export function handleEndTurn(
   state: GameState,
   command: Extract<GameCommand, { type: "END_TURN" }>,
 ): CommandResult {
-  const selectedScore = getSelectedScore(state);
+  const stagedScore = getStagedScore(state);
   const totalTurnScore = command.isSparkled
     ? 0
-    : state.currentScore + selectedScore;
+    : state.bankedScore + stagedScore;
 
   // Validation (only if not sparkled - sparkle auto-ends turn)
   if (!command.isSparkled) {
-    if (state.bankedScore === 0 && selectedScore === 0) {
+    if (state.bankedScore === 0 && stagedScore === 0) {
       return {
         state: {
           ...state,
@@ -32,7 +32,7 @@ export function handleEndTurn(
       };
     }
 
-    if (selectedScore > 0) {
+    if (stagedScore > 0) {
       return {
         state: { ...state, message: "Bank your selected dice first!" },
         events: [{ type: "ERROR", message: "Bank your selected dice first!" }],
@@ -109,7 +109,6 @@ export function handleEndTurn(
   return {
     state: {
       bankedScore: 0,
-      currentScore: 0,
       dice: newDice,
       gameOver: gameOver,
       highScore,

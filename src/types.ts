@@ -3,7 +3,7 @@ export type DieValue = 1 | 2 | 3 | 4 | 5 | 6;
 export interface Die {
   id: number;
   value: DieValue;
-  selected: boolean;
+  staged: boolean;
   banked: boolean;
   position: number; // Persistent position (1-6)
 }
@@ -29,8 +29,7 @@ export interface Rule {
 export type RuleMap = Record<RuleId, Rule>;
 
 export interface GameState {
-  bankedScore: number;
-  currentScore: number;
+  bankedScore: number; // Score collected for this turn
   dice: Die[];
   gameOver: boolean;
   highScore: number;
