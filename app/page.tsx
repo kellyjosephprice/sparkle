@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
   canEndTurn,
+  canReRoll,
   canRoll,
   createDice,
-  getSelectedScore,
   initialState,
 } from "../src/game";
 import type { GameEvent } from "../src/messaging";
@@ -19,6 +19,7 @@ import Rules from "./components/Rules";
 import ScoreDisplay from "./components/ScoreDisplay";
 import {
   handleEndTurn,
+  handleReRoll,
   handleRoll,
   resetGame,
   toggleDie,
@@ -71,7 +72,8 @@ export default function Home() {
           "6",
           " ",
           "Enter",
-          "Delete",
+          "Backspace",
+          "r",
           "ArrowLeft",
           "ArrowRight",
           "ArrowUp",
@@ -136,9 +138,18 @@ export default function Home() {
         }
       }
 
-      // Handle roll (spacebar)
-      if (event.key === " " && canRoll(gameState) && !uiState.rolling) {
-        handleRoll(gameState, setGameState, setUIState);
+      // Handle roll (spacebar) - Use re-roll if last roll sparkled
+      if (event.key === " " && !uiState.rolling) {
+        if (gameState.lastRollSparkled && canReRoll(gameState)) {
+          handleReRoll(gameState, setGameState, setUIState);
+        } else if (canRoll(gameState)) {
+          handleRoll(gameState, setGameState, setUIState);
+        }
+      }
+
+      // Handle re-roll (R key)
+      if (event.key === "r" && canReRoll(gameState) && !uiState.rolling) {
+        handleReRoll(gameState, setGameState, setUIState);
       }
 
       // Handle end turn (Enter)
@@ -146,8 +157,8 @@ export default function Home() {
         handleEndTurn(gameState, setGameState, setUIState);
       }
 
-      // Handle new game (Delete)
-      if (event.key === "Delete" && !uiState.rolling) {
+      // Handle new game (Backspace)
+      if (event.key === "Backspace" && !uiState.rolling) {
         resetGame(gameState, setGameState, setUIState);
       }
     },
@@ -166,7 +177,6 @@ export default function Home() {
     ...gameState,
     dice: uiState.rolling ? uiState.displayDice : gameState.dice,
   };
-  const selectedScore = getSelectedScore(gameState);
 
   return (
     <div className="min-h-screen bg-black p-8">
@@ -175,9 +185,10 @@ export default function Home() {
 
         <ScoreDisplay
           totalScore={gameState.totalScore}
-          currentTurnScore={gameState.currentScore + selectedScore}
+          currentTurnScore={gameState.currentScore}
           turnNumber={gameState.turnNumber}
           threshold={gameState.threshold}
+          rerollsAvailable={gameState.rerollsAvailable}
         />
 
         <Dice
@@ -195,9 +206,11 @@ export default function Home() {
         <ActionButtons
           canRollAction={canRoll(gameState)}
           canEndTurnAction={canEndTurn(gameState)}
+          canReRollAction={canReRoll(gameState)}
           onRoll={() => handleRoll(gameState, setGameState, setUIState)}
           onEndTurn={() => handleEndTurn(gameState, setGameState, setUIState)}
           onReset={() => resetGame(gameState, setGameState, setUIState)}
+          onReRoll={() => handleReRoll(gameState, setGameState, setUIState)}
         />
 
         <Rules

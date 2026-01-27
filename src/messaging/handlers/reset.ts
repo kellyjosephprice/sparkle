@@ -15,6 +15,8 @@ export function handleReset(): CommandResult {
       gameOver: false,
       message: "New game started! Roll the dice!",
       scoringRules: DEFAULT_RULES,
+      rerollsAvailable: 1,
+      lastRollSparkled: false,
     },
     events: [{ type: "GAME_RESET" }],
   };

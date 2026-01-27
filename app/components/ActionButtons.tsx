@@ -1,17 +1,21 @@
 interface ActionButtonsProps {
   canRollAction: boolean;
   canEndTurnAction: boolean;
+  canReRollAction: boolean;
   onRoll: () => void;
   onEndTurn: () => void;
   onReset: () => void;
+  onReRoll: () => void;
 }
 
 export default function ActionButtons({
   canRollAction,
   canEndTurnAction,
+  canReRollAction,
   onRoll,
   onEndTurn,
   onReset,
+  onReRoll,
 }: ActionButtonsProps) {
   const buttonClass =
     "px-4 py-2 border-2 border-white rounded-lg text-white hover:bg-white hover:text-black " +
@@ -30,6 +34,15 @@ export default function ActionButtons({
       </button>
 
       <button
+        onClick={onReRoll}
+        disabled={!canReRollAction}
+        className={buttonClass}
+        title="Re-roll last roll (R)"
+      >
+        Re-Roll
+      </button>
+
+      <button
         onClick={onEndTurn}
         disabled={!canEndTurnAction}
         className={buttonClass}
@@ -41,7 +54,7 @@ export default function ActionButtons({
       <button
         onClick={onReset}
         className="px-4 py-2 border-2 rounded-lg border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors ml-auto font-medium"
-        title="New game (Delete)"
+        title="New game (Backspace)"
       >
         New Game
       </button>

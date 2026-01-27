@@ -63,16 +63,16 @@ npm test -- src/game.test.ts
 
 ### Naming Conventions
 
-| Category            | Convention                                     | Example                                        |
-| ------------------- | ---------------------------------------------- | ---------------------------------------------- |
-| Components          | PascalCase                                     | `ScoreDisplay`, `Dice`                         |
-| Functions           | camelCase                                      | `createDice`, `handleRoll`, `canBank`          |
-| Constants           | UPPER_SNAKE_CASE                               | `BASE_THRESHOLD`                               |
-| Interfaces          | PascalCase                                     | `GameState`, `DiceProps`                       |
-| Type aliases        | PascalCase                                     | `DieValue`, `RuleId`                           |
-| Event/Command types | SCREAMING_SNAKE_CASE                           | `ROLL_DICE`, `END_TURN`, `TOGGLE_RULE`         |
-| Hook functions      | camelCase                                      | `handleRoll`, `toggleDie`, `resetGame`         |
-| File names          | PascalCase for components, camelCase for logic | `Dice.tsx`, `game.ts`, `useGameHandlers.ts`    |
+| Category            | Convention                                     | Example                                     |
+| ------------------- | ---------------------------------------------- | ------------------------------------------- |
+| Components          | PascalCase                                     | `ScoreDisplay`, `Dice`                      |
+| Functions           | camelCase                                      | `createDice`, `handleRoll`, `canBank`       |
+| Constants           | UPPER_SNAKE_CASE                               | `BASE_THRESHOLD`                            |
+| Interfaces          | PascalCase                                     | `GameState`, `DiceProps`                    |
+| Type aliases        | PascalCase                                     | `DieValue`, `RuleId`                        |
+| Event/Command types | SCREAMING_SNAKE_CASE                           | `ROLL_DICE`, `END_TURN`, `TOGGLE_RULE`      |
+| Hook functions      | camelCase                                      | `handleRoll`, `toggleDie`, `resetGame`      |
+| File names          | PascalCase for components, camelCase for logic | `Dice.tsx`, `game.ts`, `useGameHandlers.ts` |
 
 ### File Organization
 
@@ -150,8 +150,10 @@ src/                          # Game logic layer
 
 **Validators**
 
-- Name with `can` prefix: `canRoll`, `canEndTurn`, `canBank`
+- Name with `can` prefix: `canRoll`, `canEndTurn`, `canBank`, `canReRoll`
 - Return boolean for button disabled states
+- `canRoll` allows rolling after sparkle (enables re-roll button)
+- `canReRoll` checks if re-rolls available and game not over
 
 **Scoring Rules**
 
@@ -162,6 +164,7 @@ src/                          # Game logic layer
 - Toggle via `TOGGLE_RULE` command
 
 **Activation Counting**
+
 - `calculateScore()` returns `{ score: number, scoringRuleIds: RuleId[] }`
 - Activation counts increment ONLY when dice are actually banked
 - Not incremented during score preview or validation checks
@@ -169,9 +172,20 @@ src/                          # Game logic layer
 - See `src/activationCount.test.ts` for test coverage
 
 **Constants**
+
 - `BASE_THRESHOLD = 1000` - Starting threshold
 - Threshold formula: `1000 × 2^(turnNumber - 1)`
 - Progression: 1000 → 2000 → 4000 → 8000 → 16000...
+
+**Re-Roll Mechanic**
+
+- Players start with 1 re-roll (`rerollsAvailable` in GameState)
+- Earn +1 re-roll every 5 turns (turns 6, 11, 16, etc.)
+- Use RE_ROLL command to re-roll most recent dice roll
+- Works after sparkle (gives second chance)
+- Decrements `rerollsAvailable` on use
+- Re-rolls have faster animation (250ms vs 500ms)
+- `lastRollSparkled` tracks if current roll sparkled (enables re-roll via Space)
 
 ### Styling (Tailwind CSS 4)
 
@@ -205,6 +219,7 @@ src/                          # Game logic layer
 ### Keyboard Controls
 
 **Die Selection (Keys 1-6)**
+
 - Number keys toggle dice by persistent position (1-6)
 - Sets focus to pressed die position
 - Only toggles non-banked dice
@@ -212,23 +227,28 @@ src/                          # Game logic layer
 - Position indicators shown in top-left corner of each die
 
 **Arrow Key Navigation**
+
 - `←/→` - Move focus left/right through positions 1-6
 - Wraps around (position 1 ← wraps to 6, position 6 → wraps to 1)
 - Works across both active and banked rows
 - Focus moves to adjacent die regardless of row
 
 **Arrow Key Selection**
+
 - `↓` - Select focused die (move to banked row if not selected)
 - `↑` - Unselect focused die (move to active row if selected)
 - Only works on non-banked dice
 - Disabled during rolling
 
 **Game Actions**
-- `Space` - Roll dice (auto-banks selected dice, requires canRoll)
+
+- `Space` - Roll dice (auto-banks selected dice, requires canRoll). After sparkle, triggers RE_ROLL if re-rolls available
+- `R` - Re-roll last roll (uses 1 re-roll, requires canReRoll)
 - `Enter` - End turn (auto-banks selected dice, requires canEndTurn)
-- `Delete` - Start new game (always available)
+- `Backspace` - Start new game (always available)
 
 **Implementation**
+
 - Global `keydown` listener in `app/page.tsx`
 - Prevents default browser behavior for game keys
 - Modifier keys (Shift/Ctrl/Alt) disable game shortcuts
@@ -267,14 +287,16 @@ src/                          # Game logic layer
 
 **Running Tests**
 
-- All: `npm test` (79 tests total)
+- All: `npm test` (88 tests total)
 - Single file: `npm test -- src/game.test.ts`
 - Single test: `npm test -- -t "should toggle die selection"`
 
 **Test Files**
+
 - `src/game.test.ts` (19 tests) - Game selectors, validators, utilities
 - `src/scoring.test.ts` (55 tests) - Scoring calculations and rules
 - `src/activationCount.test.ts` (5 tests) - Activation count behavior
+- `src/reroll.test.ts` (9 tests) - Re-roll mechanic behavior
 
 ### Linting
 

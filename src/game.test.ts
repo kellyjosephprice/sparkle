@@ -34,6 +34,8 @@ describe("Game Selectors", () => {
       gameOver: false,
       message: "",
       scoringRules: DEFAULT_RULES,
+      rerollsAvailable: 1,
+      lastRollSparkled: false,
     };
   });
 
@@ -79,15 +81,15 @@ describe("Game Selectors", () => {
 
   describe("calculateThreshold", () => {
     it("should calculate threshold for turn 1", () => {
-      expect(calculateThreshold(1)).toBe(200);
+      expect(calculateThreshold(1)).toBe(100);
     });
 
     it("should calculate threshold for turn 2", () => {
-      expect(calculateThreshold(2)).toBe(300);
+      expect(calculateThreshold(2)).toBe(200);
     });
 
     it("should calculate threshold for turn 3", () => {
-      expect(calculateThreshold(3)).toBe(500);
+      expect(calculateThreshold(3)).toBe(400);
     });
   });
 
@@ -171,4 +173,3 @@ describe("Game Selectors", () => {
     });
   });
 });
-

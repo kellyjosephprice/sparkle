@@ -23,6 +23,7 @@ function shuffleDiceValue(die: Die): Die {
 function startRollAnimation(
   finalDice: Die[],
   setUIState: SetUIState,
+  duration: number = 500,
 ): NodeJS.Timeout {
   setUIState((prev) => ({
     ...prev,
@@ -44,7 +45,7 @@ function startRollAnimation(
       rolling: false,
       displayDice: finalDice,
     }));
-  }, 500);
+  }, duration);
 
   return interval;
 }
@@ -100,6 +101,20 @@ export function handleEndTurn(
   if (!result.state.gameOver) {
     startRollAnimation(result.state.dice, setUIState);
   }
+}
+
+export function handleReRoll(
+  state: GameState,
+  setGameState: SetGameState,
+  setUIState: SetUIState,
+): void {
+  const result = gameEngine.processCommand(state, {
+    type: "RE_ROLL",
+  });
+  setGameState(result.state);
+
+  // Use faster animation for re-rolls (250ms instead of 500ms)
+  startRollAnimation(result.state.dice, setUIState, 250);
 }
 
 export function resetGame(

@@ -14,12 +14,14 @@ export const initialState: GameState = {
   gameOver: false,
   message: "Roll the dice to start!",
   scoringRules: DEFAULT_RULES,
+  rerollsAvailable: 1,
+  lastRollSparkled: false,
 };
 
 // Utility/Selector Functions
 
 export function calculateThreshold(turnNumber: number): number {
-  return BASE_THRESHOLD + 100 * Math.pow(2, turnNumber - 1);
+  return BASE_THRESHOLD * Math.pow(2, turnNumber - 1);
 }
 
 export function createDice(count: number, existingDice?: Die[]): Die[] {
@@ -57,8 +59,22 @@ export function canRoll(state: GameState): boolean {
   const activeDice = getActiveDice(state);
   const selectedScore = getSelectedScore(state);
 
-  // Can only roll if you have selected dice that score (will be auto-banked)
-  return activeDice.length > 0 && !state.gameOver && selectedScore > 0;
+  // Can roll if:
+  // 1. Normal roll: Have selected dice that score (will be auto-banked), OR
+  // 2. After sparkle: Allow rolling to enable re-roll
+  return (
+    activeDice.length > 0 &&
+    !state.gameOver &&
+    (selectedScore > 0 || state.lastRollSparkled)
+  );
+}
+
+export function canReRoll(state: GameState): boolean {
+  return (
+    !state.gameOver &&
+    state.rerollsAvailable > 0 &&
+    getActiveDice(state).length > 0
+  );
 }
 
 export function canBank(state: GameState): boolean {

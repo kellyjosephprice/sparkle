@@ -3,6 +3,7 @@ import { eventBus } from "./eventBus";
 import {
   handleBank,
   handleEndTurn,
+  handleReRoll,
   handleReset,
   handleResetRuleCounts,
   handleRoll,
@@ -22,6 +23,10 @@ export class GameEngine {
 
       case "ROLL_DICE":
         result = handleRoll(state);
+        break;
+
+      case "RE_ROLL":
+        result = handleReRoll(state);
         break;
 
       case "BANK_DICE":

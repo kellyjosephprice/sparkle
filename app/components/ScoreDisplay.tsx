@@ -3,6 +3,7 @@ interface ScoreDisplayProps {
   currentTurnScore: number;
   turnNumber: number;
   threshold: number;
+  rerollsAvailable: number;
 }
 
 export default function ScoreDisplay({
@@ -10,6 +11,7 @@ export default function ScoreDisplay({
   currentTurnScore,
   turnNumber,
   threshold,
+  rerollsAvailable,
 }: ScoreDisplayProps) {
   return (
     <div className="flex gap-8 mb-6 text-sm">
@@ -22,6 +24,10 @@ export default function ScoreDisplay({
         <div className="text-2xl font-bold text-white">
           {currentTurnScore}
         </div>
+      </div>
+      <div>
+        <div className="text-gray-400">Re-Rolls</div>
+        <div className="text-2xl font-bold text-white">{rerollsAvailable}</div>
       </div>
       <div>
         <div className="text-gray-400">Turn {turnNumber}</div>

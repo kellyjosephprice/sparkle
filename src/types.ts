@@ -39,6 +39,8 @@ export interface GameState {
   gameOver: boolean;
   message: string;
   scoringRules: RuleMap;
+  rerollsAvailable: number;
+  lastRollSparkled: boolean;
 }
 
 export type ScoringCombination =

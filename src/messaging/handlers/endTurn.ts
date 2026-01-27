@@ -3,7 +3,6 @@ import {
   createDice,
   getSelectedScore,
 } from "../../../src/game";
-import { isSparkle } from "../../../src/scoring";
 import type { GameState } from "../../../src/types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
@@ -61,6 +60,12 @@ export function handleEndTurn(
   const newTotalScore = state.totalScore + totalTurnScore;
   const nextTurnNumber = state.turnNumber + 1;
 
+  // Award re-roll every 5 turns (turns 6, 11, 16, etc.)
+  const shouldAwardReroll = nextTurnNumber % 5 === 1 && nextTurnNumber > 1;
+  const newRerollsAvailable = shouldAwardReroll
+    ? state.rerollsAvailable + 1
+    : state.rerollsAvailable;
+
   // When sparkled, game only ends if total score is below threshold
   const gameOver =
     command.isSparkled === true && newTotalScore < state.threshold;
@@ -82,6 +87,9 @@ export function handleEndTurn(
     }
   } else {
     message = `Turn over! You scored ${totalTurnScore} points!`;
+    if (shouldAwardReroll) {
+      message += " 🎁 Earned a re-roll!";
+    }
   }
 
   // Create new dice for next turn (if not game over)
@@ -96,15 +104,6 @@ export function handleEndTurn(
     },
   ];
 
-  // Check if new turn dice sparkle
-  if (!gameOver && isSparkle(newDice)) {
-    events.push({
-      type: "DELAYED_ACTION",
-      action: { type: "END_TURN", isSparkled: true },
-      delay: 2000,
-    });
-  }
-
   return {
     state: {
       dice: newDice,
@@ -117,6 +116,8 @@ export function handleEndTurn(
       gameOver: gameOver,
       message: message,
       scoringRules: state.scoringRules,
+      rerollsAvailable: newRerollsAvailable,
+      lastRollSparkled: false,
     },
     events,
   };

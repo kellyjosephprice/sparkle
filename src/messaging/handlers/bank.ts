@@ -62,6 +62,7 @@ export function handleBank(state: GameState): CommandResult {
         currentScore: state.currentScore + selectedScore,
         message: `Banked ${selectedScore} points! Hot dice! Rolling all 6 dice again...`,
         scoringRules: updatedRules,
+        lastRollSparkled: false,
       },
       events: [{ type: "DICE_BANKED", score: selectedScore, hotDice: true }],
     };
@@ -77,6 +78,7 @@ export function handleBank(state: GameState): CommandResult {
         currentScore: state.currentScore + selectedScore,
         message: `Banked ${selectedScore} points! Roll again or end turn.`,
         scoringRules: updatedRules,
+        lastRollSparkled: false,
       },
       events: [{ type: "DICE_BANKED", score: selectedScore, hotDice: false }],
     };

@@ -3,7 +3,6 @@ import {
   createDice,
   getSelectedScore,
 } from "../../src/game";
-import { isSparkle } from "../../src/scoring";
 import type { GameAction, GameReducerResult, GameState } from "../../src/types";
 
 export function endTurnReducer(
@@ -77,29 +76,6 @@ export function endTurnReducer(
   // Create new dice for next turn (if not game over)
   const newDice = gameOver ? state.dice : createDice(6, state.dice);
 
-  // Check if new turn dice sparkle
-  if (!gameOver && isSparkle(newDice)) {
-    return {
-      state: {
-        dice: newDice,
-        currentScore: 0,
-        bankedScore: 0,
-        totalScore: newTotalScore,
-        threshold: newThreshold,
-        thresholdLevel: newThresholdLevel,
-        turnNumber: nextTurnNumber,
-        gameOver: false,
-        message: `Turn over! You scored ${totalTurnScore} points!`,
-        scoringRules: state.scoringRules,
-      },
-      delayedAction: {
-        type: "END_TURN",
-        delay: 2000,
-        isSparkled: true,
-      },
-    };
-  }
-
   return {
     state: {
       dice: newDice,
@@ -112,6 +88,8 @@ export function endTurnReducer(
       gameOver: gameOver,
       message: message,
       scoringRules: state.scoringRules,
+      rerollsAvailable: state.rerollsAvailable,
+      lastRollSparkled: false,
     },
   };
 }

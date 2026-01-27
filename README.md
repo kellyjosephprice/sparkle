@@ -34,31 +34,37 @@ Score as many points as possible before you sparkle below the threshold. Your to
 
 ### Gameplay
 
-1. **Threshold**: Your total score must reach cumulative thresholds to end your turn. Thresholds increase exponentially: 1,000, 2,000, 4,000, 8,000, 16,000... Once you pass a threshold, the next one activates.
+1. **Threshold**: Your total score must reach cumulative thresholds to end your turn. Thresholds increase exponentially: 1,00, 2,00, 4,00, 8,00, 16,00... Once you pass a threshold, the next one activates.
 2. **Rolling**: Roll all 6 dice to start
 3. **Banking**: Click dice (or press their position number 1-6) to select them and move them to the banked area. You must select scoring dice before rolling again.
 4. **Hot dice**: If you bank all 6 dice, they clear and you roll 6 new dice
-5. **Ending your turn**: You can only end your turn if your total score has reached or exceeded the current threshold
-6. **Sparkle**: If you roll dice with no scoring combinations, you "sparkle" and lose all points from that turn
+5. **Re-Rolls**: Start with 1 re-roll and earn an additional re-roll every 5 turns (turns 6, 11, 16, etc.). Use re-rolls to re-roll your most recent dice roll, even after a sparkle!
+6. **Ending your turn**: You can only end your turn if your total score has reached or exceeded the current threshold
+7. **Sparkle**: If you roll dice with no scoring combinations, you "sparkle" and lose all points from that turn
    - If your total score is still above the threshold, you can continue playing
    - If your total score is below the threshold, the game is over (you can't progress)
-7. **Game Over**: The game ends when you sparkle with a total score below the current threshold
+   - You can use a re-roll to recover from a sparkle (if available)
+8. **Game Over**: The game ends when you sparkle with a total score below the current threshold
 
 ### Keyboard Controls
 
 Sparkle supports full keyboard control for faster gameplay:
 
 **Die Selection**
+
 - `1-6` - Toggle dice by position (shown in top-left corner of each die)
 - `←/→` - Navigate focus between dice positions
 - `↑/↓` - Move focused die between active and banked areas
 
 **Game Actions**
-- `Space` - Roll dice (auto-banks selected dice first)
+
+- `Space` - Roll dice (auto-banks selected dice first, or re-roll if last roll sparkled)
+- `R` - Re-roll last roll (uses 1 re-roll)
 - `Enter` - End turn (auto-banks selected dice first)
-- `Delete` - Start new game
+- `Backspace` - Start new game
 
 **Tips**
+
 - Dice maintain persistent positions (1-6) across rolls, selections, and banking
 - All keyboard shortcuts work as alternatives to mouse clicks
 - Shortcuts are disabled during rolling animations

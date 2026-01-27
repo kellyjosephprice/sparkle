@@ -4,6 +4,7 @@ import type { Die, GameState, RuleId } from "../types";
 export type GameCommand =
   | { type: "TOGGLE_DIE"; dieId: number }
   | { type: "ROLL_DICE" }
+  | { type: "RE_ROLL" }
   | { type: "BANK_DICE" }
   | { type: "END_TURN"; isSparkled?: boolean }
   | { type: "RESET_GAME" }
@@ -14,6 +15,7 @@ export type GameCommand =
 export type GameEvent =
   | { type: "DIE_TOGGLED"; dieId: number }
   | { type: "DICE_ROLLED"; dice: Die[]; sparkled: boolean }
+  | { type: "DICE_REROLLED"; dice: Die[] }
   | { type: "DICE_BANKED"; score: number; hotDice: boolean }
   | { type: "TURN_ENDED"; totalScore: number; gameOver: boolean; sparkled: boolean }
   | { type: "GAME_RESET" }
