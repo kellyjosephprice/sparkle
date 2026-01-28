@@ -119,6 +119,13 @@ export function getStagedScore(state: GameState): number {
   return score;
 }
 
+export function areAllStagedDiceScoring(state: GameState): boolean {
+  const stagedDice = getStagedDice(state);
+  if (stagedDice.length === 0) return true;
+  const { scoredDice } = calculateScore(stagedDice, state.scoringRules);
+  return scoredDice.length === stagedDice.length;
+}
+
 // Validation Functions
 
 export function canRoll(state: GameState): boolean {
@@ -127,11 +134,13 @@ export function canRoll(state: GameState): boolean {
 
   // Can roll if:
   // 1. Normal roll: Have staged dice that score (will be auto-banked)
+  // 2. All staged dice must be scoring
   return (
     activeDice.length > 0 &&
     !state.gameOver &&
     !state.lastRollSparkled &&
-    stagedScore > 0
+    stagedScore > 0 &&
+    areAllStagedDiceScoring(state)
   );
 }
 
@@ -147,7 +156,12 @@ export function canBank(state: GameState): boolean {
   const stagedDice = getStagedDice(state);
   const stagedScore = getStagedScore(state);
 
-  return stagedDice.length > 0 && stagedScore > 0 && !state.gameOver;
+  return (
+    stagedDice.length > 0 &&
+    stagedScore > 0 &&
+    !state.gameOver &&
+    areAllStagedDiceScoring(state)
+  );
 }
 
 export function canEndTurn(state: GameState): boolean {
@@ -161,8 +175,10 @@ export function canEndTurn(state: GameState): boolean {
   if (state.lastRollSparkled) return true;
 
   // Otherwise, must have points AND meet threshold
+  // AND all staged dice must be scoring
   return (
     (state.bankedScore > 0 || stagedScore > 0) &&
-    potentialTotalScore >= state.threshold
+    potentialTotalScore >= state.threshold &&
+    areAllStagedDiceScoring(state)
   );
 }

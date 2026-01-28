@@ -21,9 +21,9 @@ describe("Game Selectors", () => {
     state = {
       dice: [
         { id: 1, value: 1, staged: false, banked: false, position: 1, upgrades: [] },
-        { id: 2, value: 2, staged: true, banked: false, position: 2, upgrades: [] },
+        { id: 2, value: 2, staged: false, banked: false, position: 2, upgrades: [] },
         { id: 3, value: 3, staged: false, banked: true, position: 3, upgrades: [] },
-        { id: 4, value: 4, staged: true, banked: true, position: 4, upgrades: [] },
+        { id: 4, value: 4, staged: false, banked: true, position: 4, upgrades: [] },
       ],
       bankedScore: 0,
       totalScore: 0,
@@ -60,6 +60,7 @@ describe("Game Selectors", () => {
 
   describe("getStagedDice", () => {
     it("should return only staged and non-banked dice", () => {
+      state.dice[1].staged = true;
       const staged = getStagedDice(state);
       expect(staged).toHaveLength(1);
       expect(staged.every((d) => d.staged && !d.banked)).toBe(true);
@@ -68,6 +69,7 @@ describe("Game Selectors", () => {
 
   describe("getStagedScore", () => {
     it("should calculate score for staged dice", () => {
+      state.dice[1].staged = true; // value 2
       const score = getStagedScore(state);
       expect(score).toBe(0); // Die with value 2 doesn't score by default
     });

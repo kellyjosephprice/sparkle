@@ -142,11 +142,15 @@ export default function Home() {
         uiState.focusedPosition &&
         !uiState.rolling
       ) {
-        const die = gameState.dice.find(
-          (d) => d.position === uiState.focusedPosition,
-        );
-        if (die && !die.banked && !die.staged) {
-          handleDieInteraction(die.id);
+        if (event.shiftKey) {
+          selectAll();
+        } else {
+          const die = gameState.dice.find(
+            (d) => d.position === uiState.focusedPosition,
+          );
+          if (die && !die.banked && !die.staged) {
+            handleDieInteraction(die.id);
+          }
         }
       }
 
@@ -170,8 +174,6 @@ export default function Home() {
           handleRoll();
         } else if (canReRoll(gameState) && gameState.lastRollSparkled) {
           handleReRoll();
-        } else {
-          selectAll();
         }
       }
 
@@ -225,7 +227,7 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-white tracking-tighter">Sparkle</h1>
           <Link
             href="/rules"
-            className="text-white/50 hover:text-white underline underline-offset-4 text-sm font-medium transition-colors"
+            className="text-amber-50/50 hover:text-amber-50 underline underline-offset-4 text-sm font-medium transition-colors"
           >
             Rules
           </Link>
