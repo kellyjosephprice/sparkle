@@ -20,20 +20,47 @@ describe("Game Selectors", () => {
   beforeEach(() => {
     state = {
       dice: [
-        { id: 1, value: 1, staged: false, banked: false, position: 1, upgrades: [] },
-        { id: 2, value: 2, staged: false, banked: false, position: 2, upgrades: [] },
-        { id: 3, value: 3, staged: false, banked: true, position: 3, upgrades: [] },
-        { id: 4, value: 4, staged: false, banked: true, position: 4, upgrades: [] },
+        {
+          id: 1,
+          value: 1,
+          staged: false,
+          banked: false,
+          position: 1,
+          upgrades: [],
+        },
+        {
+          id: 2,
+          value: 2,
+          staged: false,
+          banked: false,
+          position: 2,
+          upgrades: [],
+        },
+        {
+          id: 3,
+          value: 3,
+          staged: false,
+          banked: true,
+          position: 3,
+          upgrades: [],
+        },
+        {
+          id: 4,
+          value: 4,
+          staged: false,
+          banked: true,
+          position: 4,
+          upgrades: [],
+        },
       ],
       bankedScore: 0,
       totalScore: 0,
       threshold: 1000,
-      thresholdLevel: 1,
       turnNumber: 1,
       gameOver: false,
       message: "",
       scoringRules: DEFAULT_RULES,
-      rerollsAvailable: 1,
+      rerollsAvailable: 2,
       lastRollSparkled: false,
       highScore: 0,
       upgradeOptions: [],
@@ -76,8 +103,22 @@ describe("Game Selectors", () => {
 
     it("should calculate score for staged scoring dice", () => {
       state.dice = [
-        { id: 1, value: 1, staged: true, banked: false, position: 1, upgrades: [] },
-        { id: 2, value: 5, staged: true, banked: false, position: 2, upgrades: [] },
+        {
+          id: 1,
+          value: 1,
+          staged: true,
+          banked: false,
+          position: 1,
+          upgrades: [],
+        },
+        {
+          id: 2,
+          value: 5,
+          staged: true,
+          banked: false,
+          position: 2,
+          upgrades: [],
+        },
       ];
       const score = getStagedScore(state);
       expect(score).toBe(150); // 100 (for 1) + 50 (for 5)
@@ -114,24 +155,66 @@ describe("Game Selectors", () => {
   describe("canBank", () => {
     it("should return false when no dice staged", () => {
       state.dice = [
-        { id: 1, value: 1, staged: false, banked: false, position: 1, upgrades: [] },
-        { id: 2, value: 2, staged: false, banked: false, position: 2, upgrades: [] },
+        {
+          id: 1,
+          value: 1,
+          staged: false,
+          banked: false,
+          position: 1,
+          upgrades: [],
+        },
+        {
+          id: 2,
+          value: 2,
+          staged: false,
+          banked: false,
+          position: 2,
+          upgrades: [],
+        },
       ];
       expect(canBank(state)).toBe(false);
     });
 
     it("should return false when staged dice don't score", () => {
       state.dice = [
-        { id: 1, value: 2, staged: true, banked: false, position: 1, upgrades: [] },
-        { id: 2, value: 3, staged: true, banked: false, position: 2, upgrades: [] },
+        {
+          id: 1,
+          value: 2,
+          staged: true,
+          banked: false,
+          position: 1,
+          upgrades: [],
+        },
+        {
+          id: 2,
+          value: 3,
+          staged: true,
+          banked: false,
+          position: 2,
+          upgrades: [],
+        },
       ];
       expect(canBank(state)).toBe(false);
     });
 
     it("should return true when staged dice score", () => {
       state.dice = [
-        { id: 1, value: 1, staged: true, banked: false, position: 1, upgrades: [] },
-        { id: 2, value: 5, staged: true, banked: false, position: 2, upgrades: [] },
+        {
+          id: 1,
+          value: 1,
+          staged: true,
+          banked: false,
+          position: 1,
+          upgrades: [],
+        },
+        {
+          id: 2,
+          value: 5,
+          staged: true,
+          banked: false,
+          position: 2,
+          upgrades: [],
+        },
       ];
       expect(canBank(state)).toBe(true);
     });

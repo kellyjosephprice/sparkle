@@ -23,7 +23,6 @@ const ALL_UPGRADES: UpgradeOption[] = [
     type: "BANKED_SCORE_BONUS",
     description: "100+ banked score bonus when this die is banked",
   },
-  { type: "ADDITIONAL_REROLL", description: "+1 Re-roll" },
   {
     type: "AUTO_REROLL",
     description: "3x Auto re-roll on sparkle (if this die is rolled)",
@@ -31,6 +30,10 @@ const ALL_UPGRADES: UpgradeOption[] = [
   {
     type: "TEN_X_MULTIPLIER",
     description: "3x 10x multiplier when this die is scored",
+  },
+  {
+    type: "SET_BONUS",
+    description: "2x multiplier for each die in a set with this upgrade",
   },
 ];
 
@@ -123,7 +126,12 @@ export function handleEndTurn(
   // Check for upgrade every 3 turns
   let upgradeOptions: UpgradeOption[] = [];
   let potentialUpgradePosition: number | null = null;
+  let newRerollsAvailable = state.rerollsAvailable;
+
   if (!gameOver && state.turnNumber % 3 === 0) {
+    // Automatically add a reroll
+    newRerollsAvailable += 1;
+    
     // Select 2 random options from ALL_UPGRADES
     const shuffled = [...ALL_UPGRADES].sort(() => 0.5 - Math.random());
     upgradeOptions = [shuffled[0], shuffled[1]];
@@ -139,10 +147,9 @@ export function handleEndTurn(
       highScore,
       lastRollSparkled: false,
       message: message,
-      rerollsAvailable: state.rerollsAvailable,
+      rerollsAvailable: newRerollsAvailable,
       scoringRules: state.scoringRules,
       threshold: newThreshold,
-      thresholdLevel: state.thresholdLevel, // We don't really use this anymore
       totalScore: newTotalScore,
       turnNumber: nextTurnNumber,
       upgradeOptions,

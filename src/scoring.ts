@@ -193,16 +193,28 @@ const countDice = (dice: Die[]): Counts => {
   }, new Map() as Counts);
 };
 
+export interface ScoringGroup {
+  ruleId: RuleId;
+  score: number;
+  dice: Die[];
+}
+
 export function calculateScore(
   selectedDice: Die[],
   rules: RuleMap = DEFAULT_RULES,
-): { score: number; scoringRuleIds: RuleId[]; scoredDice: Die[] } {
+): {
+  score: number;
+  scoringRuleIds: RuleId[];
+  scoredDice: Die[];
+  groups: ScoringGroup[];
+} {
   if (selectedDice.length === 0)
-    return { score: 0, scoringRuleIds: [], scoredDice: [] };
+    return { score: 0, scoringRuleIds: [], scoredDice: [], groups: [] };
 
   let totalScore = 0;
   const unscoredDice = new Set<Die>(selectedDice);
   const scoringRuleIds: RuleId[] = [];
+  const groups: ScoringGroup[] = [];
   let counts = countDice([...unscoredDice.values()]);
 
   // Priority order: higher combinations first
@@ -227,6 +239,11 @@ export function calculateScore(
     if (result.match && result.score > 0) {
       totalScore += result.score;
       scoringRuleIds.push(ruleId);
+      groups.push({
+        ruleId,
+        score: result.score,
+        dice: result.scoredDice,
+      });
 
       result.scoredDice.forEach((die) => unscoredDice.delete(die));
       counts = countDice([...unscoredDice.values()]);
@@ -237,6 +254,7 @@ export function calculateScore(
     score: totalScore,
     scoringRuleIds,
     scoredDice: selectedDice.filter((die) => !unscoredDice.has(die)),
+    groups,
   };
 }
 

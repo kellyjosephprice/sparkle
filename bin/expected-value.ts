@@ -1,121 +1,116 @@
-import { calculateScore } from "../src/scoring";
-import { DEFAULT_RULES } from "../src/scoring";
-import { Die, DieValue } from "../src/types";
+import {
+  calculateThreshold,
+  createDice,
+  getActiveDice,
+  getStagedDice,
+  getStagedScore,
+  initialState,
+} from "../src/game";
+import { gameEngine } from "../src/messaging/gameEngine";
+import { DieUpgrade, GameState } from "../src/types";
 
-const SIMULATIONS = 10000;
+const SIMULATIONS = 2000; // Reduced for performance with full engine
 
-function createRandomDice(count: number): Die[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    value: (Math.floor(Math.random() * 6) + 1) as DieValue,
-    staged: false,
-    banked: false,
-    position: i + 1,
-    upgrades: [],
-  }));
-}
+function simulateTurn(initialStateForTurn: GameState): number {
+  let state = {
+    ...initialStateForTurn,
+    dice: createDice(6, initialStateForTurn.dice),
+  };
+  // Start the turn by rolling the dice
+  state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
 
-interface SimResult {
-  score: number;
-  hotDiceCount: number;
-  sparkled: boolean;
-}
-
-function simulateTurn(
-  rerolls: number,
-  upgrades: any[] = [],
-  threshold: number = 0,
-): SimResult {
-  let activeDiceCount = 6;
-  let rerollsLeft = rerolls;
-  let hotDiceCount = 0;
-  let bankedThisTurn = 0;
-
-  while (true) {
-    const dice = createRandomDice(activeDiceCount);
-
-    let { score, scoredDice } = calculateScore(dice, DEFAULT_RULES);
-
-    if (score === 0) {
-      // Check for auto-reroll upgrades
-      const autoReroll = upgrades.find(
-        (u) => u.type === "AUTO_REROLL" && u.charges > 0,
-      );
-      if (autoReroll) {
-        autoReroll.charges--;
-        continue; // Auto-reroll
+  while (!state.gameOver) {
+    // 1. If sparkled, try re-roll
+    if (state.lastRollSparkled) {
+      if (state.rerollsAvailable > 0) {
+        state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
+        continue;
+      } else {
+        // Sparkled and no rerolls, lost turn points
+        return 0;
       }
-      if (rerollsLeft > 0) {
-        rerollsLeft--;
-        continue; // Manual re-roll
-      }
-      return { score: 0, hotDiceCount, sparkled: true };
     }
 
-    // Apply upgrades to scoring dice
-    scoredDice.forEach((d) => {
-      const dieUpgrades = upgrades.filter((u) => u.position === d.position);
-      dieUpgrades.forEach((u) => {
-        if (u.type === "SCORE_BONUS") score += 100;
-        if (u.type === "SCORE_MULTIPLIER") score *= 2;
-        if (u.type === "TEN_X_MULTIPLIER" && u.charges > 0) {
-          score *= 10;
-          u.charges--;
-        }
-      });
-    });
+    // 2. Select all scoring dice
+    state = gameEngine.processCommand(state, { type: "SELECT_ALL" }).state;
 
-    bankedThisTurn += score;
-    activeDiceCount -= scoredDice.length;
+    const stagedScore = getStagedScore(state);
+    const potentialTurnScore = state.bankedScore + stagedScore;
+    const totalPotentialScore = state.totalScore + potentialTurnScore;
 
-    if (activeDiceCount === 0) {
-      hotDiceCount++;
-      activeDiceCount = 6;
-    } else {
-      // Strategy: stop if we met threshold OR have high risk
-      // For EV calculation, we should stop as soon as we meet threshold if risky
-      if (bankedThisTurn >= threshold && activeDiceCount < 3) {
-        break;
+    const remainingActive = getActiveDice(state).filter(
+      (d) => !d.staged,
+    ).length;
+
+    // Decision logic
+    if (totalPotentialScore >= state.threshold) {
+      if (remainingActive === 0) {
+        // Hot dice! Bank and roll again
+        state = gameEngine.processCommand(state, { type: "BANK_DICE" }).state;
+        state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
+      } else if (remainingActive <= 2) {
+        // Risky, end turn
+        state = gameEngine.processCommand(state, { type: "END_TURN" }).state;
+        return potentialTurnScore;
+      } else {
+        // Keep rolling
+        state = gameEngine.processCommand(state, { type: "BANK_DICE" }).state;
+        state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
       }
-      // If we are far from threshold, keep rolling even if risky
-      if (
-        bankedThisTurn < threshold &&
-        activeDiceCount < 2 &&
-        rerollsLeft === 0
-      ) {
-        // If we are at 1 die and no rerolls, it's very risky (2/3 chance to sparkle)
-        // But if we haven't met threshold, we HAVE to roll.
+    } else {
+      // Must reach threshold
+      if (stagedScore > 0) {
+        state = gameEngine.processCommand(state, { type: "BANK_DICE" }).state;
+        state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
+      } else {
+        // This shouldn't happen if SELECT_ALL works and it wasn't a sparkle
+        return 0;
       }
     }
   }
 
-  return { score: bankedThisTurn, hotDiceCount, sparkled: false };
+  return 0;
 }
 
 function runSimForTurn(turn: number) {
-  // Threshold logic
-  const level = Math.floor(turn / 3);
-  const threshold = 100 * Math.pow(10, level);
+  // Setup state for this turn
+  const state = { ...initialState };
+  state.turnNumber = turn;
+  state.threshold = calculateThreshold(turn);
 
-  // Upgrades: 1 every 3 turns
+  // Apply hypothetical upgrades (1 every 3 turns)
   const upgradeCount = Math.floor(turn / 3);
-  const rerolls = 1; // Base reroll
+  state.rerollsAvailable = 1 + Math.floor(turn / 3); // 1 automatic per 3 turns + starting 1
 
-  // Create mock upgrades based on turn
-  const upgrades: any[] = [];
-  const pool = [
+  const pool: any[] = [
     "SCORE_MULTIPLIER",
     "SCORE_BONUS",
     "AUTO_REROLL",
     "TEN_X_MULTIPLIER",
+    "SET_BONUS",
   ];
+  state.dice = createDice(6);
   for (let i = 0; i < upgradeCount; i++) {
     const type = pool[i % pool.length];
-    upgrades.push({
-      type: type,
-      position: (i % 6) + 1,
-      charges: type === "AUTO_REROLL" || type === "TEN_X_MULTIPLIER" ? 3 : 999,
-    });
+    const pos = (i % 6) + 1;
+    state.dice = state.dice.map((d) =>
+      d.position === pos
+        ? {
+            ...d,
+            upgrades: [
+              ...d.upgrades,
+              {
+                type,
+                id: `up-${i}`,
+                remainingUses:
+                  type === "AUTO_REROLL" || type === "TEN_X_MULTIPLIER"
+                    ? 3
+                    : undefined,
+              },
+            ],
+          }
+        : d,
+    );
   }
 
   let totalScore = 0;
@@ -123,11 +118,11 @@ function runSimForTurn(turn: number) {
   let sparkledCount = 0;
 
   for (let i = 0; i < SIMULATIONS; i++) {
-    const currentUpgrades = upgrades.map((u) => ({ ...u }));
-    const result = simulateTurn(rerolls, currentUpgrades, threshold);
-    totalScore += result.score;
-    if (result.score > maxScore) maxScore = result.score;
-    if (result.sparkled) sparkledCount++;
+    // Clone state to reset charges/dice for each sim
+    const turnResult = simulateTurn(state);
+    totalScore += turnResult;
+    if (turnResult > maxScore) maxScore = turnResult;
+    if (turnResult === 0) sparkledCount++;
   }
 
   return {
@@ -137,7 +132,7 @@ function runSimForTurn(turn: number) {
   };
 }
 
-console.log("# Sparkle Game Balance Analysis");
+console.log("# Sparkle Game Balance Analysis (using GameEngine)");
 console.log(`Simulations per turn: ${SIMULATIONS}\n`);
 
 console.log("| Turn | Threshold | Avg Value | Max Value | Sparkle Rate |");
@@ -145,8 +140,7 @@ console.log("|------|-----------|-----------|-----------|--------------|");
 
 for (let t = 1; t <= 10; t++) {
   const stats = runSimForTurn(t);
-  const level = Math.floor(t / 3);
-  const threshold = 100 * Math.pow(10, level);
+  const threshold = calculateThreshold(t);
   console.log(
     `| ${t.toString().padEnd(4)} | ${threshold.toLocaleString().padEnd(9)} | ${stats.avg.toFixed(0).toLocaleString().padEnd(9)} | ${stats.max.toLocaleString().padEnd(9)} | ${(stats.sparkleRate * 100).toFixed(1)}% |`,
   );

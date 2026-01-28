@@ -2,6 +2,7 @@ import { calculateScore, DEFAULT_RULES } from "./scoring";
 import type { Die, DieValue, GameState } from "./types";
 
 export const BASE_THRESHOLD = 100;
+export const STARTING_REROLLS = 2;
 
 export const initialState: GameState = {
   bankedScore: 0,
@@ -10,10 +11,9 @@ export const initialState: GameState = {
   highScore: 0,
   lastRollSparkled: false,
   message: "Roll the dice to start!",
-  rerollsAvailable: 1,
+  rerollsAvailable: STARTING_REROLLS,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
-  thresholdLevel: 1,
   totalScore: 0,
   turnNumber: 1,
   upgradeOptions: [],
@@ -73,37 +73,62 @@ export function getStagedDice(state: GameState): Die[] {
 export function getStagedScore(state: GameState): number {
   const stagedDice = getStagedDice(state);
   const result = calculateScore(stagedDice, state.scoringRules);
-  let score = result.score;
+  let totalTurnScore = 0;
 
-  if (score === 0) return 0;
+  if (result.score === 0) return 0;
 
-  // Apply upgrades from staged dice that are part of the scoring set
-  result.scoredDice.forEach((die) => {
-    die.upgrades?.forEach((upgrade) => {
-      if (upgrade.type === "SCORE_BONUS") {
-        score += 100;
-      }
+  // Process each scoring group (set or individual die)
+  result.groups.forEach((group) => {
+    let groupScore = group.score;
+    const isSet = !["single_one", "single_five"].includes(group.ruleId);
+
+    // Apply upgrades from dice in this group
+    group.dice.forEach((die) => {
+      die.upgrades?.forEach((upgrade) => {
+        if (upgrade.type === "SCORE_BONUS") {
+          groupScore += 100;
+        }
+      });
     });
+
+    group.dice.forEach((die) => {
+      die.upgrades?.forEach((upgrade) => {
+        if (upgrade.type === "SCORE_MULTIPLIER") {
+          groupScore *= 2;
+        }
+        if (
+          upgrade.type === "TEN_X_MULTIPLIER" &&
+          (upgrade.remainingUses ?? 0) > 0
+        ) {
+          groupScore *= 10;
+        }
+      });
+    });
+
+    // Apply Set Bonus if it's a set
+    if (isSet) {
+      let setBonusCount = 0;
+      group.dice.forEach((die) => {
+        if (die.upgrades?.some((u) => u.type === "SET_BONUS")) {
+          setBonusCount++;
+        }
+      });
+
+      if (setBonusCount > 0) {
+        groupScore *= Math.pow(2, setBonusCount);
+      }
+    }
+
+    totalTurnScore += groupScore;
   });
 
-  result.scoredDice.forEach((die) => {
-    die.upgrades?.forEach((upgrade) => {
-      if (upgrade.type === "SCORE_MULTIPLIER") {
-        score *= 2;
-      }
-      if (upgrade.type === "TEN_X_MULTIPLIER" && (upgrade.remainingUses ?? 0) > 0) {
-        score *= 10;
-      }
-    });
-  });
-
-  // Apply upgrades from dice already banked this turn
+  // Apply upgrades from dice already banked this turn to the TOTAL turn score
   const bankedDice = getBankedDice(state);
 
   bankedDice.forEach((die) => {
     die.upgrades?.forEach((upgrade) => {
       if (upgrade.type === "BANKED_SCORE_BONUS") {
-        score += 100;
+        totalTurnScore += 100;
       }
     });
   });
@@ -111,12 +136,12 @@ export function getStagedScore(state: GameState): number {
   bankedDice.forEach((die) => {
     die.upgrades?.forEach((upgrade) => {
       if (upgrade.type === "BANKED_SCORE_MULTIPLIER") {
-        score *= 2;
+        totalTurnScore *= 2;
       }
     });
   });
 
-  return score;
+  return totalTurnScore;
 }
 
 export function areAllStagedDiceScoring(state: GameState): boolean {

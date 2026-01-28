@@ -129,4 +129,47 @@ describe("Upgrades Scoring Logic", () => {
 
     expect(getStagedScore(state)).toBe(100);
   });
+
+  it("should apply SET_BONUS to a scoring set", () => {
+    // 3 ones = 1000 base. 
+    // One die has SET_BONUS -> 1000 * 2^1 = 2000
+    const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
+    const die2 = createMockDie(2, 1);
+    const die3 = createMockDie(3, 1);
+    
+    const state: GameState = {
+      ...initialState,
+      dice: [die1, die2, die3],
+    };
+
+    expect(getStagedScore(state)).toBe(2000);
+  });
+
+  it("should apply SET_BONUS multiplier 2^n where n is number of dice with upgrade", () => {
+    // 3 ones = 1000 base.
+    // Two dice have SET_BONUS -> 1000 * 2^2 = 4000
+    const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
+    const die2 = createMockDie(2, 1, [{ type: "SET_BONUS", id: "s2" }]);
+    const die3 = createMockDie(3, 1);
+    
+    const state: GameState = {
+      ...initialState,
+      dice: [die1, die2, die3],
+    };
+
+    expect(getStagedScore(state)).toBe(4000);
+  });
+
+  it("should NOT apply SET_BONUS to individual scoring dice", () => {
+    // Single one = 100 base. 
+    // Has SET_BONUS but it's not a set -> 100
+    const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
+    
+    const state: GameState = {
+      ...initialState,
+      dice: [die1],
+    };
+
+    expect(getStagedScore(state)).toBe(100);
+  });
 });

@@ -7,7 +7,8 @@ export type UpgradeType =
   | "BANKED_SCORE_BONUS" // 100+ when banked and more are banked
   | "ADDITIONAL_REROLL" // +1 Re-roll
   | "AUTO_REROLL" // 3x Auto re-roll on sparkle
-  | "TEN_X_MULTIPLIER"; // 3x 10x multiplier
+  | "TEN_X_MULTIPLIER" // 3x 10x multiplier
+  | "SET_BONUS"; // 2x multiplier for each die with this upgrade in a scoring set
 
 export interface DieUpgrade {
   type: UpgradeType;
@@ -59,7 +60,6 @@ export interface GameState {
   rerollsAvailable: number;
   scoringRules: RuleMap;
   threshold: number;
-  thresholdLevel: number;
   totalScore: number;
   turnNumber: number;
   // Upgrade related state
@@ -67,7 +67,6 @@ export interface GameState {
   pendingUpgradeDieSelection: UpgradeType | null;
   potentialUpgradePosition: number | null;
 }
-
 
 export type ScoringCombination =
   | { type: "single_one"; dice: number[] }
