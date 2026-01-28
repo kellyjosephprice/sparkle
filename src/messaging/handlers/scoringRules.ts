@@ -20,10 +20,7 @@ export function handleToggleRule(
   };
 }
 
-export function handleResetRuleCounts(
-  state: GameState,
-  _command: Extract<GameCommand, { type: "RESET_SCORING_RULE_COUNTS" }>,
-): CommandResult {
+export function handleResetRuleCounts(state: GameState): CommandResult {
   const newRules: RuleMap = Object.values(state.scoringRules).reduce(
     (acc, rule) => {
       acc[rule.id] = { ...rule, activationCount: 0 };

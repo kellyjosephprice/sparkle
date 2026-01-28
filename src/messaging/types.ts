@@ -1,4 +1,4 @@
-import type { Die, GameState, RuleId } from "../types";
+import type { Die, GameState, RuleId, UpgradeType } from "../types";
 
 // Commands - what the UI wants to do
 export type GameCommand =
@@ -10,7 +10,9 @@ export type GameCommand =
   | { type: "END_TURN"; isSparkled?: boolean }
   | { type: "RESET_GAME" }
   | { type: "TOGGLE_SCORING_RULE"; ruleId: RuleId }
-  | { type: "RESET_SCORING_RULE_COUNTS" };
+  | { type: "RESET_SCORING_RULE_COUNTS" }
+  | { type: "SELECT_UPGRADE"; upgradeType: UpgradeType }
+  | { type: "APPLY_UPGRADE"; position: number };
 
 // Events - what happened in the game
 export type GameEvent =
@@ -21,7 +23,9 @@ export type GameEvent =
   | { type: "TURN_ENDED"; totalScore: number; gameOver: boolean; sparkled: boolean }
   | { type: "GAME_RESET" }
   | { type: "ERROR"; message: string }
-  | { type: "DELAYED_ACTION"; action: GameCommand; delay: number };
+  | { type: "DELAYED_ACTION"; action: GameCommand; delay: number }
+  | { type: "UPGRADE_SELECTED"; upgradeType: UpgradeType }
+  | { type: "UPGRADE_APPLIED"; position: number; upgradeType: UpgradeType };
 
 // Result of processing a command
 export interface CommandResult {

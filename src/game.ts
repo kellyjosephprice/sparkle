@@ -16,6 +16,9 @@ export const initialState: GameState = {
   thresholdLevel: 1,
   totalScore: 0,
   turnNumber: 1,
+  upgradeModalOpen: false,
+  upgradeOptions: [],
+  pendingUpgradeDieSelection: null,
 };
 
 // Utility/Selector Functions
@@ -30,13 +33,17 @@ export function calculateThreshold(turnNumber: number): number {
 
 export function createDice(count: number, existingDice?: Die[]): Die[] {
   return Array.from({ length: count }, (_, i) => {
+    // Find the original die if it exists to preserve position and upgrades
+    // If existingDice is provided, we try to match by index but preserve position
     const existingDie = existingDice?.[i];
+    
     return {
       id: Date.now() + i,
       value: (Math.floor(Math.random() * 6) + 1) as DieValue,
       staged: false,
       banked: false,
       position: existingDie?.position ?? i + 1, // Use existing position or assign new one
+      upgrades: existingDie?.upgrades ?? [],
     };
   });
 }
@@ -54,7 +61,49 @@ export function getStagedDice(state: GameState): Die[] {
 }
 
 export function getStagedScore(state: GameState): number {
-  return calculateScore(getStagedDice(state), state.scoringRules).score;
+  const stagedDice = getStagedDice(state);
+  const result = calculateScore(stagedDice, state.scoringRules);
+  let score = result.score;
+
+  if (score === 0) return 0;
+
+  // Apply upgrades from staged dice that are part of the scoring set
+  result.scoredDice.forEach((die) => {
+    die.upgrades?.forEach((upgrade) => {
+      if (upgrade.type === "SCORE_BONUS") {
+        score += 100;
+      }
+    });
+  });
+
+  result.scoredDice.forEach((die) => {
+    die.upgrades?.forEach((upgrade) => {
+      if (upgrade.type === "SCORE_MULTIPLIER") {
+        score *= 2;
+      }
+    });
+  });
+
+  // Apply upgrades from dice already banked this turn
+  const bankedDice = getBankedDice(state);
+
+  bankedDice.forEach((die) => {
+    die.upgrades?.forEach((upgrade) => {
+      if (upgrade.type === "BANKED_SCORE_BONUS") {
+        score += 100;
+      }
+    });
+  });
+
+  bankedDice.forEach((die) => {
+    die.upgrades?.forEach((upgrade) => {
+      if (upgrade.type === "BANKED_SCORE_MULTIPLIER") {
+        score *= 2;
+      }
+    });
+  });
+
+  return score;
 }
 
 // Validation Functions

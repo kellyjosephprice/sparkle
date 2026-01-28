@@ -1,6 +1,7 @@
 import type { GameState } from "../types";
 import { eventBus } from "./eventBus";
 import {
+  handleApplyUpgrade,
   handleBank,
   handleEndTurn,
   handleReRoll,
@@ -8,6 +9,7 @@ import {
   handleResetRuleCounts,
   handleRoll,
   handleSelectAll,
+  handleSelectUpgrade,
   handleToggleDie,
   handleToggleRule,
 } from "./handlers";
@@ -51,7 +53,15 @@ export class GameEngine {
         break;
 
       case "RESET_SCORING_RULE_COUNTS":
-        result = handleResetRuleCounts(state, command);
+        result = handleResetRuleCounts(state);
+        break;
+
+      case "SELECT_UPGRADE":
+        result = handleSelectUpgrade(state, command);
+        break;
+
+      case "APPLY_UPGRADE":
+        result = handleApplyUpgrade(state, command);
         break;
 
       default:

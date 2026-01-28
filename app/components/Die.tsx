@@ -85,6 +85,35 @@ export default function Die({
           `}
       style={{ gridColumn: die.position }}
     >
+      {/* Position Indicator */}
+      <div
+        className={`absolute top-0.5 left-1 text-[10px] font-bold ${
+          die.staged ? "text-black/30" : "text-white/30"
+        }`}
+      >
+        {die.position}
+      </div>
+
+      {/* Upgrades indicators */}
+      <div className="absolute -top-2 -right-2 flex flex-row-reverse flex-wrap gap-0.5 max-w-[120%] pointer-events-none z-10">
+        {die.upgrades.map((upgrade) => (
+          <div
+            key={upgrade.id}
+            title={upgrade.type}
+            className={`
+              h-4 px-1 rounded-full border border-black text-[8px] flex items-center justify-center font-bold shadow-sm min-w-[1rem]
+              ${
+                upgrade.type.includes("MULTIPLIER")
+                  ? "bg-amber-400 text-black"
+                  : "bg-blue-400 text-black"
+              }
+            `}
+          >
+            {upgrade.type.includes("MULTIPLIER") ? "2x" : "+100"}
+          </div>
+        ))}
+      </div>
+
       <DiceFace value={die.value} staged={die.staged} />
     </button>
   );

@@ -13,13 +13,14 @@ import {
 } from "../src/game";
 import type { GameEvent } from "../src/messaging";
 import { eventBus, gameEngine } from "../src/messaging";
-import type { GameState, RuleId } from "../src/types";
+import type { GameState } from "../src/types";
 import ActionButtons from "./components/ActionButtons";
 import Dice from "./components/Dice";
-import Hotkeys from "./components/Hotkeys";
+import HelpModal from "./components/HelpModal";
 import MessageBanner from "./components/MessageBanner";
-import Rules from "./components/Rules";
 import ScoreDisplay from "./components/ScoreDisplay";
+import UpgradeModal from "./components/UpgradeModal";
+import UpgradesMenu from "./components/UpgradesMenu";
 import {
   handleEndTurn,
   handleReRoll,
@@ -29,10 +30,18 @@ import {
 } from "./hooks/useGameHandlers";
 
 export default function Home() {
-  const [gameState, setGameState] = useState<GameState>(() => ({
-    ...initialState,
-    dice: createDice(6),
-  }));
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const saved =
+      typeof window !== "undefined"
+        ? localStorage.getItem("sparkle_high_score")
+        : null;
+    const highScore = saved ? parseInt(saved, 10) : 0;
+    return {
+      ...initialState,
+      dice: createDice(6),
+      highScore,
+    };
+  });
   const [uiState, setUIState] = useState<{
     rolling: boolean;
     displayDice: typeof initialState.dice;
@@ -43,13 +52,7 @@ export default function Home() {
     focusedPosition: 1, // Start with position 1 focused
   });
 
-  // Load high score from local storage
-  useEffect(() => {
-    const saved = localStorage.getItem("sparkle_high_score");
-    if (saved) {
-      setGameState((prev) => ({ ...prev, highScore: parseInt(saved, 10) }));
-    }
-  }, []);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   // Save high score to local storage
   useEffect(() => {
@@ -75,6 +78,27 @@ export default function Home() {
 
     return () => unsubscribe();
   }, []);
+
+  // Handle die interaction (either toggle selection or apply upgrade)
+  const handleDieInteraction = useCallback(
+    (id: number) => {
+      if (uiState.rolling) return;
+
+      if (gameState.pendingUpgradeDieSelection) {
+        const die = gameState.dice.find((d) => d.id === id);
+        if (die) {
+          const result = gameEngine.processCommand(gameState, {
+            type: "APPLY_UPGRADE",
+            position: die.position,
+          });
+          setGameState(result.state);
+        }
+      } else {
+        setGameState(toggleDie(gameState, id));
+      }
+    },
+    [gameState, uiState.rolling],
+  );
 
   // Handle keyboard events
   const handleKeyDown = useCallback(
@@ -118,7 +142,7 @@ export default function Home() {
         setUIState((prev) => ({ ...prev, focusedPosition: position }));
         const die = gameState.dice.find((d) => d.position === position);
         if (die && !die.banked && !uiState.rolling) {
-          setGameState(toggleDie(gameState, die.id));
+          handleDieInteraction(die.id);
         }
       }
 
@@ -152,7 +176,7 @@ export default function Home() {
           (d) => d.position === uiState.focusedPosition,
         );
         if (die && !die.banked && !die.staged) {
-          setGameState(toggleDie(gameState, die.id));
+          handleDieInteraction(die.id);
         }
       }
 
@@ -166,9 +190,12 @@ export default function Home() {
           (d) => d.position === uiState.focusedPosition,
         );
         if (die && !die.banked && die.staged) {
-          setGameState(toggleDie(gameState, die.id));
+          handleDieInteraction(die.id);
         }
       }
+
+      // Disable other actions if upgrade modal is open
+      if (gameState.upgradeModalOpen) return;
 
       // Handle roll (spacebar) - Use re-roll if last roll sparkled
       if (event.key === " " && !uiState.rolling) {
@@ -199,7 +226,7 @@ export default function Home() {
         resetGame(gameState, setGameState, setUIState);
       }
     },
-    [gameState, uiState.rolling, uiState.focusedPosition],
+    [gameState, uiState.rolling, uiState.focusedPosition, handleDieInteraction],
   );
 
   useEffect(() => {
@@ -215,16 +242,20 @@ export default function Home() {
     dice: uiState.rolling ? uiState.displayDice : gameState.dice,
   };
 
-  const activeDiceCount = gameState.dice.filter(
-    (d) => !d.banked && !d.staged,
-  ).length;
-
   const stagedScore = getStagedScore(gameState);
 
   return (
     <div className="min-h-screen bg-black p-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8">Sparkle</h1>
+        <div className="flex justify-between items-baseline mb-8">
+          <h1 className="text-4xl font-bold text-white">Sparkle</h1>
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="text-white/50 hover:text-white underline underline-offset-4 text-sm font-medium transition-colors"
+          >
+            Rules
+          </button>
+        </div>
 
         <ScoreDisplay
           bankedScore={gameState.bankedScore}
@@ -238,7 +269,7 @@ export default function Home() {
 
         <Dice
           dice={visualState.dice}
-          onToggleDie={(id) => setGameState(toggleDie(gameState, id))}
+          onToggleDie={(id) => handleDieInteraction(id)}
           rolling={uiState.rolling}
           focusedPosition={uiState.focusedPosition}
           onFocusDie={(position) =>
@@ -249,18 +280,41 @@ export default function Home() {
         {gameState.message && <MessageBanner message={gameState.message} />}
 
         <ActionButtons
-          canRollAction={canRoll(gameState)}
-          canEndTurnAction={canEndTurn(gameState)}
-          canReRollAction={canReRoll(gameState)}
+          canRollAction={
+            canRoll(gameState) && !gameState.pendingUpgradeDieSelection
+          }
+          canEndTurnAction={
+            canEndTurn(gameState) && !gameState.pendingUpgradeDieSelection
+          }
+          canReRollAction={
+            canReRoll(gameState) && !gameState.pendingUpgradeDieSelection
+          }
           onRoll={() => handleRoll(gameState, setGameState, setUIState)}
           onEndTurn={() => handleEndTurn(gameState, setGameState, setUIState)}
           onReset={() => resetGame(gameState, setGameState, setUIState)}
           onReRoll={() => handleReRoll(gameState, setGameState, setUIState)}
         />
 
-        <Rules rules={gameState.scoringRules} activeDiceCount={activeDiceCount} />
+        <UpgradesMenu dice={gameState.dice} />
 
-        <Hotkeys />
+        {gameState.upgradeModalOpen && (
+          <UpgradeModal
+            options={gameState.upgradeOptions}
+            onSelect={(type) => {
+              const result = gameEngine.processCommand(gameState, {
+                type: "SELECT_UPGRADE",
+                upgradeType: type,
+              });
+              setGameState(result.state);
+            }}
+          />
+        )}
+
+        <HelpModal
+          isOpen={helpOpen}
+          onClose={() => setHelpOpen(false)}
+          rules={gameState.scoringRules}
+        />
       </div>
     </div>
   );

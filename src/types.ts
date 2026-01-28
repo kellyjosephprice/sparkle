@@ -1,11 +1,29 @@
 export type DieValue = 1 | 2 | 3 | 4 | 5 | 6;
 
+export type UpgradeType =
+  | "SCORE_MULTIPLIER" // 2x when this die is scored
+  | "SCORE_BONUS" // 100+ when this die is scored
+  | "BANKED_SCORE_MULTIPLIER" // 2x when banked and more are banked
+  | "BANKED_SCORE_BONUS" // 100+ when banked and more are banked
+  | "ADDITIONAL_REROLL"; // Special case for modal
+
+export interface DieUpgrade {
+  type: UpgradeType;
+  id: string;
+}
+
+export interface UpgradeOption {
+  type: UpgradeType;
+  description: string;
+}
+
 export interface Die {
   id: number;
   value: DieValue;
   staged: boolean;
   banked: boolean;
   position: number; // Persistent position (1-6)
+  upgrades: DieUpgrade[];
 }
 
 export type RuleId =
@@ -41,6 +59,10 @@ export interface GameState {
   thresholdLevel: number;
   totalScore: number;
   turnNumber: number;
+  // Upgrade related state
+  upgradeModalOpen: boolean;
+  upgradeOptions: UpgradeOption[];
+  pendingUpgradeDieSelection: UpgradeType | null;
 }
 
 export type ScoringCombination =

@@ -3,6 +3,7 @@ export { handleEndTurn } from "./endTurn";
 export { handleReRoll } from "./reroll";
 export { handleReset } from "./reset";
 export { handleRoll } from "./roll";
-export { handleSelectAll } from "./selectAll";
 export { handleResetRuleCounts, handleToggleRule } from "./scoringRules";
+export { handleSelectAll } from "./selectAll";
 export { handleToggleDie } from "./toggleDie";
+export { handleApplyUpgrade, handleSelectUpgrade } from "./upgrade";

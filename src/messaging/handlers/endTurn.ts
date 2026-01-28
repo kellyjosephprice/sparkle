@@ -3,8 +3,16 @@ import {
   createDice,
   getStagedScore,
 } from "../../../src/game";
-import type { GameState } from "../../../src/types";
+import type { GameState, UpgradeOption } from "../../../src/types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
+
+const ALL_UPGRADES: UpgradeOption[] = [
+  { type: "SCORE_MULTIPLIER", description: "2x score multiplier when this die is scored" },
+  { type: "SCORE_BONUS", description: "100+ score bonus when this die is scored" },
+  { type: "BANKED_SCORE_MULTIPLIER", description: "2x banked score multiplier when this die is banked" },
+  { type: "BANKED_SCORE_BONUS", description: "100+ banked score bonus when this die is banked" },
+  { type: "ADDITIONAL_REROLL", description: "+1 Re-roll" },
+];
 
 export function handleEndTurn(
   state: GameState,
@@ -106,6 +114,17 @@ export function handleEndTurn(
     },
   ];
 
+  // Check for upgrade every 3 turns
+  let upgradeModalOpen = false;
+  let upgradeOptions: UpgradeOption[] = [];
+  if (!gameOver && nextTurnNumber % 3 === 0) {
+    upgradeModalOpen = true;
+    // Select 2 random die upgrades and 1 re-roll option
+    const dieUpgrades = ALL_UPGRADES.filter(u => u.type !== "ADDITIONAL_REROLL");
+    const shuffled = [...dieUpgrades].sort(() => 0.5 - Math.random());
+    upgradeOptions = [shuffled[0], shuffled[1], ALL_UPGRADES.find(u => u.type === "ADDITIONAL_REROLL")!];
+  }
+
   return {
     state: {
       bankedScore: 0,
@@ -120,6 +139,9 @@ export function handleEndTurn(
       thresholdLevel: newThresholdLevel,
       totalScore: newTotalScore,
       turnNumber: nextTurnNumber,
+      upgradeModalOpen,
+      upgradeOptions,
+      pendingUpgradeDieSelection: null,
     },
     events,
   };
