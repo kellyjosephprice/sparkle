@@ -10,7 +10,7 @@ export const initialState: GameState = {
   highScore: 0,
   lastRollSparkled: false,
   message: "Roll the dice to start!",
-  rerollsAvailable: 1,
+  rerollsAvailable: 2,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   thresholdLevel: 1,

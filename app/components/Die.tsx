@@ -62,15 +62,13 @@ export default function Die({
 
   const getUpgradeColor = () => {
     if (upgradeCount === 0) return "bg-zinc-700 border-zinc-700 text-white";
-    if (upgradeCount >= 1 && upgradeCount <= 2)
-      return "bg-yellow-600 border-yellow-600 text-black";
-    if (upgradeCount >= 3 && upgradeCount <= 5)
-      return "bg-orange-600 border-orange-600 text-black";
+    if (upgradeCount >= 1) return "bg-yellow-600 border-yellow-600 text-black";
+    if (upgradeCount >= 2) return "bg-orange-600 border-orange-600 text-black";
     return "bg-red-700 border-red-700 text-white";
   };
 
   const upgradeColorClass = getUpgradeColor();
-  const isDarkBackground = upgradeCount >= 6 || upgradeCount === 0;
+  const isDarkBackground = upgradeCount >= 3 || upgradeCount === 0;
 
   return (
     <button
