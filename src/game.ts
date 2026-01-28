@@ -10,7 +10,7 @@ export const initialState: GameState = {
   highScore: 0,
   lastRollSparkled: false,
   message: "Roll the dice to start!",
-  rerollsAvailable: 1,
+  rerollsAvailable: 2,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   thresholdLevel: 1,
@@ -36,7 +36,7 @@ export function createDice(count: number, existingDice?: Die[]): Die[] {
     // Find the original die if it exists to preserve position and upgrades
     // If existingDice is provided, we try to match by index but preserve position
     const existingDie = existingDice?.[i];
-    
+
     return {
       id: Date.now() + i,
       value: (Math.floor(Math.random() * 6) + 1) as DieValue,

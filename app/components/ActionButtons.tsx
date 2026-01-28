@@ -18,9 +18,9 @@ export default function ActionButtons({
   onReRoll,
 }: ActionButtonsProps) {
   const buttonClass =
-    "px-4 py-2 border-2 border-white rounded-lg text-white hover:bg-white hover:text-black " +
-    "disabled:border-gray-700 disabled:text-gray-700 disabled:hover:bg-transparent " +
-    "disabled:cursor-not-allowed transition-colors font-medium";
+    "px-4 py-2 bg-stone-600 text-black rounded-lg hover:bg-stone-500 " +
+    "disabled:bg-stone-950 disabled:text-stone-800 disabled:hover:bg-stone-950 " +
+    "disabled:cursor-not-allowed transition-colors";
 
   return (
     <div className="flex gap-3 mb-8">
@@ -53,7 +53,7 @@ export default function ActionButtons({
 
       <button
         onClick={onReset}
-        className="px-4 py-2 border-2 rounded-lg border-gray-600 text-gray-300 hover:border-white hover:text-white transition-colors ml-auto font-medium"
+        className="px-4 py-2 rounded-lg bg-stone-600 text-black hover:bg-stone-500 transition-colors ml-auto font-medium"
         title="New game (Backspace)"
       >
         New Game

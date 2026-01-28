@@ -117,19 +117,18 @@ export function handleEndTurn(
     },
   ];
 
-  // Check for upgrade every 3 turns
+  // Check for upgrade every 5 turns
   let upgradeModalOpen = false;
   let upgradeOptions: UpgradeOption[] = [];
-  if (!gameOver && nextTurnNumber % 3 === 0) {
+  if (!gameOver && nextTurnNumber % 5 === 0) {
     upgradeModalOpen = true;
-    // Select 2 random die upgrades and 1 re-roll option
+    // Select 1 random die upgrade and 1 re-roll option
     const dieUpgrades = ALL_UPGRADES.filter(
       (u) => u.type !== "ADDITIONAL_REROLL",
     );
     const shuffled = [...dieUpgrades].sort(() => 0.5 - Math.random());
     upgradeOptions = [
       shuffled[0],
-      shuffled[1],
       ALL_UPGRADES.find((u) => u.type === "ADDITIONAL_REROLL")!,
     ];
   }

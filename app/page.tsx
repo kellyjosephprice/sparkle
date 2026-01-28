@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -16,7 +17,6 @@ import { eventBus, gameEngine } from "../src/messaging";
 import type { GameState } from "../src/types";
 import ActionButtons from "./components/ActionButtons";
 import Dice from "./components/Dice";
-import HelpModal from "./components/HelpModal";
 import MessageBanner from "./components/MessageBanner";
 import ScoreDisplay from "./components/ScoreDisplay";
 import UpgradeModal from "./components/UpgradeModal";
@@ -51,8 +51,6 @@ export default function Home() {
     displayDice: createDice(6),
     focusedPosition: 1, // Start with position 1 focused
   });
-
-  const [helpOpen, setHelpOpen] = useState(false);
 
   // Save high score to local storage
   useEffect(() => {
@@ -252,12 +250,12 @@ export default function Home() {
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-baseline mb-8">
           <h1 className="text-4xl font-bold text-white">Sparkle</h1>
-          <button
-            onClick={() => setHelpOpen(true)}
+          <Link
+            href="/rules"
             className="text-white/50 hover:text-white underline underline-offset-4 text-sm font-medium transition-colors"
           >
             Rules
-          </button>
+          </Link>
         </div>
 
         <ScoreDisplay
@@ -312,12 +310,6 @@ export default function Home() {
             }}
           />
         )}
-
-        <HelpModal
-          isOpen={helpOpen}
-          onClose={() => setHelpOpen(false)}
-          rules={gameState.scoringRules}
-        />
       </div>
     </div>
   );

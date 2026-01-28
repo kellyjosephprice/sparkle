@@ -57,6 +57,18 @@ export default function Die({
   focused = false,
   onFocus,
 }: DiceProps) {
+  const upgradeCount = die.upgrades?.length || 0;
+
+  const getUpgradeColor = () => {
+    if (upgradeCount === 0) return "bg-gray-600 border-gray-600 text-white";
+    if (upgradeCount <= 2) return "bg-yellow-500 border-yellow-500 text-black";
+    if (upgradeCount <= 5) return "bg-orange-500 border-orange-500 text-black";
+    return "bg-red-600 border-red-600 text-white";
+  };
+
+  const upgradeColorClass = getUpgradeColor();
+  const isDarkBackground = upgradeCount >= 3 || upgradeCount === 0;
+
   return (
     <button
       key={die.id}
@@ -71,10 +83,10 @@ export default function Die({
             ${rolling && !die.banked ? "animate-roll" : ""}
             ${
               die.banked
-                ? "opacity-20 border-gray-600 bg-gray-600"
+                ? `opacity-20 ${upgradeColorClass.split(" ")[0]} border-gray-600`
                 : die.staged
-                  ? "border-white bg-white"
-                  : "border-gray-600 bg-gray-600 hover:border-white"
+                  ? "border-white bg-white text-black"
+                  : `${upgradeColorClass} hover:border-white`
             }
           `}
       style={{ gridColumn: die.position }}
@@ -82,33 +94,18 @@ export default function Die({
       {/* Position Indicator */}
       <div
         className={`absolute top-0.5 left-1 text-[10px] font-bold ${
-          die.staged ? "text-black/30" : "text-white/30"
+          die.staged || (!isDarkBackground && !die.banked)
+            ? "text-black/30"
+            : "text-white/30"
         }`}
       >
         {die.position}
       </div>
 
-      {/* Upgrades indicators */}
-      <div className="absolute -top-2 -right-2 flex flex-row-reverse flex-wrap gap-0.5 max-w-[120%] pointer-events-none z-10">
-        {die.upgrades.map((upgrade) => (
-          <div
-            key={upgrade.id}
-            title={upgrade.type}
-            className={`
-              h-4 px-1 rounded-full border border-black text-[8px] flex items-center justify-center font-bold shadow-sm min-w-[1rem]
-              ${
-                upgrade.type.includes("MULTIPLIER")
-                  ? "bg-amber-400 text-black"
-                  : "bg-blue-400 text-black"
-              }
-            `}
-          >
-            {upgrade.type.includes("MULTIPLIER") ? "2x" : "+100"}
-          </div>
-        ))}
-      </div>
-
-      <DiceFace value={die.value} staged={die.staged} />
+      <DiceFace
+        value={die.value}
+        staged={die.staged || (!isDarkBackground && !die.banked)}
+      />
     </button>
   );
 }
