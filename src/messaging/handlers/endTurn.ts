@@ -120,7 +120,7 @@ export function handleEndTurn(
   // Check for upgrade every 5 turns
   let upgradeOptions: UpgradeOption[] = [];
   let potentialUpgradePosition: number | null = null;
-  if (!gameOver && nextTurnNumber % 5 === 0) {
+  if (!gameOver && nextTurnNumber % 3 === 0) {
     // Select 1 random die upgrade and 1 re-roll option
     const dieUpgrades = ALL_UPGRADES.filter(
       (u) => u.type !== "ADDITIONAL_REROLL",

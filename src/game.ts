@@ -10,7 +10,7 @@ export const initialState: GameState = {
   highScore: 0,
   lastRollSparkled: false,
   message: "Roll the dice to start!",
-  rerollsAvailable: 1,
+  rerollsAvailable: 2,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   thresholdLevel: 1,
@@ -28,7 +28,7 @@ export function calculateThreshold(turnNumber: number): number {
   return (
     BASE_THRESHOLD +
     100 * turnNumber +
-    1000 * Math.pow(Math.floor(turnNumber / 5), 2)
+    1000 * Math.pow(Math.floor(turnNumber / 3), 2)
   );
 }
 
