@@ -57,7 +57,10 @@ export default function Home() {
   // Save high score to local storage
   useEffect(() => {
     if (gameState.highScore > 0) {
-      localStorage.setItem("sparkle_high_score", gameState.highScore.toString());
+      localStorage.setItem(
+        "sparkle_high_score",
+        gameState.highScore.toString(),
+      );
     }
   }, [gameState.highScore]);
 

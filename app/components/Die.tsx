@@ -8,13 +8,7 @@ interface DiceProps {
   onFocus?: () => void;
 }
 
-const DiceFace = ({
-  value,
-  staged,
-}: {
-  value: number;
-  staged: boolean;
-}) => {
+const DiceFace = ({ value, staged }: { value: number; staged: boolean }) => {
   const dots =
     {
       1: ["center"],

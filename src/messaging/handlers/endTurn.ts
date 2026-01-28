@@ -7,10 +7,22 @@ import type { GameState, UpgradeOption } from "../../../src/types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
 const ALL_UPGRADES: UpgradeOption[] = [
-  { type: "SCORE_MULTIPLIER", description: "2x score multiplier when this die is scored" },
-  { type: "SCORE_BONUS", description: "100+ score bonus when this die is scored" },
-  { type: "BANKED_SCORE_MULTIPLIER", description: "2x banked score multiplier when this die is banked" },
-  { type: "BANKED_SCORE_BONUS", description: "100+ banked score bonus when this die is banked" },
+  {
+    type: "SCORE_MULTIPLIER",
+    description: "2x score multiplier when this die is scored",
+  },
+  {
+    type: "SCORE_BONUS",
+    description: "100+ score bonus when this die is scored",
+  },
+  {
+    type: "BANKED_SCORE_MULTIPLIER",
+    description: "2x banked score multiplier when this die is banked",
+  },
+  {
+    type: "BANKED_SCORE_BONUS",
+    description: "100+ banked score bonus when this die is banked",
+  },
   { type: "ADDITIONAL_REROLL", description: "+1 Re-roll" },
 ];
 
@@ -68,12 +80,6 @@ export function handleEndTurn(
   const newTotalScore = state.totalScore + totalTurnScore;
   const nextTurnNumber = state.turnNumber + 1;
 
-  // Award re-roll every 5 turns (turns 6, 11, 16, etc.)
-  const shouldAwardReroll = nextTurnNumber % 5 === 1 && nextTurnNumber > 1;
-  const newRerollsAvailable = shouldAwardReroll
-    ? state.rerollsAvailable + 1
-    : state.rerollsAvailable;
-
   // When sparkled, game only ends if total score is below threshold
   const gameOver =
     command.isSparkled === true && newTotalScore < state.threshold;
@@ -97,9 +103,6 @@ export function handleEndTurn(
     }
   } else {
     message = `Turn over! You scored ${totalTurnScore} points!`;
-    if (shouldAwardReroll) {
-      message += " 🎁 Earned a re-roll!";
-    }
   }
 
   // Create new dice for next turn (if not game over)
@@ -120,9 +123,15 @@ export function handleEndTurn(
   if (!gameOver && nextTurnNumber % 3 === 0) {
     upgradeModalOpen = true;
     // Select 2 random die upgrades and 1 re-roll option
-    const dieUpgrades = ALL_UPGRADES.filter(u => u.type !== "ADDITIONAL_REROLL");
+    const dieUpgrades = ALL_UPGRADES.filter(
+      (u) => u.type !== "ADDITIONAL_REROLL",
+    );
     const shuffled = [...dieUpgrades].sort(() => 0.5 - Math.random());
-    upgradeOptions = [shuffled[0], shuffled[1], ALL_UPGRADES.find(u => u.type === "ADDITIONAL_REROLL")!];
+    upgradeOptions = [
+      shuffled[0],
+      shuffled[1],
+      ALL_UPGRADES.find((u) => u.type === "ADDITIONAL_REROLL")!,
+    ];
   }
 
   return {
@@ -133,7 +142,7 @@ export function handleEndTurn(
       highScore,
       lastRollSparkled: false,
       message: message,
-      rerollsAvailable: newRerollsAvailable,
+      rerollsAvailable: state.rerollsAvailable,
       scoringRules: state.scoringRules,
       threshold: newThreshold,
       thresholdLevel: newThresholdLevel,
