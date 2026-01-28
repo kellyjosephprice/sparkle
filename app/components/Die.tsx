@@ -56,18 +56,21 @@ export default function Die({
   rolling = false,
   focused = false,
   onFocus,
-}: DiceProps) {
+  isPotentialUpgrade = false,
+}: DiceProps & { isPotentialUpgrade?: boolean }) {
   const upgradeCount = die.upgrades?.length || 0;
 
   const getUpgradeColor = () => {
-    if (upgradeCount === 0) return "bg-gray-600 border-gray-600 text-white";
-    if (upgradeCount <= 2) return "bg-yellow-500 border-yellow-500 text-black";
-    if (upgradeCount <= 5) return "bg-orange-500 border-orange-500 text-black";
-    return "bg-red-600 border-red-600 text-white";
+    if (upgradeCount === 0) return "bg-zinc-700 border-zinc-700 text-white";
+    if (upgradeCount >= 1 && upgradeCount <= 2)
+      return "bg-yellow-600 border-yellow-600 text-black";
+    if (upgradeCount >= 3 && upgradeCount <= 5)
+      return "bg-orange-600 border-orange-600 text-black";
+    return "bg-red-700 border-red-700 text-white";
   };
 
   const upgradeColorClass = getUpgradeColor();
-  const isDarkBackground = upgradeCount >= 3 || upgradeCount === 0;
+  const isDarkBackground = upgradeCount >= 6 || upgradeCount === 0;
 
   return (
     <button
@@ -78,15 +81,16 @@ export default function Die({
       }}
       disabled={die.banked || rolling}
       className={`
-            w-16 h-16 border-2 transition-colors rounded-xl relative
+            w-16 h-16 border-2 transition-all rounded-xl relative
             ${focused ? "shadow-lg shadow-amber-500/50" : ""}
             ${rolling && !die.banked ? "animate-roll" : ""}
+            ${isPotentialUpgrade ? "ring-4 ring-cyan-400 animate-pulse z-20" : ""}
             ${
               die.banked
                 ? `opacity-20 ${upgradeColorClass.split(" ")[0]} border-gray-600`
                 : die.staged
                   ? "border-white bg-white text-black"
-                  : `${upgradeColorClass} hover:border-white`
+                  : `${upgradeColorClass} hover:border-white bg-gradient-to-br from-white/10 to-transparent`
             }
           `}
       style={{ gridColumn: die.position }}

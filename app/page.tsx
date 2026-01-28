@@ -19,7 +19,6 @@ import ActionButtons from "./components/ActionButtons";
 import Dice from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
 import ScoreDisplay from "./components/ScoreDisplay";
-import UpgradeModal from "./components/UpgradeModal";
 import UpgradesMenu from "./components/UpgradesMenu";
 import {
   handleEndTurn,
@@ -276,19 +275,28 @@ export default function Home() {
           onFocusDie={(position) =>
             setUIState((prev) => ({ ...prev, focusedPosition: position }))
           }
+          potentialUpgradePosition={gameState.potentialUpgradePosition}
+          upgradeOptions={gameState.upgradeOptions}
+          onSelectUpgrade={(type) => {
+            const result = gameEngine.processCommand(gameState, {
+              type: "SELECT_UPGRADE",
+              upgradeType: type,
+            });
+            setGameState(result.state);
+          }}
         />
 
         {gameState.message && <MessageBanner message={gameState.message} />}
 
         <ActionButtons
           canRollAction={
-            canRoll(gameState) && !gameState.pendingUpgradeDieSelection
+            canRoll(gameState) && !gameState.potentialUpgradePosition
           }
           canEndTurnAction={
-            canEndTurn(gameState) && !gameState.pendingUpgradeDieSelection
+            canEndTurn(gameState) && !gameState.potentialUpgradePosition
           }
           canReRollAction={
-            canReRoll(gameState) && !gameState.pendingUpgradeDieSelection
+            canReRoll(gameState) && !gameState.potentialUpgradePosition
           }
           onRoll={() => handleRoll(gameState, setGameState, setUIState)}
           onEndTurn={() => handleEndTurn(gameState, setGameState, setUIState)}
@@ -297,19 +305,6 @@ export default function Home() {
         />
 
         <UpgradesMenu dice={gameState.dice} />
-
-        {gameState.upgradeModalOpen && (
-          <UpgradeModal
-            options={gameState.upgradeOptions}
-            onSelect={(type) => {
-              const result = gameEngine.processCommand(gameState, {
-                type: "SELECT_UPGRADE",
-                upgradeType: type,
-              });
-              setGameState(result.state);
-            }}
-          />
-        )}
       </div>
     </div>
   );

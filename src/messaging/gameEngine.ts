@@ -61,7 +61,7 @@ export class GameEngine {
         break;
 
       case "APPLY_UPGRADE":
-        result = handleApplyUpgrade(state, command);
+        result = handleApplyUpgrade(state);
         break;
 
       default:

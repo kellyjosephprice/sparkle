@@ -10,7 +10,7 @@ export const initialState: GameState = {
   highScore: 0,
   lastRollSparkled: false,
   message: "Roll the dice to start!",
-  rerollsAvailable: 2,
+  rerollsAvailable: 1,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   thresholdLevel: 1,
@@ -19,6 +19,7 @@ export const initialState: GameState = {
   upgradeModalOpen: false,
   upgradeOptions: [],
   pendingUpgradeDieSelection: null,
+  potentialUpgradePosition: null,
 };
 
 // Utility/Selector Functions

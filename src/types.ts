@@ -63,6 +63,7 @@ export interface GameState {
   upgradeModalOpen: boolean;
   upgradeOptions: UpgradeOption[];
   pendingUpgradeDieSelection: UpgradeType | null;
+  potentialUpgradePosition: number | null;
 }
 
 export type ScoringCombination =
