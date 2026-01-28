@@ -196,13 +196,14 @@ const countDice = (dice: Die[]): Counts => {
 export function calculateScore(
   selectedDice: Die[],
   rules: RuleMap = DEFAULT_RULES,
-): { score: number; scoringRuleIds: RuleId[] } {
-  if (selectedDice.length === 0) return { score: 0, scoringRuleIds: [] };
+): { score: number; scoringRuleIds: RuleId[]; scoredDice: Die[] } {
+  if (selectedDice.length === 0)
+    return { score: 0, scoringRuleIds: [], scoredDice: [] };
 
   let totalScore = 0;
-  const scoredDice = new Set<Die>(selectedDice);
+  const unscoredDice = new Set<Die>(selectedDice);
   const scoringRuleIds: RuleId[] = [];
-  let counts = countDice([...scoredDice.values()]);
+  let counts = countDice([...unscoredDice.values()]);
 
   // Priority order: higher combinations first
   const priorityOrder: RuleId[] = [
@@ -227,12 +228,16 @@ export function calculateScore(
       totalScore += result.score;
       scoringRuleIds.push(ruleId);
 
-      result.scoredDice.forEach((die) => scoredDice.delete(die));
-      counts = countDice([...scoredDice.values()]);
+      result.scoredDice.forEach((die) => unscoredDice.delete(die));
+      counts = countDice([...unscoredDice.values()]);
     }
   }
 
-  return { score: totalScore, scoringRuleIds };
+  return {
+    score: totalScore,
+    scoringRuleIds,
+    scoredDice: selectedDice.filter((die) => !unscoredDice.has(die)),
+  };
 }
 
 export function hasAnyScore(
