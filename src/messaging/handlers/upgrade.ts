@@ -33,7 +33,15 @@ export function handleSelectUpgrade(
             ...die,
             upgrades: [
               ...die.upgrades,
-              { type: upgradeType, id: `upgrade-${Date.now()}` },
+              {
+                type: upgradeType,
+                id: `upgrade-${Date.now()}`,
+                remainingUses:
+                  upgradeType === "AUTO_REROLL" ||
+                  upgradeType === "TEN_X_MULTIPLIER"
+                    ? 3
+                    : undefined,
+              },
             ],
           }
         : die,

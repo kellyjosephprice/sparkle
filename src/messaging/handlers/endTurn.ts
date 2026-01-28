@@ -24,6 +24,14 @@ const ALL_UPGRADES: UpgradeOption[] = [
     description: "100+ banked score bonus when this die is banked",
   },
   { type: "ADDITIONAL_REROLL", description: "+1 Re-roll" },
+  {
+    type: "AUTO_REROLL",
+    description: "3x Auto re-roll on sparkle (if this die is rolled)",
+  },
+  {
+    type: "TEN_X_MULTIPLIER",
+    description: "3x 10x multiplier when this die is scored",
+  },
 ];
 
 export function handleEndTurn(
@@ -85,21 +93,16 @@ export function handleEndTurn(
     command.isSparkled === true && newTotalScore < state.threshold;
 
   // Increment threshold level if we've passed the current threshold
-  let newThresholdLevel = state.thresholdLevel;
-  let newThreshold = state.threshold;
-  if (newTotalScore >= state.threshold) {
-    newThresholdLevel = state.thresholdLevel + 1;
-    newThreshold = calculateThreshold(newThresholdLevel);
-  }
+  const newThreshold = calculateThreshold(nextTurnNumber);
 
   const highScore = Math.max(state.highScore, newTotalScore);
 
   let message = "";
   if (command.isSparkled) {
     if (gameOver) {
-      message = `💥 SPARKLE! Game Over! Final score: ${newTotalScore}`;
+      message = `✨ SPARKLE! Game Over! Final score: ${newTotalScore}`;
     } else {
-      message = `💥 SPARKLE! Lost turn points, but you can continue! Total: ${newTotalScore}`;
+      message = `✨ SPARKLE! Lost turn points, but you can continue! Total: ${newTotalScore}`;
     }
   } else {
     message = `Turn over! You scored ${totalTurnScore} points!`;
@@ -117,19 +120,13 @@ export function handleEndTurn(
     },
   ];
 
-  // Check for upgrade every 5 turns
+  // Check for upgrade every 3 turns
   let upgradeOptions: UpgradeOption[] = [];
   let potentialUpgradePosition: number | null = null;
-  if (!gameOver && nextTurnNumber % 5 === 0) {
-    // Select 1 random die upgrade and 1 re-roll option
-    const dieUpgrades = ALL_UPGRADES.filter(
-      (u) => u.type !== "ADDITIONAL_REROLL",
-    );
-    const shuffled = [...dieUpgrades].sort(() => 0.5 - Math.random());
-    upgradeOptions = [
-      shuffled[0],
-      ALL_UPGRADES.find((u) => u.type === "ADDITIONAL_REROLL")!,
-    ];
+  if (!gameOver && state.turnNumber % 3 === 0) {
+    // Select 2 random options from ALL_UPGRADES
+    const shuffled = [...ALL_UPGRADES].sort(() => 0.5 - Math.random());
+    upgradeOptions = [shuffled[0], shuffled[1]];
     // Randomly select a position (1-6)
     potentialUpgradePosition = Math.floor(Math.random() * 6) + 1;
   }
@@ -145,7 +142,7 @@ export function handleEndTurn(
       rerollsAvailable: state.rerollsAvailable,
       scoringRules: state.scoringRules,
       threshold: newThreshold,
-      thresholdLevel: newThresholdLevel,
+      thresholdLevel: state.thresholdLevel, // We don't really use this anymore
       totalScore: newTotalScore,
       turnNumber: nextTurnNumber,
       upgradeOptions,

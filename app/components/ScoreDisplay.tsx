@@ -1,3 +1,5 @@
+import { getNextThresholdInfo } from "../../src/game";
+
 interface ScoreDisplayProps {
   bankedScore: number;
   stagedScore: number;
@@ -19,15 +21,19 @@ export default function ScoreDisplay({
 }: ScoreDisplayProps) {
   const potentialScore = totalScore + bankedScore + stagedScore;
   const temperature = potentialScore - threshold;
+  const nextThreshold = getNextThresholdInfo(turnNumber);
 
   return (
     <>
       <div className="flex gap-8 mb-6 text-sm">
-        <div>
+        <div className="flex flex-col">
           <div className="text-gray-400">Turn</div>
           <div className="text-2xl font-bold text-white">{turnNumber}</div>
+          <div className="text-[10px] text-white/30 uppercase mt-1">
+            Next Level: Turn {nextThreshold.turn}
+          </div>
         </div>
-        <div>
+        <div className="flex flex-col">
           <div className="text-gray-400">Re-Rolls</div>
           <div className="text-2xl font-bold text-white">
             {rerollsAvailable}
@@ -39,12 +45,15 @@ export default function ScoreDisplay({
         </div>
       </div>
       <div className="flex gap-8 mb-6 text-sm">
-        <div>
+        <div className="flex flex-col">
           <div className="text-gray-400">Limit</div>
           <div
             className={`text-2xl font-bold ${temperature > 0 ? "text-green-500" : temperature < 0 ? "text-red-500" : "text-orange-500"}`}
           >
             {threshold}
+          </div>
+          <div className="text-[10px] text-white/30 uppercase mt-1">
+            Next Limit: {nextThreshold.value.toLocaleString()}
           </div>
         </div>
         <div>

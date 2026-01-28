@@ -10,7 +10,7 @@ export const initialState: GameState = {
   highScore: 0,
   lastRollSparkled: false,
   message: "Roll the dice to start!",
-  rerollsAvailable: 2,
+  rerollsAvailable: 1,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   thresholdLevel: 1,
@@ -24,11 +24,21 @@ export const initialState: GameState = {
 // Utility/Selector Functions
 
 export function calculateThreshold(turnNumber: number): number {
-  return (
-    BASE_THRESHOLD +
-    100 * turnNumber +
-    1000 * Math.pow(Math.floor(turnNumber / 5), 2)
-  );
+  const level = Math.floor(turnNumber / 3);
+  return 100 * Math.pow(10, level);
+}
+
+export function getNextThresholdInfo(turnNumber: number): {
+  turn: number;
+  value: number;
+} {
+  const currentLevel = Math.floor(turnNumber / 3);
+  const nextLevel = currentLevel + 1;
+  const nextThresholdTurn = nextLevel * 3;
+  return {
+    turn: nextThresholdTurn,
+    value: 100 * Math.pow(10, nextLevel),
+  };
 }
 
 export function createDice(count: number, existingDice?: Die[]): Die[] {
@@ -80,6 +90,9 @@ export function getStagedScore(state: GameState): number {
     die.upgrades?.forEach((upgrade) => {
       if (upgrade.type === "SCORE_MULTIPLIER") {
         score *= 2;
+      }
+      if (upgrade.type === "TEN_X_MULTIPLIER" && (upgrade.remainingUses ?? 0) > 0) {
+        score *= 10;
       }
     });
   });

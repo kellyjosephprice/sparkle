@@ -44,7 +44,16 @@ export default function UpgradesMenu({ dice }: UpgradesMenuProps) {
                             ? "2x Banked"
                             : upgrade.type === "BANKED_SCORE_BONUS"
                               ? "+100 Banked"
-                              : upgrade.type.replace(/_/g, " ")}
+                              : upgrade.type === "AUTO_REROLL"
+                                ? "Auto Reroll"
+                                : upgrade.type === "TEN_X_MULTIPLIER"
+                                  ? "10x"
+                                  : upgrade.type.replace(/_/g, " ")}
+                      {upgrade.remainingUses !== undefined && (
+                        <span className="ml-1 opacity-50">
+                          ({upgrade.remainingUses})
+                        </span>
+                      )}
                     </span>
                   ))
                 )}

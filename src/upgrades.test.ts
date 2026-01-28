@@ -105,4 +105,28 @@ describe("Upgrades Scoring Logic", () => {
 
     expect(getStagedScore(state)).toBe(100); // Only die1 scores
   });
+
+  it("should apply TEN_X_MULTIPLIER to staged scoring dice", () => {
+    const die1 = createMockDie(1, 1, [
+      { type: "TEN_X_MULTIPLIER", id: "u1", remainingUses: 3 },
+    ]); // 100 base * 10
+    const state: GameState = {
+      ...initialState,
+      dice: [die1],
+    };
+
+    expect(getStagedScore(state)).toBe(1000);
+  });
+
+  it("should NOT apply TEN_X_MULTIPLIER if no uses left", () => {
+    const die1 = createMockDie(1, 1, [
+      { type: "TEN_X_MULTIPLIER", id: "u1", remainingUses: 0 },
+    ]);
+    const state: GameState = {
+      ...initialState,
+      dice: [die1],
+    };
+
+    expect(getStagedScore(state)).toBe(100);
+  });
 });

@@ -11,6 +11,7 @@ function makeDice(values: number[]): Die[] {
     staged: false,
     banked: false,
     position: i + 1,
+    upgrades: [],
   }));
 }
 

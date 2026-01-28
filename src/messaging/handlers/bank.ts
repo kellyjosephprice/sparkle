@@ -26,7 +26,25 @@ export function handleBank(state: GameState): CommandResult {
     };
   }
 
-  const { scoringRuleIds } = calculateScore(stagedDice, state.scoringRules);
+  const { scoredDice, scoringRuleIds } = calculateScore(
+    stagedDice,
+    state.scoringRules,
+  );
+
+  // Decrement charges for limited use upgrades (like TEN_X_MULTIPLIER)
+  const stagedWithDecrementedCharges = stagedDice.map((die) => {
+    const isScoring = scoredDice.some((sd) => sd.id === die.id);
+    if (!isScoring) return die;
+
+    return {
+      ...die,
+      upgrades: die.upgrades.map((u) =>
+        u.type === "TEN_X_MULTIPLIER" && (u.remainingUses ?? 0) > 0
+          ? { ...u, remainingUses: u.remainingUses! - 1 }
+          : u,
+      ),
+    };
+  });
 
   // Increment activation counts for the rules that were used
   const updatedRules = Object.values(state.scoringRules).reduce<RuleMap>(
@@ -51,9 +69,17 @@ export function handleBank(state: GameState): CommandResult {
   const newBankedScore = state.bankedScore + stagedScore;
   const allDiceUsed = activeDice.length === stagedDice.length;
 
+  // Update ALL dice in state to reflect decremented charges on staged dice
+  const updatedDiceState = state.dice.map((die) => {
+    const updatedStagedDie = stagedWithDecrementedCharges.find(
+      (d) => d.id === die.id,
+    );
+    return updatedStagedDie ?? die;
+  });
+
   if (allDiceUsed) {
     // Hot dice: clear banked dice and roll 6 new dice
-    const newDice = createDice(6, state.dice);
+    const newDice = createDice(6, updatedDiceState);
     return {
       state: {
         ...state,
@@ -70,7 +96,7 @@ export function handleBank(state: GameState): CommandResult {
     return {
       state: {
         ...state,
-        dice: state.dice.map((die) =>
+        dice: updatedDiceState.map((die) =>
           die.staged ? { ...die, staged: false, banked: true } : die,
         ),
         bankedScore: newBankedScore,

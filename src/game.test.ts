@@ -20,10 +20,10 @@ describe("Game Selectors", () => {
   beforeEach(() => {
     state = {
       dice: [
-        { id: 1, value: 1, staged: false, banked: false, position: 1 },
-        { id: 2, value: 2, staged: true, banked: false, position: 2 },
-        { id: 3, value: 3, staged: false, banked: true, position: 3 },
-        { id: 4, value: 4, staged: true, banked: true, position: 4 },
+        { id: 1, value: 1, staged: false, banked: false, position: 1, upgrades: [] },
+        { id: 2, value: 2, staged: true, banked: false, position: 2, upgrades: [] },
+        { id: 3, value: 3, staged: false, banked: true, position: 3, upgrades: [] },
+        { id: 4, value: 4, staged: true, banked: true, position: 4, upgrades: [] },
       ],
       bankedScore: 0,
       totalScore: 0,
@@ -36,6 +36,9 @@ describe("Game Selectors", () => {
       rerollsAvailable: 1,
       lastRollSparkled: false,
       highScore: 0,
+      upgradeOptions: [],
+      pendingUpgradeDieSelection: null,
+      potentialUpgradePosition: null,
     };
   });
 
@@ -71,8 +74,8 @@ describe("Game Selectors", () => {
 
     it("should calculate score for staged scoring dice", () => {
       state.dice = [
-        { id: 1, value: 1, staged: true, banked: false, position: 1 },
-        { id: 2, value: 5, staged: true, banked: false, position: 2 },
+        { id: 1, value: 1, staged: true, banked: false, position: 1, upgrades: [] },
+        { id: 2, value: 5, staged: true, banked: false, position: 2, upgrades: [] },
       ];
       const score = getStagedScore(state);
       expect(score).toBe(150); // 100 (for 1) + 50 (for 5)
@@ -81,15 +84,15 @@ describe("Game Selectors", () => {
 
   describe("calculateThreshold", () => {
     it("should calculate threshold for turn 1", () => {
-      expect(calculateThreshold(1)).toBe(200);
+      expect(calculateThreshold(1)).toBe(100);
     });
 
     it("should calculate threshold for turn 2", () => {
-      expect(calculateThreshold(2)).toBe(300);
+      expect(calculateThreshold(2)).toBe(100);
     });
 
     it("should calculate threshold for turn 3", () => {
-      expect(calculateThreshold(3)).toBe(400);
+      expect(calculateThreshold(3)).toBe(1000);
     });
   });
 
@@ -109,24 +112,24 @@ describe("Game Selectors", () => {
   describe("canBank", () => {
     it("should return false when no dice staged", () => {
       state.dice = [
-        { id: 1, value: 1, staged: false, banked: false, position: 1 },
-        { id: 2, value: 2, staged: false, banked: false, position: 2 },
+        { id: 1, value: 1, staged: false, banked: false, position: 1, upgrades: [] },
+        { id: 2, value: 2, staged: false, banked: false, position: 2, upgrades: [] },
       ];
       expect(canBank(state)).toBe(false);
     });
 
     it("should return false when staged dice don't score", () => {
       state.dice = [
-        { id: 1, value: 2, staged: true, banked: false, position: 1 },
-        { id: 2, value: 3, staged: true, banked: false, position: 2 },
+        { id: 1, value: 2, staged: true, banked: false, position: 1, upgrades: [] },
+        { id: 2, value: 3, staged: true, banked: false, position: 2, upgrades: [] },
       ];
       expect(canBank(state)).toBe(false);
     });
 
     it("should return true when staged dice score", () => {
       state.dice = [
-        { id: 1, value: 1, staged: true, banked: false, position: 1 },
-        { id: 2, value: 5, staged: true, banked: false, position: 2 },
+        { id: 1, value: 1, staged: true, banked: false, position: 1, upgrades: [] },
+        { id: 2, value: 5, staged: true, banked: false, position: 2, upgrades: [] },
       ];
       expect(canBank(state)).toBe(true);
     });

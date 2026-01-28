@@ -1,6 +1,6 @@
 import { createDice, getActiveDice, getBankedDice } from "../../game";
 import { isSparkle } from "../../scoring";
-import type { GameState } from "../../types";
+import type { Die, GameState } from "../../types";
 import type { CommandResult, GameEvent } from "../types";
 
 export function handleRoll(state: GameState): CommandResult {
@@ -8,18 +8,51 @@ export function handleRoll(state: GameState): CommandResult {
     return { state, events: [] };
   }
 
-  const activeDice = getActiveDice(state);
-  const newDice = createDice(activeDice.length, activeDice);
+  let activeDice = getActiveDice(state);
+  let newDice = createDice(activeDice.length, activeDice);
+  let sparkled = isSparkle(newDice, state.scoringRules);
+
+  let message = sparkled
+    ? "💥 SPARKLE! No scoring dice! Use a re-roll or end turn."
+    : "Select scoring dice and bank them, or roll again!";
+
+  // Handle Auto Re-roll upgrade
+  if (sparkled) {
+    const autoRerollDie = newDice.find((d) =>
+      d.upgrades.some(
+        (u) => u.type === "AUTO_REROLL" && (u.remainingUses ?? 0) > 0,
+      ),
+    );
+
+    if (autoRerollDie) {
+      // Find the upgrade and decrement uses
+      const updatedDice = newDice.map((d) =>
+        d.id === autoRerollDie.id
+          ? {
+              ...d,
+              upgrades: d.upgrades.map((u) =>
+                u.type === "AUTO_REROLL" && (u.remainingUses ?? 0) > 0
+                  ? { ...u, remainingUses: u.remainingUses! - 1 }
+                  : u,
+              ),
+            }
+          : d,
+      );
+
+      // Perform the re-roll
+      newDice = createDice(activeDice.length, updatedDice);
+      sparkled = isSparkle(newDice, state.scoringRules);
+      message = `🔄 Auto Re-roll used! ${sparkled ? "Still sparkled! 💥" : "Saved!"}`;
+    }
+  }
+
   const bankedDice = getBankedDice(state);
-  const sparkled = isSparkle(newDice, state.scoringRules);
 
   const newState: GameState = {
     ...state,
     dice: [...bankedDice, ...newDice],
     lastRollSparkled: sparkled,
-    message: sparkled
-      ? "💥 SPARKLE! No scoring dice! Use a re-roll or end turn."
-      : "Select scoring dice and bank them, or roll again!",
+    message: message,
   };
 
   const events: GameEvent[] = [

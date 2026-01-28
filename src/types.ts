@@ -5,11 +5,14 @@ export type UpgradeType =
   | "SCORE_BONUS" // 100+ when this die is scored
   | "BANKED_SCORE_MULTIPLIER" // 2x when banked and more are banked
   | "BANKED_SCORE_BONUS" // 100+ when banked and more are banked
-  | "ADDITIONAL_REROLL"; // Special case for modal
+  | "ADDITIONAL_REROLL" // +1 Re-roll
+  | "AUTO_REROLL" // 3x Auto re-roll on sparkle
+  | "TEN_X_MULTIPLIER"; // 3x 10x multiplier
 
 export interface DieUpgrade {
   type: UpgradeType;
   id: string;
+  remainingUses?: number;
 }
 
 export interface UpgradeOption {
