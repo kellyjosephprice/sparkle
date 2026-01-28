@@ -8,7 +8,6 @@ export function handleReset(state: GameState): CommandResult {
     state: {
       ...state,
       dice: createDice(6),
-      currentScore: 0,
       bankedScore: 0,
       totalScore: 0,
       threshold: calculateThreshold(1),
@@ -19,6 +18,9 @@ export function handleReset(state: GameState): CommandResult {
       scoringRules: DEFAULT_RULES,
       rerollsAvailable: 1,
       lastRollSparkled: false,
+      upgradeModalOpen: false,
+      upgradeOptions: [],
+      pendingUpgradeDieSelection: null,
     },
     events: [{ type: "GAME_RESET" }],
   };
