@@ -60,11 +60,11 @@ export interface GameState {
   totalScore: number;
   turnNumber: number;
   // Upgrade related state
-  upgradeModalOpen: boolean;
   upgradeOptions: UpgradeOption[];
   pendingUpgradeDieSelection: UpgradeType | null;
   potentialUpgradePosition: number | null;
 }
+
 
 export type ScoringCombination =
   | { type: "single_one"; dice: number[] }

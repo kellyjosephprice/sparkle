@@ -1,108 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
-import {
-  canEndTurn,
-  canReRoll,
-  canRoll,
-  createDice,
-  getStagedDice,
-  getStagedScore,
-  initialState,
-} from "../src/game";
-import type { GameEvent } from "../src/messaging";
-import { eventBus, gameEngine } from "../src/messaging";
-import type { GameState } from "../src/types";
+import { canEndTurn, canReRoll, canRoll } from "../src/game";
 import ActionButtons from "./components/ActionButtons";
 import Dice from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
 import ScoreDisplay from "./components/ScoreDisplay";
 import UpgradesMenu from "./components/UpgradesMenu";
-import {
-  handleEndTurn,
-  handleReRoll,
-  handleRoll,
-  resetGame,
-  toggleDie,
-} from "./hooks/useGameHandlers";
+import { useGameState } from "./hooks/useGameState";
 
 export default function Home() {
-  const [gameState, setGameState] = useState<GameState>(() => {
-    const saved =
-      typeof window !== "undefined"
-        ? localStorage.getItem("sparkle_high_score")
-        : null;
-    const highScore = saved ? parseInt(saved, 10) : 0;
-    return {
-      ...initialState,
-      dice: createDice(6),
-      highScore,
-    };
-  });
-  const [uiState, setUIState] = useState<{
-    rolling: boolean;
-    displayDice: typeof initialState.dice;
-    focusedPosition: number | null;
-  }>({
-    rolling: false,
-    displayDice: createDice(6),
-    focusedPosition: 1, // Start with position 1 focused
-  });
+  const {
+    gameState,
+    uiState,
+    setUIState,
+    toggleDie,
+    selectUpgrade,
+    handleRoll,
+    handleReRoll,
+    handleEndTurn,
+    resetGame,
+    selectAll,
+    stagedScore,
+  } = useGameState();
 
-  // Save high score to local storage
-  useEffect(() => {
-    if (gameState.highScore > 0) {
-      localStorage.setItem(
-        "sparkle_high_score",
-        gameState.highScore.toString(),
-      );
-    }
-  }, [gameState.highScore]);
-
-  useEffect(() => {
-    const unsubscribe = eventBus.subscribe((event: GameEvent) => {
-      if (event.type === "DELAYED_ACTION") {
-        setTimeout(() => {
-          setGameState((currentState: GameState) => {
-            const result = gameEngine.processCommand(
-              currentState,
-              event.action,
-            );
-            return result.state;
-          });
-        }, event.delay);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Handle die interaction (either toggle selection or apply upgrade)
   const handleDieInteraction = useCallback(
     (id: number) => {
-      if (uiState.rolling) return;
-
-      if (gameState.pendingUpgradeDieSelection) {
-        const die = gameState.dice.find((d) => d.id === id);
-        if (die) {
-          const result = gameEngine.processCommand(gameState, {
-            type: "APPLY_UPGRADE",
-            position: die.position,
-          });
-          setGameState(result.state);
-        }
-      } else {
-        setGameState(toggleDie(gameState, id));
-      }
+      toggleDie(id);
     },
-    [gameState, uiState.rolling],
+    [toggleDie],
   );
 
   // Handle keyboard events
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      const isUpgrading = gameState.upgradeOptions.length > 0;
+
       // Prevent default behavior for our keys
       if (
         [
@@ -124,16 +59,51 @@ export default function Home() {
           "a",
           "s",
           "d",
-          "W",
-          "A",
-          "S",
-          "D",
         ].includes(event.key) &&
         !event.shiftKey &&
         !event.ctrlKey &&
         !event.altKey
       ) {
         event.preventDefault();
+      }
+
+      // Handle Upgrade Selection (1-2 keys)
+      if (isUpgrading) {
+        if (event.key === "1") {
+          selectUpgrade(gameState.upgradeOptions[0].type);
+          return;
+        }
+        if (event.key === "2" && gameState.upgradeOptions.length > 1) {
+          selectUpgrade(gameState.upgradeOptions[1].type);
+          return;
+        }
+
+        // Arrow navigation for upgrades
+        if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") {
+          setUIState((prev) => ({
+            ...prev,
+            focusedUpgradeIndex:
+              prev.focusedUpgradeIndex === null || prev.focusedUpgradeIndex === 0
+                ? gameState.upgradeOptions.length - 1
+                : 0,
+          }));
+        }
+        if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+          setUIState((prev) => ({
+            ...prev,
+            focusedUpgradeIndex:
+              prev.focusedUpgradeIndex === null ||
+              prev.focusedUpgradeIndex === gameState.upgradeOptions.length - 1
+                ? 0
+                : prev.focusedUpgradeIndex + 1,
+          }));
+        }
+
+        if ((event.key === "Enter" || event.key === " ") && uiState.focusedUpgradeIndex !== null) {
+          selectUpgrade(gameState.upgradeOptions[uiState.focusedUpgradeIndex].type);
+        }
+
+        return; // Disable other keys while upgrading
       }
 
       // Handle die selection (keys 1-6) - Also sets focus
@@ -194,44 +164,50 @@ export default function Home() {
         }
       }
 
-      // Disable other actions if upgrade modal is open
-      if (gameState.upgradeModalOpen) return;
-
-      // Handle roll (spacebar) - Use re-roll if last roll sparkled
+      // Handle roll (spacebar)
       if (event.key === " " && !uiState.rolling) {
-        if (gameState.lastRollSparkled && canReRoll(gameState)) {
-          handleReRoll(gameState, setGameState, setUIState);
-        } else if (canRoll(gameState)) {
-          handleRoll(gameState, setGameState, setUIState);
-        } else if (getStagedDice(gameState).length === 0) {
-          const result = gameEngine.processCommand(gameState, {
-            type: "SELECT_ALL",
-          });
-          setGameState(result.state);
+        if (canRoll(gameState)) {
+          handleRoll();
+        } else if (canReRoll(gameState) && gameState.lastRollSparkled) {
+          handleReRoll();
+        } else {
+          selectAll();
         }
       }
 
       // Handle re-roll (R key)
-      if (event.key === "r" && canReRoll(gameState) && !uiState.rolling) {
-        handleReRoll(gameState, setGameState, setUIState);
+      if (event.key.toLowerCase() === "r" && canReRoll(gameState) && !uiState.rolling) {
+        handleReRoll();
       }
 
       // Handle end turn (Enter)
       if (event.key === "Enter" && canEndTurn(gameState) && !uiState.rolling) {
-        handleEndTurn(gameState, setGameState, setUIState);
+        handleEndTurn();
       }
 
       // Handle new game (Backspace)
       if (event.key === "Backspace" && !uiState.rolling) {
-        resetGame(gameState, setGameState, setUIState);
+        resetGame();
       }
     },
-    [gameState, uiState.rolling, uiState.focusedPosition, handleDieInteraction],
+    [
+      gameState,
+      uiState.rolling,
+      uiState.focusedPosition,
+      uiState.focusedUpgradeIndex,
+      handleDieInteraction,
+      selectUpgrade,
+      handleRoll,
+      handleReRoll,
+      handleEndTurn,
+      resetGame,
+      selectAll,
+      setUIState,
+    ],
   );
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
-
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -242,13 +218,11 @@ export default function Home() {
     dice: uiState.rolling ? uiState.displayDice : gameState.dice,
   };
 
-  const stagedScore = getStagedScore(gameState);
-
   return (
     <div className="min-h-screen bg-black p-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-baseline mb-8">
-          <h1 className="text-4xl font-bold text-white">Sparkle</h1>
+          <h1 className="text-4xl font-bold text-white tracking-tighter">Sparkle</h1>
           <Link
             href="/rules"
             className="text-white/50 hover:text-white underline underline-offset-4 text-sm font-medium transition-colors"
@@ -269,7 +243,7 @@ export default function Home() {
 
         <Dice
           dice={visualState.dice}
-          onToggleDie={(id) => handleDieInteraction(id)}
+          onToggleDie={toggleDie}
           rolling={uiState.rolling}
           focusedPosition={uiState.focusedPosition}
           onFocusDie={(position) =>
@@ -277,31 +251,20 @@ export default function Home() {
           }
           potentialUpgradePosition={gameState.potentialUpgradePosition}
           upgradeOptions={gameState.upgradeOptions}
-          onSelectUpgrade={(type) => {
-            const result = gameEngine.processCommand(gameState, {
-              type: "SELECT_UPGRADE",
-              upgradeType: type,
-            });
-            setGameState(result.state);
-          }}
+          onSelectUpgrade={selectUpgrade}
+          focusedUpgradeIndex={uiState.focusedUpgradeIndex}
         />
 
         {gameState.message && <MessageBanner message={gameState.message} />}
 
         <ActionButtons
-          canRollAction={
-            canRoll(gameState) && !gameState.potentialUpgradePosition
-          }
-          canEndTurnAction={
-            canEndTurn(gameState) && !gameState.potentialUpgradePosition
-          }
-          canReRollAction={
-            canReRoll(gameState) && !gameState.potentialUpgradePosition
-          }
-          onRoll={() => handleRoll(gameState, setGameState, setUIState)}
-          onEndTurn={() => handleEndTurn(gameState, setGameState, setUIState)}
-          onReset={() => resetGame(gameState, setGameState, setUIState)}
-          onReRoll={() => handleReRoll(gameState, setGameState, setUIState)}
+          canRollAction={canRoll(gameState) && !gameState.potentialUpgradePosition}
+          canEndTurnAction={canEndTurn(gameState) && !gameState.potentialUpgradePosition}
+          canReRollAction={canReRoll(gameState) && !gameState.potentialUpgradePosition}
+          onRoll={handleRoll}
+          onEndTurn={handleEndTurn}
+          onReset={resetGame}
+          onReRoll={handleReRoll}
         />
 
         <UpgradesMenu dice={gameState.dice} />

@@ -1,5 +1,6 @@
 import type { Die as DieType, UpgradeOption, UpgradeType } from "../../src/types";
 import Die from "./Die";
+import UpgradeSelection from "./UpgradeSelection";
 
 interface DiceSectionsProps {
   dice: DieType[];
@@ -10,6 +11,7 @@ interface DiceSectionsProps {
   potentialUpgradePosition?: number | null;
   upgradeOptions?: UpgradeOption[];
   onSelectUpgrade?: (type: UpgradeType) => void;
+  focusedUpgradeIndex?: number | null;
 }
 
 export default function Dice({
@@ -21,6 +23,7 @@ export default function Dice({
   potentialUpgradePosition,
   upgradeOptions = [],
   onSelectUpgrade,
+  focusedUpgradeIndex = null,
 }: DiceSectionsProps) {
   // Sort dice by position for consistent rendering
   const sortedDice = [...dice].sort((a, b) => a.position - b.position);
@@ -83,24 +86,11 @@ export default function Dice({
 
       <div className="p-6 bg-gray-900 min-h-[112px] flex items-center justify-center">
         {hasUpgradeOptions ? (
-          <div className="flex gap-4 w-full max-w-lg">
-            {upgradeOptions.map((option, idx) => (
-              <button
-                key={`${option.type}-${idx}`}
-                onClick={() => onSelectUpgrade?.(option.type)}
-                className="flex-1 p-3 border-2 border-cyan-500 bg-cyan-500/10 hover:bg-cyan-500 hover:text-black text-cyan-500 transition-all rounded-lg text-center group"
-              >
-                <div className="font-bold text-sm mb-1 uppercase tracking-tight">
-                  {option.type === "ADDITIONAL_REROLL"
-                    ? "Extra Re-roll"
-                    : "Random Upgrade"}
-                </div>
-                <div className="text-[10px] leading-tight opacity-70 group-hover:opacity-100 font-medium">
-                  {option.description}
-                </div>
-              </button>
-            ))}
-          </div>
+          <UpgradeSelection
+            options={upgradeOptions}
+            onSelect={onSelectUpgrade!}
+            focusedIndex={focusedUpgradeIndex}
+          />
         ) : (
           <div className="grid grid-cols-6 justify-items-center w-full">
             {stagedOrBankedWithPlaceholders}

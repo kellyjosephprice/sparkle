@@ -18,9 +18,9 @@ export function handleReset(state: GameState): CommandResult {
       scoringRules: DEFAULT_RULES,
       rerollsAvailable: 1,
       lastRollSparkled: false,
-      upgradeModalOpen: false,
       upgradeOptions: [],
       pendingUpgradeDieSelection: null,
+      potentialUpgradePosition: null,
     },
     events: [{ type: "GAME_RESET" }],
   };
