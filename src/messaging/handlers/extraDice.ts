@@ -1,5 +1,6 @@
 import { createDice } from "../../game";
 import { isSparkle } from "../../scoring";
+import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
 import type { CommandResult } from "../types";
 
@@ -8,22 +9,41 @@ export function handleDiscardUnscored(
 ): CommandResult {
   if (!state.lastRollSparkled) {
     return {
-      state: { ...state, message: "You can only discard dice after a sparkle!" },
-      events: [{ type: "ERROR", message: "You can only discard dice after a sparkle!" }],
+      state: { ...state, message: STRINGS.errors.onlyDiscardAfterSparkle },
+      events: [{ type: "ERROR", message: STRINGS.errors.onlyDiscardAfterSparkle }],
     };
   }
 
-  // Remove ALL non-banked dice
-  const remainingDice = state.dice.filter((d) => d.banked);
+  // Remove ALL non-banked dice permanently
+  // Convert banked dice into active dice for a re-roll
+  const bankedDice = state.dice.filter((d) => d.banked);
   
+  if (bankedDice.length === 0) {
+      return {
+          state: {
+              ...state,
+              dice: [],
+              message: STRINGS.game.turnOver(state.bankedScore),
+              lastRollSparkled: true, // Still stuck if no dice left to roll
+          },
+          events: [],
+      };
+  }
+
+  // Re-roll the formerly banked dice
+  const rolledDice = createDice(bankedDice.length, bankedDice);
+  const sparkled = isSparkle(rolledDice, state.scoringRules);
+
+  const newState: GameState = {
+    ...state,
+    dice: rolledDice,
+    lastRollSparkled: sparkled,
+    message: sparkled ? STRINGS.game.sparkleStillSparkled(state.rerollsAvailable) : STRINGS.game.discardSuccess,
+  };
+
   return {
-    state: {
-      ...state,
-      dice: remainingDice,
-      message: "Discarded all unscored dice. Add extra dice to continue!",
-      lastRollSparkled: false, // Clearing sparkle state as we discarded the offending dice
-    },
-    events: [],
+    state: newState,
+    events: [{ type: "DICE_ROLLED", dice: rolledDice, sparkled }],
   };
 }
 
@@ -32,15 +52,15 @@ export function handleAddExtraDie(
 ): CommandResult {
   if (state.extraDicePool <= 0) {
     return {
-      state: { ...state, message: "No extra dice available!" },
-      events: [{ type: "ERROR", message: "No extra dice available!" }],
+      state: { ...state, message: STRINGS.errors.noExtraDice },
+      events: [{ type: "ERROR", message: STRINGS.errors.noExtraDice }],
     };
   }
 
   if (state.dice.length >= 6) {
     return {
-      state: { ...state, message: "Board is already full!" },
-      events: [{ type: "ERROR", message: "Board is already full!" }],
+      state: { ...state, message: STRINGS.errors.boardFull },
+      events: [{ type: "ERROR", message: STRINGS.errors.boardFull }],
     };
   }
 
@@ -69,7 +89,7 @@ export function handleAddExtraDie(
       dice: newDicePool,
       extraDicePool: state.extraDicePool - 1,
       lastRollSparkled: sparkled,
-      message: sparkled ? "Added a die, but still no score!" : "Added a die! It might help.",
+      message: sparkled ? STRINGS.game.addDieSparkle : STRINGS.game.addDieHelp,
     },
     events: [],
   };

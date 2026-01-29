@@ -1,5 +1,6 @@
 import { createDice, getActiveDice, getBankedDice } from "../../game";
 import { isSparkle } from "../../scoring";
+import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
 import type { CommandResult } from "../types";
 
@@ -7,8 +8,8 @@ export function handleReRoll(state: GameState): CommandResult {
   // Validation: Must have re-rolls available
   if (state.rerollsAvailable <= 0) {
     return {
-      state: { ...state, message: "No re-rolls available!" },
-      events: [{ type: "ERROR", message: "No re-rolls available!" }],
+      state: { ...state, message: STRINGS.errors.noRerolls },
+      events: [{ type: "ERROR", message: STRINGS.errors.noRerolls }],
     };
   }
 
@@ -32,8 +33,8 @@ export function handleReRoll(state: GameState): CommandResult {
       rerollsAvailable: rerollsRemaining,
       lastRollSparkled: sparkled,
       message: sparkled
-        ? `💥 SPARKLE! Still sparkled! Discard a die or re-roll if available (${rerollsRemaining} left).`
-        : `Re-rolled! ${rerollsRemaining} re-roll(s) remaining.`,
+        ? STRINGS.game.sparkleStillSparkled(rerollsRemaining)
+        : STRINGS.game.rerollsRemaining(rerollsRemaining),
     },
     events: [{ type: "DICE_REROLLED", dice: newDice }],
   };

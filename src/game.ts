@@ -1,6 +1,8 @@
 import { calculateScore, DEFAULT_RULES } from "./scoring";
 import type { Die, DieValue, GameState } from "./types";
 
+import { STRINGS } from "./strings";
+
 export const BASE_THRESHOLD = 100;
 export const STARTING_REROLLS = 3;
 
@@ -10,7 +12,7 @@ export const initialState: GameState = {
   gameOver: false,
   highScore: 0,
   lastRollSparkled: false,
-  message: "Roll the dice to start!",
+  message: STRINGS.game.initialMessage,
   rerollsAvailable: STARTING_REROLLS,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),

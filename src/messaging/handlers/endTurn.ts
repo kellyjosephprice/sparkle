@@ -3,37 +3,38 @@ import {
   createDice,
   getStagedScore,
 } from "../../../src/game";
+import { STRINGS } from "../../strings";
 import type { GameState, UpgradeOption } from "../../../src/types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
 const ALL_UPGRADES: UpgradeOption[] = [
   {
     type: "SCORE_MULTIPLIER",
-    description: "2x score multiplier when this die is scored",
+    description: STRINGS.upgrades.scoreMultiplier,
   },
   {
     type: "SCORE_BONUS",
-    description: "100+ score bonus when this die is scored",
+    description: STRINGS.upgrades.scoreBonus,
   },
   {
     type: "BANKED_SCORE_MULTIPLIER",
-    description: "2x banked score multiplier when this die is banked",
+    description: STRINGS.upgrades.bankedMultiplier,
   },
   {
     type: "BANKED_SCORE_BONUS",
-    description: "100+ banked score bonus when this die is banked",
+    description: STRINGS.upgrades.bankedBonus,
   },
   {
     type: "AUTO_REROLL",
-    description: "3x Auto re-roll on sparkle (if this die is rolled)",
+    description: STRINGS.upgrades.autoReroll,
   },
   {
     type: "TEN_X_MULTIPLIER",
-    description: "3x 10x multiplier when this die is scored",
+    description: STRINGS.upgrades.tenXMultiplier,
   },
   {
     type: "SET_BONUS",
-    description: "2x multiplier for each die in a set with this upgrade",
+    description: STRINGS.upgrades.setBonus,
   },
 ];
 
@@ -52,12 +53,12 @@ export function handleEndTurn(
       return {
         state: {
           ...state,
-          message: "You must bank some points before ending your turn!",
+          message: STRINGS.errors.mustBank,
         },
         events: [
           {
             type: "ERROR",
-            message: "You must bank some points before ending your turn!",
+            message: STRINGS.errors.mustBank,
           },
         ],
       };
@@ -65,8 +66,8 @@ export function handleEndTurn(
 
     if (stagedScore > 0) {
       return {
-        state: { ...state, message: "Bank your selected dice first!" },
-        events: [{ type: "ERROR", message: "Bank your selected dice first!" }],
+        state: { ...state, message: STRINGS.errors.bankFirst },
+        events: [{ type: "ERROR", message: STRINGS.errors.bankFirst }],
       };
     }
 
@@ -76,12 +77,12 @@ export function handleEndTurn(
       return {
         state: {
           ...state,
-          message: `Need total score of ${state.threshold} to end turn. You have ${newTotalScore}. Keep rolling!`,
+          message: STRINGS.errors.thresholdNotMet(state.threshold, newTotalScore),
         },
         events: [
           {
             type: "ERROR",
-            message: `Need total score of ${state.threshold} to end turn.`,
+            message: STRINGS.errors.thresholdNotMet(state.threshold, newTotalScore),
           },
         ],
       };
@@ -103,12 +104,12 @@ export function handleEndTurn(
   let message = "";
   if (command.isSparkled) {
     if (gameOver) {
-      message = `✨ SPARKLE! Game Over! Final score: ${newTotalScore}`;
+      message = STRINGS.game.gameOver(newTotalScore);
     } else {
-      message = `✨ SPARKLE! Lost turn points, but you can continue! Total: ${newTotalScore}`;
+      message = STRINGS.game.sparkleContinue(newTotalScore);
     }
   } else {
-    message = `Turn over! You scored ${totalTurnScore} points!`;
+    message = STRINGS.game.turnOver(totalTurnScore);
   }
 
   // Create new dice for next turn (if not game over)

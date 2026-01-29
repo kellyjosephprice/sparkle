@@ -1,3 +1,5 @@
+import { STRINGS } from "../../src/strings";
+
 interface ActionButtonsProps {
   canRollAction: boolean;
   canEndTurnAction: boolean;
@@ -47,53 +49,53 @@ export default function ActionButtons({
         onClick={onRoll}
         disabled={!canRollAction}
         className={buttonClass}
-        title="Roll dice (Space)"
+        title={STRINGS.ui.rollTooltip}
       >
-        Roll
+        {STRINGS.ui.roll}
       </button>
 
       <button
         onClick={onReRoll}
         disabled={!canReRollAction}
         className={buttonClass}
-        title="Re-roll last roll (R)"
+        title={STRINGS.ui.rerollTooltip}
       >
-        Re-Roll
+        {STRINGS.ui.reroll}
       </button>
 
       <button
         onClick={onDiscardUnscored}
         disabled={!canDiscardAction}
         className={buttonClass}
-        title="Discard all unscored dice (D)"
+        title={STRINGS.ui.discardTooltip}
       >
-        Discard All
+        {STRINGS.ui.discard}
       </button>
 
       <button
         onClick={onAddExtraDie}
         disabled={extraDicePool <= 0 || diceCount >= 6}
         className={buttonClass}
-        title="Add an extra die to the board"
+        title={STRINGS.ui.extraDieTooltip}
       >
-        + Die ({extraDicePool})
+        {STRINGS.ui.extraDie(extraDicePool)}
       </button>
 
       <button
         onClick={onEndTurn}
         disabled={!canEndTurnAction}
         className={buttonClass}
-        title="End turn (Enter)"
+        title={STRINGS.ui.endTurnTooltip}
       >
-        End Turn
+        {STRINGS.ui.endTurn}
       </button>
 
       <button
         onClick={onReset}
         className={buttonClass + " ml-auto"}
-        title="New game (Backspace)"
+        title={STRINGS.ui.newGameTooltip}
       >
-        New Game
+        {STRINGS.ui.newGame}
       </button>
     </div>
   );

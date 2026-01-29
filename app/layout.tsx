@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Sparkle",
-  description: "A dice scoring game - a sparkle derivative",
+  description: "A dice scoring game",
 };
 
 export default function RootLayout({

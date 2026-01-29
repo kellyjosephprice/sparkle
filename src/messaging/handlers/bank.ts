@@ -5,6 +5,7 @@ import {
   getStagedScore,
 } from "../../../src/game";
 import { calculateScore } from "../../../src/scoring";
+import { STRINGS } from "../../strings";
 import type { GameState, RuleMap } from "../../../src/types";
 import type { CommandResult } from "../types";
 
@@ -14,15 +15,15 @@ export function handleBank(state: GameState): CommandResult {
 
   if (stagedDice.length === 0) {
     return {
-      state: { ...state, message: "Select some dice first!" },
-      events: [{ type: "ERROR", message: "Select some dice first!" }],
+      state: { ...state, message: STRINGS.errors.selectDice },
+      events: [{ type: "ERROR", message: STRINGS.errors.selectDice }],
     };
   }
 
   if (stagedScore === 0) {
     return {
-      state: { ...state, message: "Selected dice do not score!" },
-      events: [{ type: "ERROR", message: "Selected dice do not score!" }],
+      state: { ...state, message: STRINGS.errors.notScoring },
+      events: [{ type: "ERROR", message: STRINGS.errors.notScoring }],
     };
   }
 
@@ -85,7 +86,7 @@ export function handleBank(state: GameState): CommandResult {
         ...state,
         dice: newDice,
         bankedScore: newBankedScore,
-        message: `Banked ${stagedScore} points! Hot dice! Rolling all ${state.dice.length} dice again...`,
+        message: STRINGS.game.hotDice(stagedScore, state.dice.length),
         scoringRules: updatedRules,
         lastRollSparkled: false,
       },
@@ -100,7 +101,7 @@ export function handleBank(state: GameState): CommandResult {
           die.staged ? { ...die, staged: false, banked: true } : die,
         ),
         bankedScore: newBankedScore,
-        message: `Banked ${stagedScore} points! Roll again or end turn.`,
+        message: STRINGS.game.bankedPoints(stagedScore),
         scoringRules: updatedRules,
         lastRollSparkled: false,
       },

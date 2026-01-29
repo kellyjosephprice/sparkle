@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect } from "react";
 
 import { canEndTurn, canReRoll, canRoll } from "../src/game";
+import { STRINGS } from "../src/strings";
 import ActionButtons from "./components/ActionButtons";
 import Dice from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
@@ -61,7 +62,6 @@ export default function Home() {
           "w",
           "a",
           "s",
-          "d",
         ].includes(event.key) &&
         !event.shiftKey &&
         !event.ctrlKey &&
@@ -131,7 +131,7 @@ export default function Home() {
 
       // Arrow Right / D: Move focus right with wraparound
       if (
-        (event.key === "ArrowRight" || event.key.toLowerCase() === "d") &&
+        (event.key === "ArrowRight" || (event.key.toLowerCase() === "d" && !gameState.lastRollSparkled)) &&
         !uiState.rolling
       ) {
         const currentPos = uiState.focusedPosition ?? 1;
@@ -212,6 +212,7 @@ export default function Home() {
       handleEndTurn,
       resetGame,
       selectAll,
+      handleDiscardUnscored,
       setUIState,
     ],
   );
@@ -232,12 +233,14 @@ export default function Home() {
     <div className="min-h-screen bg-black p-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-baseline mb-8">
-          <h1 className="text-4xl font-bold text-white tracking-tighter">Sparkle</h1>
+          <h1 className="text-4xl font-bold text-white tracking-tighter">
+            {STRINGS.game.title}
+          </h1>
           <Link
             href="/rules"
             className="text-amber-50/50 hover:text-amber-50 underline underline-offset-4 text-sm font-medium transition-colors"
           >
-            Rules
+            {STRINGS.ui.rules}
           </Link>
         </div>
 

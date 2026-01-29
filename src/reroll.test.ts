@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { canReRoll } from "./game";
+import { canReRoll, STARTING_REROLLS } from "./game";
 import { gameEngine } from "./messaging";
+import { STRINGS } from "./strings";
 import type { GameState } from "./types";
 
 describe("Re-Roll Mechanic", () => {
@@ -14,8 +15,8 @@ describe("Re-Roll Mechanic", () => {
     state = resetResult.state;
   });
 
-  it("should start with 2 re-rolls available", () => {
-    expect(state.rerollsAvailable).toBe(2);
+  it(`should start with ${STARTING_REROLLS} re-rolls available`, () => {
+    expect(state.rerollsAvailable).toBe(STARTING_REROLLS);
   });
 
   it("should decrement re-roll count when used", () => {
@@ -24,18 +25,19 @@ describe("Re-Roll Mechanic", () => {
 
     // Use re-roll
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    expect(result.state.rerollsAvailable).toBe(1);
+    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
   });
 
   it("should not allow re-roll when count is 0", () => {
-    // Roll and use the initial re-roll
+    // Roll and use all re-rolls
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
-    state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
-    state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
+    for (let i = 0; i < STARTING_REROLLS; i++) {
+        state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
+    }
 
     // Try to re-roll again
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    expect(result.state.message).toContain("No re-rolls available");
+    expect(result.state.message).toBe(STRINGS.errors.noRerolls);
     expect(result.state.rerollsAvailable).toBe(0);
   });
 
@@ -78,24 +80,25 @@ describe("Re-Roll Mechanic", () => {
 
     // Should be able to use re-roll
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    expect(result.state.rerollsAvailable).toBe(1);
+    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
   });
 
   it("should reset re-roll count on new game", () => {
     // Use re-roll
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
     state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
-    expect(state.rerollsAvailable).toBe(1);
+    expect(state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
 
     // Reset game
     const result = gameEngine.processCommand(state, { type: "RESET_GAME" });
-    expect(result.state.rerollsAvailable).toBe(2);
+    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS);
   });
 
   it("canReRoll should return false when no re-rolls available", () => {
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
-    state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
-    state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
+    for (let i = 0; i < STARTING_REROLLS; i++) {
+        state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
+    }
 
     expect(canReRoll(state)).toBe(false);
   });
@@ -117,6 +120,6 @@ describe("Re-Roll Mechanic", () => {
     // Should have same number of active dice
     expect(newActiveDiceCount).toBe(activeDiceCount);
     // Re-roll count should be decremented
-    expect(result.state.rerollsAvailable).toBe(1);
+    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
   });
 });

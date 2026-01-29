@@ -1,5 +1,6 @@
 import { createDice, getActiveDice, getBankedDice } from "../../game";
 import { isSparkle } from "../../scoring";
+import { STRINGS } from "../../strings";
 import type { Die, GameState } from "../../types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
@@ -13,8 +14,8 @@ export function handleRoll(state: GameState): CommandResult {
   let sparkled = isSparkle(newDice, state.scoringRules);
 
   let message = sparkled
-    ? "💥 SPARKLE! No scoring dice! Discard unscored or use a re-roll."
-    : "Select scoring dice and bank them, or roll again!";
+    ? STRINGS.game.sparkleNoScore
+    : STRINGS.game.selectAndBank;
 
   const bankedDice = getBankedDice(state);
 

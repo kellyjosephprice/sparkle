@@ -1,5 +1,6 @@
 "use client";
 
+import { STRINGS } from "../../src/strings";
 import type { UpgradeOption, UpgradeType } from "../../src/types";
 
 interface UpgradeSelectionProps {
@@ -33,7 +34,7 @@ export default function UpgradeSelection({
             `}
           >
             <div className={`font-bold text-sm mb-1 uppercase tracking-tight ${isFocused ? "text-black" : "text-cyan-500"}`}>
-              {option.type === "ADDITIONAL_REROLL" ? "Extra Re-roll" : "Random Upgrade"}
+              {option.type === "ADDITIONAL_REROLL" ? STRINGS.ui.reroll : STRINGS.ui.upgrades}
             </div>
             <div className={`text-[10px] leading-tight font-medium ${isFocused ? "text-black/80" : "opacity-70 group-hover:opacity-100"}`}>
               {option.description}

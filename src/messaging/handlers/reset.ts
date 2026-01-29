@@ -1,5 +1,6 @@
 import { calculateThreshold, createDice, STARTING_REROLLS } from "../../game";
 import { DEFAULT_RULES } from "../../scoring";
+import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
 import type { CommandResult } from "../types";
 
@@ -13,7 +14,7 @@ export function handleReset(state: GameState): CommandResult {
       threshold: calculateThreshold(1),
       turnNumber: 1,
       gameOver: false,
-      message: "New game started! Roll the dice!",
+      message: STRINGS.game.newGameStarted,
       scoringRules: DEFAULT_RULES,
       rerollsAvailable: STARTING_REROLLS,
       lastRollSparkled: false,

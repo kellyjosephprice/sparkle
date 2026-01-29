@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { DEFAULT_RULES } from "../../src/scoring";
+import { STRINGS } from "../../src/strings";
 
 export default function RulesPage() {
   const hotkeys = [
@@ -10,6 +11,7 @@ export default function RulesPage() {
     { key: "Space", action: "Roll / Stage All / Re-Roll (Sparkle)" },
     { key: "Enter", action: "End Turn" },
     { key: "R", action: "Re-Roll" },
+    { key: "D", action: "Discard All Unscored" },
     { key: "Backspace", action: "New Game" },
     { key: "←/→ or A/D", action: "Move Focus" },
     { key: "↓/↑ or S/W", action: "Stage/Unstage Focused" },
@@ -19,18 +21,18 @@ export default function RulesPage() {
     <div className="min-h-screen bg-black p-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-baseline mb-8">
-          <h1 className="text-4xl font-bold text-white tracking-tighter">Sparkle Rules</h1>
+          <h1 className="text-4xl font-bold text-white tracking-tighter">{STRINGS.rules.header}</h1>
           <Link
             href="/"
             className="text-cyan-500 hover:text-cyan-400 underline underline-offset-4 text-sm font-medium transition-colors"
           >
-            Back to Game
+            {STRINGS.ui.backToGame}
           </Link>
         </div>
 
         <div className="space-y-12">
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">Scoring Rules</h2>
+            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">{STRINGS.rules.scoringHeader}</h2>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-gray-700 text-left">
@@ -52,7 +54,7 @@ export default function RulesPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">Keyboard Shortcuts</h2>
+            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">{STRINGS.rules.shortcutsHeader}</h2>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-gray-700 text-left">
@@ -72,15 +74,15 @@ export default function RulesPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">Upgrades</h2>
+            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">{STRINGS.ui.upgrades}</h2>
             <p className="text-gray-400 leading-relaxed">
-              Every 5 turns, you get to choose an upgrade. Upgrades can be applied to individual dice positions or grant extra re-rolls.
+              {STRINGS.upgrades.upgradeChoice}
             </p>
             <ul className="list-disc list-inside text-gray-400 mt-2 space-y-1">
-              <li><span className="text-white">Score Multiplier:</span> 2x score when the die is scored.</li>
-              <li><span className="text-white">Score Bonus:</span> +100 score when the die is scored.</li>
-              <li><span className="text-white">Banked Multiplier:</span> 2x banked score when any dice are banked if this die is already banked.</li>
-              <li><span className="text-white">Banked Bonus:</span> +100 banked score when any dice are banked if this die is already banked.</li>
+              <li><span className="text-white">Score Multiplier:</span> {STRINGS.upgrades.scoreMultiplier}</li>
+              <li><span className="text-white">Score Bonus:</span> {STRINGS.upgrades.scoreBonus}</li>
+              <li><span className="text-white">Banked Multiplier:</span> {STRINGS.upgrades.bankedMultiplier}</li>
+              <li><span className="text-white">Banked Bonus:</span> {STRINGS.upgrades.bankedBonus}</li>
             </ul>
           </section>
         </div>
@@ -90,7 +92,7 @@ export default function RulesPage() {
             href="/"
             className="block w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-black text-center font-bold tracking-widest transition-all rounded-lg"
           >
-            PLAY GAME
+            {STRINGS.ui.playGame}
           </Link>
         </div>
       </div>

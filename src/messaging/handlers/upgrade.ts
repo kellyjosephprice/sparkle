@@ -1,3 +1,4 @@
+import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
 import type { CommandResult, GameCommand } from "../types";
 
@@ -15,7 +16,7 @@ export function handleSelectUpgrade(
         rerollsAvailable: state.rerollsAvailable + 1,
         upgradeOptions: [],
         potentialUpgradePosition: null,
-        message: "Bonus re-roll added!",
+        message: STRINGS.game.bonusRerollAdded,
       },
       events: [{ type: "UPGRADE_SELECTED", upgradeType: "ADDITIONAL_REROLL" }],
     };
@@ -48,7 +49,7 @@ export function handleSelectUpgrade(
     ),
     upgradeOptions: [],
     potentialUpgradePosition: null,
-    message: "Upgrade applied!",
+    message: STRINGS.game.upgradeApplied,
   };
 
   return {

@@ -1,3 +1,4 @@
+import { STRINGS } from "./strings";
 import type { Die, DieValue, Rule, RuleId, RuleMap } from "./types";
 
 type Counts = Map<DieValue, Die[]>;
@@ -123,56 +124,56 @@ const ruleCheckers: Record<RuleId, RuleChecker> = {
 export const DEFAULT_RULES: Record<RuleId, Rule> = {
   single_one: {
     id: "single_one",
-    description: "1",
+    description: STRINGS.rules.one,
     score: 100,
     enabled: true,
     activationCount: 0,
   },
   single_five: {
     id: "single_five",
-    description: "5",
+    description: STRINGS.rules.five,
     score: 50,
     enabled: true,
     activationCount: 0,
   },
   three_of_kind: {
     id: "three_of_kind",
-    description: "Three of a kind",
-    score: "1000 (111) or value×100",
+    description: STRINGS.rules.threeOfKind,
+    score: STRINGS.rules.threeOfKindScore,
     enabled: true,
     activationCount: 0,
   },
   four_of_kind: {
     id: "four_of_kind",
-    description: "XXXX",
+    description: STRINGS.rules.fourOfKind,
     score: "1000",
     enabled: true,
     activationCount: 0,
   },
   five_of_kind: {
     id: "five_of_kind",
-    description: "XXXXX",
+    description: STRINGS.rules.fiveOfKind,
     score: "2000",
     enabled: true,
     activationCount: 0,
   },
   six_of_kind: {
     id: "six_of_kind",
-    description: "XXXXXX",
+    description: STRINGS.rules.sixOfKind,
     score: "3000",
     enabled: true,
     activationCount: 0,
   },
   straight: {
     id: "straight",
-    description: "1-2-3-4-5-6",
+    description: STRINGS.rules.straight,
     score: 2500,
     enabled: true,
     activationCount: 0,
   },
   three_pairs: {
     id: "three_pairs",
-    description: "XXYYZZ",
+    description: STRINGS.rules.threePairs,
     score: 1500,
     enabled: true,
     activationCount: 0,

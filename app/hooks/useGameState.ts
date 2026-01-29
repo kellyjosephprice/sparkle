@@ -192,7 +192,10 @@ export function useGameState() {
     if (uiState.rolling || !gameState.lastRollSparkled) return;
     const result = gameEngine.processCommand(gameState, { type: "DISCARD_UNSCORED" });
     setGameState(result.state);
-  }, [gameState, uiState.rolling]);
+    if (result.events.some(e => e.type === "DICE_ROLLED")) {
+      startRollAnimation(result.state.dice, 250);
+    }
+  }, [gameState, uiState.rolling, startRollAnimation]);
 
   const handleAddExtraDie = useCallback(() => {
     if (uiState.rolling || gameState.extraDicePool <= 0 || gameState.dice.length >= 6) return;
