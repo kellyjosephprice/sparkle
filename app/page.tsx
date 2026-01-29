@@ -23,20 +23,16 @@ export default function Home() {
     handleEndTurn,
     resetGame,
     selectAll,
-    handleDiscardDie,
+    handleDiscardUnscored,
     handleAddExtraDie,
     stagedScore,
   } = useGameState();
 
   const handleDieInteraction = useCallback(
     (id: number) => {
-      if (gameState.lastRollSparkled) {
-        handleDiscardDie(id);
-      } else {
-        toggleDie(id);
-      }
+      toggleDie(id);
     },
-    [toggleDie, handleDiscardDie, gameState.lastRollSparkled],
+    [toggleDie],
   );
 
   // Handle keyboard events
@@ -57,6 +53,7 @@ export default function Home() {
           "Enter",
           "Backspace",
           "r",
+          "d",
           "ArrowLeft",
           "ArrowRight",
           "ArrowUp",
@@ -188,6 +185,11 @@ export default function Home() {
         handleReRoll();
       }
 
+      // Handle discard unscored (D key)
+      if (event.key.toLowerCase() === "d" && gameState.lastRollSparkled && !uiState.rolling) {
+        handleDiscardUnscored();
+      }
+
       // Handle end turn (Enter)
       if (event.key === "Enter" && canEndTurn(gameState) && !uiState.rolling) {
         handleEndTurn();
@@ -275,8 +277,10 @@ export default function Home() {
           onReset={resetGame}
           onReRoll={handleReRoll}
           onAddExtraDie={handleAddExtraDie}
+          onDiscardUnscored={handleDiscardUnscored}
           extraDicePool={gameState.extraDicePool}
           diceCount={gameState.dice.length}
+          canDiscardAction={gameState.lastRollSparkled && !gameState.potentialUpgradePosition}
         />
 
         <UpgradesMenu dice={gameState.dice} />

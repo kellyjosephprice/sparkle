@@ -2,7 +2,7 @@ import { calculateScore, DEFAULT_RULES } from "./scoring";
 import type { Die, DieValue, GameState } from "./types";
 
 export const BASE_THRESHOLD = 100;
-export const STARTING_REROLLS = 2;
+export const STARTING_REROLLS = 3;
 
 export const initialState: GameState = {
   bankedScore: 0,
@@ -44,6 +44,8 @@ export function getNextThresholdInfo(turnNumber: number): {
   };
 }
 
+let nextDieId = Date.now();
+
 export function createDice(count: number, existingDice?: Die[]): Die[] {
   return Array.from({ length: count }, (_, i) => {
     // Find the original die if it exists to preserve position and upgrades
@@ -51,7 +53,7 @@ export function createDice(count: number, existingDice?: Die[]): Die[] {
     const existingDie = existingDice?.[i];
 
     return {
-      id: Date.now() + i,
+      id: nextDieId++,
       value: (Math.floor(Math.random() * 6) + 1) as DieValue,
       staged: false,
       banked: false,

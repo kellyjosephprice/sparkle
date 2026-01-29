@@ -13,8 +13,9 @@ export type GameCommand =
   | { type: "RESET_SCORING_RULE_COUNTS" }
   | { type: "SELECT_UPGRADE"; upgradeType: UpgradeType }
   | { type: "APPLY_UPGRADE"; position: number }
-  | { type: "DISCARD_DIE"; dieId: number }
-  | { type: "ADD_EXTRA_DIE" };
+  | { type: "DISCARD_UNSCORED" }
+  | { type: "ADD_EXTRA_DIE" }
+  | { type: "EXECUTE_AUTO_REROLL"; dieId: number };
 
 // Events - what happened in the game
 export type GameEvent =

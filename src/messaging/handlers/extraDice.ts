@@ -1,11 +1,10 @@
 import { createDice } from "../../game";
 import { isSparkle } from "../../scoring";
 import type { GameState } from "../../types";
-import type { CommandResult, GameCommand } from "../types";
+import type { CommandResult } from "../types";
 
-export function handleDiscardDie(
+export function handleDiscardUnscored(
   state: GameState,
-  command: Extract<GameCommand, { type: "DISCARD_DIE" }>,
 ): CommandResult {
   if (!state.lastRollSparkled) {
     return {
@@ -14,50 +13,17 @@ export function handleDiscardDie(
     };
   }
 
-  const dieToDiscard = state.dice.find((d) => d.id === command.dieId);
-  if (!dieToDiscard || dieToDiscard.banked) {
-    return {
-      state: { ...state, message: "Invalid die selection." },
-      events: [{ type: "ERROR", message: "Invalid die selection." }],
-    };
-  }
-
-  // Remove the die
-  const remainingDice = state.dice.filter((d) => d.id !== command.dieId);
+  // Remove ALL non-banked dice
+  const remainingDice = state.dice.filter((d) => d.banked);
   
-  // After discarding, we automatically roll the remaining active dice
-  const activeDice = remainingDice.filter(d => !d.banked);
-  const bankedDice = remainingDice.filter(d => d.banked);
-
-  if (activeDice.length === 0) {
-    return {
-      state: { 
-        ...state, 
-        dice: remainingDice, 
-        message: "All active dice discarded. Turn over.",
-        lastRollSparkled: true
-      },
-      events: [],
-    };
-  }
-
-  const rolledDice = createDice(activeDice.length, activeDice);
-  const sparkled = isSparkle(rolledDice, state.scoringRules);
-
-  const message = sparkled
-    ? "💥 SPARKLE! Still no scoring dice! Discard another or end turn."
-    : "Discarded and re-rolled! Select scoring dice.";
-
   return {
     state: {
       ...state,
-      dice: [...bankedDice, ...rolledDice],
-      lastRollSparkled: sparkled,
-      message,
+      dice: remainingDice,
+      message: "Discarded all unscored dice. Add extra dice to continue!",
+      lastRollSparkled: false, // Clearing sparkle state as we discarded the offending dice
     },
-    events: [
-      { type: "DICE_ROLLED", dice: rolledDice, sparkled }
-    ],
+    events: [],
   };
 }
 

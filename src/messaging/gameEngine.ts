@@ -13,7 +13,8 @@ import {
   handleToggleDie,
   handleToggleRule,
   handleAddExtraDie,
-  handleDiscardDie,
+  handleDiscardUnscored,
+  handleExecuteAutoReroll,
 } from "./handlers";
 import type { CommandResult, GameCommand } from "./types";
 
@@ -66,12 +67,16 @@ export class GameEngine {
         result = handleApplyUpgrade(state);
         break;
 
-      case "DISCARD_DIE":
-        result = handleDiscardDie(state, command);
+      case "DISCARD_UNSCORED":
+        result = handleDiscardUnscored(state);
         break;
 
       case "ADD_EXTRA_DIE":
         result = handleAddExtraDie(state);
+        break;
+
+      case "EXECUTE_AUTO_REROLL":
+        result = handleExecuteAutoReroll(state, command);
         break;
 
       default:

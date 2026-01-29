@@ -7,4 +7,5 @@ export { handleResetRuleCounts, handleToggleRule } from "./scoringRules";
 export { handleSelectAll } from "./selectAll";
 export { handleToggleDie } from "./toggleDie";
 export { handleApplyUpgrade, handleSelectUpgrade } from "./upgrade";
-export { handleAddExtraDie, handleDiscardDie } from "./extraDice";
+export { handleAddExtraDie, handleDiscardUnscored } from "./extraDice";
+export { handleExecuteAutoReroll } from "./roll";

@@ -64,21 +64,6 @@ export function useGameState() {
     }
   }, []);
 
-  // Listen for delayed actions
-  useEffect(() => {
-    const unsubscribe = eventBus.subscribe((event: GameEvent) => {
-      if (event.type === "DELAYED_ACTION") {
-        setTimeout(() => {
-          setGameState((currentState: GameState) => {
-            const result = gameEngine.processCommand(currentState, event.action);
-            return result.state;
-          });
-        }, event.delay);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
   const shuffleDiceValue = (die: Die): Die => {
     return die.banked
       ? die
@@ -111,6 +96,24 @@ export function useGameState() {
       }));
     }, duration);
   }, []);
+
+  // Listen for delayed actions
+  useEffect(() => {
+    const unsubscribe = eventBus.subscribe((event: GameEvent) => {
+      if (event.type === "DELAYED_ACTION") {
+        setTimeout(() => {
+          setGameState((currentState: GameState) => {
+            const result = gameEngine.processCommand(currentState, event.action);
+            if (event.action.type === "EXECUTE_AUTO_REROLL") {
+              startRollAnimation(result.state.dice, 250);
+            }
+            return result.state;
+          });
+        }, event.delay);
+      }
+    });
+    return () => unsubscribe();
+  }, [startRollAnimation]);
 
   const toggleDie = useCallback((id: number) => {
     if (uiState.rolling) return;
@@ -185,14 +188,11 @@ export function useGameState() {
     setGameState(result.state);
   }, [gameState]);
 
-  const handleDiscardDie = useCallback((id: number) => {
+  const handleDiscardUnscored = useCallback(() => {
     if (uiState.rolling || !gameState.lastRollSparkled) return;
-    const result = gameEngine.processCommand(gameState, { type: "DISCARD_DIE", dieId: id });
+    const result = gameEngine.processCommand(gameState, { type: "DISCARD_UNSCORED" });
     setGameState(result.state);
-    if (result.events.some(e => e.type === "DICE_ROLLED")) {
-      startRollAnimation(result.state.dice, 250);
-    }
-  }, [gameState, uiState.rolling, startRollAnimation]);
+  }, [gameState, uiState.rolling]);
 
   const handleAddExtraDie = useCallback(() => {
     if (uiState.rolling || gameState.extraDicePool <= 0 || gameState.dice.length >= 6) return;
@@ -211,7 +211,7 @@ export function useGameState() {
     handleEndTurn,
     resetGame,
     selectAll,
-    handleDiscardDie,
+    handleDiscardUnscored,
     handleAddExtraDie,
     stagedScore: getStagedScore(gameState),
   };

@@ -142,13 +142,6 @@ export function handleEndTurn(
     potentialUpgradePosition = Math.floor(Math.random() * 6) + 1;
   }
 
-  console.log(
-    Object.values(state.scoringRules).map((rule) => [
-      rule.description,
-      rule.activationCount,
-    ]),
-  );
-
   return {
     state: {
       bankedScore: 0,

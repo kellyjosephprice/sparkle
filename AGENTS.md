@@ -244,6 +244,7 @@ src/                          # Game logic layer
 
 - `Space` - Roll dice (auto-banks selected dice, requires canRoll). After sparkle, triggers RE_ROLL if re-rolls available
 - `R` - Re-roll last roll (uses 1 re-roll, requires canReRoll)
+- `D` - Discard all unscored dice (after sparkle, allows continuing if extra dice available)
 - `Enter` - End turn (auto-banks selected dice, requires canEndTurn)
 - `Backspace` - Start new game (always available)
 
