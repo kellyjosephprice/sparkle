@@ -132,7 +132,7 @@ describe("Upgrades Scoring Logic", () => {
 
   it("should apply SET_BONUS to a scoring set", () => {
     // 3 ones = 1000 base. 
-    // One die has SET_BONUS -> 1000 * 2^1 = 2000
+    // One die has SET_BONUS -> 1000 * 1^3 = 1000
     const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
     const die2 = createMockDie(2, 1);
     const die3 = createMockDie(3, 1);
@@ -142,12 +142,12 @@ describe("Upgrades Scoring Logic", () => {
       dice: [die1, die2, die3],
     };
 
-    expect(getStagedScore(state)).toBe(2000);
+    expect(getStagedScore(state)).toBe(1000);
   });
 
-  it("should apply SET_BONUS multiplier 2^n where n is number of dice with upgrade", () => {
+  it("should apply SET_BONUS multiplier n^3 where n is number of dice with upgrade", () => {
     // 3 ones = 1000 base.
-    // Two dice have SET_BONUS -> 1000 * 2^2 = 4000
+    // Two dice have SET_BONUS -> 1000 * 2^3 = 8000
     const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
     const die2 = createMockDie(2, 1, [{ type: "SET_BONUS", id: "s2" }]);
     const die3 = createMockDie(3, 1);
@@ -157,7 +157,7 @@ describe("Upgrades Scoring Logic", () => {
       dice: [die1, die2, die3],
     };
 
-    expect(getStagedScore(state)).toBe(4000);
+    expect(getStagedScore(state)).toBe(8000);
   });
 
   it("should NOT apply SET_BONUS to individual scoring dice", () => {

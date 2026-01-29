@@ -13,7 +13,7 @@ export function handleRoll(state: GameState): CommandResult {
   let sparkled = isSparkle(newDice, state.scoringRules);
 
   let message = sparkled
-    ? "💥 SPARKLE! No scoring dice! Use a re-roll or end turn."
+    ? "💥 SPARKLE! No scoring dice! Discard a die or use a re-roll."
     : "Select scoring dice and bank them, or roll again!";
 
   // Handle Auto Re-roll upgrade

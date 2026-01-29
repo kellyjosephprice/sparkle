@@ -23,14 +23,20 @@ export default function Home() {
     handleEndTurn,
     resetGame,
     selectAll,
+    handleDiscardDie,
+    handleAddExtraDie,
     stagedScore,
   } = useGameState();
 
   const handleDieInteraction = useCallback(
     (id: number) => {
-      toggleDie(id);
+      if (gameState.lastRollSparkled) {
+        handleDiscardDie(id);
+      } else {
+        toggleDie(id);
+      }
     },
-    [toggleDie],
+    [toggleDie, handleDiscardDie, gameState.lastRollSparkled],
   );
 
   // Handle keyboard events
@@ -238,6 +244,7 @@ export default function Home() {
           stagedScore={stagedScore}
           highScore={gameState.highScore}
           rerollsAvailable={gameState.rerollsAvailable}
+          extraDicePool={gameState.extraDicePool}
           threshold={gameState.threshold}
           totalScore={gameState.totalScore}
           turnNumber={gameState.turnNumber}
@@ -267,6 +274,9 @@ export default function Home() {
           onEndTurn={handleEndTurn}
           onReset={resetGame}
           onReRoll={handleReRoll}
+          onAddExtraDie={handleAddExtraDie}
+          extraDicePool={gameState.extraDicePool}
+          diceCount={gameState.dice.length}
         />
 
         <UpgradesMenu dice={gameState.dice} />

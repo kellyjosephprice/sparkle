@@ -12,7 +12,9 @@ export type GameCommand =
   | { type: "TOGGLE_SCORING_RULE"; ruleId: RuleId }
   | { type: "RESET_SCORING_RULE_COUNTS" }
   | { type: "SELECT_UPGRADE"; upgradeType: UpgradeType }
-  | { type: "APPLY_UPGRADE"; position: number };
+  | { type: "APPLY_UPGRADE"; position: number }
+  | { type: "DISCARD_DIE"; dieId: number }
+  | { type: "ADD_EXTRA_DIE" };
 
 // Events - what happened in the game
 export type GameEvent =

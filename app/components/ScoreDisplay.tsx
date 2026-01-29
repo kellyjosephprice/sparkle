@@ -5,6 +5,7 @@ interface ScoreDisplayProps {
   stagedScore: number;
   highScore: number;
   rerollsAvailable: number;
+  extraDicePool: number;
   threshold: number;
   totalScore: number;
   turnNumber: number;
@@ -15,6 +16,7 @@ export default function ScoreDisplay({
   stagedScore,
   highScore,
   rerollsAvailable,
+  extraDicePool,
   threshold,
   totalScore,
   turnNumber,
@@ -37,6 +39,12 @@ export default function ScoreDisplay({
           <div className="text-amber-50/40">Re-Rolls</div>
           <div className="text-2xl font-bold text-amber-50">
             {rerollsAvailable}
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <div className="text-amber-50/40">Extra Dice</div>
+          <div className="text-2xl font-bold text-amber-50">
+            {extraDicePool}
           </div>
         </div>
         <div className="ml-auto text-right">

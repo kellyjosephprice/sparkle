@@ -2,14 +2,13 @@ import {
   calculateThreshold,
   createDice,
   getActiveDice,
-  getStagedDice,
   getStagedScore,
   initialState,
 } from "../src/game";
 import { gameEngine } from "../src/messaging/gameEngine";
-import { DieUpgrade, GameState } from "../src/types";
+import { GameState } from "../src/types";
 
-const SIMULATIONS = 2000; // Reduced for performance with full engine
+const SIMULATIONS = 5000; // Reduced for performance with full engine
 
 function simulateTurn(initialStateForTurn: GameState): number {
   let state = {
@@ -132,16 +131,32 @@ function runSimForTurn(turn: number) {
   };
 }
 
-console.log("# Sparkle Game Balance Analysis (using GameEngine)");
+console.log("# Sparkle Expected Values");
 console.log(`Simulations per turn: ${SIMULATIONS}\n`);
 
-console.log("| Turn | Threshold | Avg Value | Max Value | Sparkle Rate |");
-console.log("|------|-----------|-----------|-----------|--------------|");
+const data = [];
+
+let cumAvg = 0;
+let cumMax = 0;
+let cumSparkle = 1;
 
 for (let t = 1; t <= 10; t++) {
   const stats = runSimForTurn(t);
   const threshold = calculateThreshold(t);
-  console.log(
-    `| ${t.toString().padEnd(4)} | ${threshold.toLocaleString().padEnd(9)} | ${stats.avg.toFixed(0).toLocaleString().padEnd(9)} | ${stats.max.toLocaleString().padEnd(9)} | ${(stats.sparkleRate * 100).toFixed(1)}% |`,
-  );
+  cumAvg += stats.avg;
+  cumMax += stats.max;
+  cumSparkle *= 1 - stats.sparkleRate;
+
+  data.push({
+    Turn: t,
+    Threshold: threshold,
+    "Avg Value": Math.floor(stats.avg),
+    "Max Value": Math.floor(stats.max),
+    "Sparkle Rate": Math.floor(stats.sparkleRate * 100),
+    "Cumulative Avg": Math.floor(cumAvg),
+    "Cumulative Max": Math.floor(cumMax),
+    "Cumulative Sparkle": Math.floor((1 - cumSparkle) * 100),
+  });
 }
+
+console.table(data);

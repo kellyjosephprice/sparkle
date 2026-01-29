@@ -6,6 +6,9 @@ interface ActionButtonsProps {
   onEndTurn: () => void;
   onReset: () => void;
   onReRoll: () => void;
+  onAddExtraDie: () => void;
+  extraDicePool: number;
+  diceCount: number;
 }
 
 export default function ActionButtons({
@@ -16,6 +19,9 @@ export default function ActionButtons({
   onEndTurn,
   onReset,
   onReRoll,
+  onAddExtraDie,
+  extraDicePool,
+  diceCount,
 }: ActionButtonsProps) {
   const buttonClass = [
     "px-4",
@@ -51,6 +57,15 @@ export default function ActionButtons({
         title="Re-roll last roll (R)"
       >
         Re-Roll
+      </button>
+
+      <button
+        onClick={onAddExtraDie}
+        disabled={extraDicePool <= 0 || diceCount >= 6}
+        className={buttonClass}
+        title="Add an extra die to the board"
+      >
+        + Die ({extraDicePool})
       </button>
 
       <button

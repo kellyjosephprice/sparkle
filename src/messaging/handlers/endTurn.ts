@@ -112,7 +112,7 @@ export function handleEndTurn(
   }
 
   // Create new dice for next turn (if not game over)
-  const newDice = gameOver ? state.dice : createDice(6, state.dice);
+  const newDice = gameOver ? state.dice : createDice(state.dice.length, state.dice);
 
   const events: GameEvent[] = [
     {
@@ -127,17 +127,27 @@ export function handleEndTurn(
   let upgradeOptions: UpgradeOption[] = [];
   let potentialUpgradePosition: number | null = null;
   let newRerollsAvailable = state.rerollsAvailable;
+  let newExtraDicePool = state.extraDicePool;
 
   if (!gameOver && state.turnNumber % 3 === 0) {
-    // Automatically add a reroll
+    // Automatically add a reroll and an extra die
     newRerollsAvailable += 1;
-    
+    newExtraDicePool += 1;
+
     // Select 2 random options from ALL_UPGRADES
     const shuffled = [...ALL_UPGRADES].sort(() => 0.5 - Math.random());
     upgradeOptions = [shuffled[0], shuffled[1]];
+
     // Randomly select a position (1-6)
     potentialUpgradePosition = Math.floor(Math.random() * 6) + 1;
   }
+
+  console.log(
+    Object.values(state.scoringRules).map((rule) => [
+      rule.description,
+      rule.activationCount,
+    ]),
+  );
 
   return {
     state: {
@@ -152,6 +162,7 @@ export function handleEndTurn(
       threshold: newThreshold,
       totalScore: newTotalScore,
       turnNumber: nextTurnNumber,
+      extraDicePool: newExtraDicePool,
       upgradeOptions,
       pendingUpgradeDieSelection: null,
       potentialUpgradePosition,

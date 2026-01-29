@@ -185,6 +185,21 @@ export function useGameState() {
     setGameState(result.state);
   }, [gameState]);
 
+  const handleDiscardDie = useCallback((id: number) => {
+    if (uiState.rolling || !gameState.lastRollSparkled) return;
+    const result = gameEngine.processCommand(gameState, { type: "DISCARD_DIE", dieId: id });
+    setGameState(result.state);
+    if (result.events.some(e => e.type === "DICE_ROLLED")) {
+      startRollAnimation(result.state.dice, 250);
+    }
+  }, [gameState, uiState.rolling, startRollAnimation]);
+
+  const handleAddExtraDie = useCallback(() => {
+    if (uiState.rolling || gameState.extraDicePool <= 0 || gameState.dice.length >= 6) return;
+    const result = gameEngine.processCommand(gameState, { type: "ADD_EXTRA_DIE" });
+    setGameState(result.state);
+  }, [gameState, uiState.rolling]);
+
   return {
     gameState,
     uiState,
@@ -196,6 +211,8 @@ export function useGameState() {
     handleEndTurn,
     resetGame,
     selectAll,
+    handleDiscardDie,
+    handleAddExtraDie,
     stagedScore: getStagedScore(gameState),
   };
 }

@@ -78,14 +78,14 @@ export function handleBank(state: GameState): CommandResult {
   });
 
   if (allDiceUsed) {
-    // Hot dice: clear banked dice and roll 6 new dice
-    const newDice = createDice(6, updatedDiceState);
+    // Hot dice: clear banked dice and roll new dice
+    const newDice = createDice(state.dice.length, updatedDiceState);
     return {
       state: {
         ...state,
         dice: newDice,
         bankedScore: newBankedScore,
-        message: `Banked ${stagedScore} points! Hot dice! Rolling all 6 dice again...`,
+        message: `Banked ${stagedScore} points! Hot dice! Rolling all ${state.dice.length} dice again...`,
         scoringRules: updatedRules,
         lastRollSparkled: false,
       },

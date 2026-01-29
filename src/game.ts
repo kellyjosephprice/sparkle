@@ -16,6 +16,7 @@ export const initialState: GameState = {
   threshold: calculateThreshold(1),
   totalScore: 0,
   turnNumber: 1,
+  extraDicePool: 3,
   upgradeOptions: [],
   pendingUpgradeDieSelection: null,
   potentialUpgradePosition: null,
@@ -25,7 +26,9 @@ export const initialState: GameState = {
 
 export function calculateThreshold(turnNumber: number): number {
   const level = Math.floor(turnNumber / 3);
-  return 100 * Math.pow(10, level);
+  if (level === 0) return 100;
+  if (level <= 3) return 1000 * level;
+  return 10000 * (level - 3);
 }
 
 export function getNextThresholdInfo(turnNumber: number): {
@@ -115,7 +118,7 @@ export function getStagedScore(state: GameState): number {
       });
 
       if (setBonusCount > 0) {
-        groupScore *= Math.pow(2, setBonusCount);
+        groupScore *= Math.pow(setBonusCount, 3);
       }
     }
 

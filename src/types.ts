@@ -62,6 +62,7 @@ export interface GameState {
   threshold: number;
   totalScore: number;
   turnNumber: number;
+  extraDicePool: number;
   // Upgrade related state
   upgradeOptions: UpgradeOption[];
   pendingUpgradeDieSelection: UpgradeType | null;

@@ -12,6 +12,8 @@ import {
   handleSelectUpgrade,
   handleToggleDie,
   handleToggleRule,
+  handleAddExtraDie,
+  handleDiscardDie,
 } from "./handlers";
 import type { CommandResult, GameCommand } from "./types";
 
@@ -62,6 +64,14 @@ export class GameEngine {
 
       case "APPLY_UPGRADE":
         result = handleApplyUpgrade(state);
+        break;
+
+      case "DISCARD_DIE":
+        result = handleDiscardDie(state, command);
+        break;
+
+      case "ADD_EXTRA_DIE":
+        result = handleAddExtraDie(state);
         break;
 
       default:

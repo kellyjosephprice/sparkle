@@ -32,7 +32,7 @@ export function handleReRoll(state: GameState): CommandResult {
       rerollsAvailable: rerollsRemaining,
       lastRollSparkled: sparkled,
       message: sparkled
-        ? `💥 SPARKLE! Re-rolled into a sparkle! ${rerollsRemaining} re-roll(s) left.`
+        ? `💥 SPARKLE! Still sparkled! Discard a die or re-roll if available (${rerollsRemaining} left).`
         : `Re-rolled! ${rerollsRemaining} re-roll(s) remaining.`,
     },
     events: [{ type: "DICE_REROLLED", dice: newDice }],
