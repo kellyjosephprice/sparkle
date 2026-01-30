@@ -1,3 +1,4 @@
+import { DIE_UPGRADES } from "../../die-upgrades";
 import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
 import type { CommandResult, GameCommand } from "../types";
@@ -13,10 +14,10 @@ export function handleSelectUpgrade(
     return {
       state: {
         ...state,
-        rerollsAvailable: state.rerollsAvailable + 1,
+        extraDicePool: state.extraDicePool + 1,
         upgradeOptions: [],
         potentialUpgradePosition: null,
-        message: STRINGS.game.bonusRerollAdded,
+        message: STRINGS.game.bonusRerollAdded.replace("re-roll", "Extra Die"), // Hacky but works for now
       },
       events: [{ type: "UPGRADE_SELECTED", upgradeType: "ADDITIONAL_REROLL" }],
     };
@@ -25,6 +26,8 @@ export function handleSelectUpgrade(
   if (position === null) {
     return { state, events: [] };
   }
+
+  const config = DIE_UPGRADES[upgradeType];
 
   const newState = {
     ...state,
@@ -37,11 +40,7 @@ export function handleSelectUpgrade(
               {
                 type: upgradeType,
                 id: `upgrade-${Date.now()}`,
-                remainingUses:
-                  upgradeType === "AUTO_REROLL" ||
-                  upgradeType === "TEN_X_MULTIPLIER"
-                    ? 3
-                    : undefined,
+                remainingUses: config.uses,
               },
             ],
           }

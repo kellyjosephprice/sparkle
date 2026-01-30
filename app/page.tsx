@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { canEndTurn, canReRoll, canRoll } from "../src/game";
 import { STRINGS } from "../src/strings";
 import ActionButtons from "./components/ActionButtons";
-import Dice from "./components/Dice";
+import Dice, { DiceRef } from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
 import ScoreDisplay from "./components/ScoreDisplay";
 import UpgradesMenu from "./components/UpgradesMenu";
@@ -24,10 +24,10 @@ export default function Home() {
     handleEndTurn,
     resetGame,
     selectAll,
-    handleDiscardUnscored,
-    handleAddExtraDie,
     stagedScore,
   } = useGameState();
+
+  const diceRef = useRef<DiceRef>(null);
 
   const handleDieInteraction = useCallback(
     (id: number) => {
@@ -35,6 +35,10 @@ export default function Home() {
     },
     [toggleDie],
   );
+
+  const setFocusedPosition = useCallback((position: number | null) => {
+      setUIState(prev => ({ ...prev, focusedPosition: position }));
+  }, [setUIState]);
 
   // Handle keyboard events
   const handleKeyDown = useCallback(
@@ -54,7 +58,6 @@ export default function Home() {
           "Enter",
           "Backspace",
           "r",
-          "d",
           "ArrowLeft",
           "ArrowRight",
           "ArrowUp",
@@ -91,7 +94,7 @@ export default function Home() {
                 : 0,
           }));
         }
-        if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") {
+        if (event.key === "ArrowRight" || (event.key.toLowerCase() === "d" && !gameState.lastRollSparkled)) {
           setUIState((prev) => ({
             ...prev,
             focusedUpgradeIndex:
@@ -112,7 +115,8 @@ export default function Home() {
       // Handle die selection (keys 1-6) - Also sets focus
       if (event.key >= "1" && event.key <= "6") {
         const position = parseInt(event.key);
-        setUIState((prev) => ({ ...prev, focusedPosition: position }));
+        diceRef.current?.focusDie(position);
+        
         const die = gameState.dice.find((d) => d.position === position);
         if (die && !die.banked && !uiState.rolling) {
           handleDieInteraction(die.id);
@@ -126,7 +130,7 @@ export default function Home() {
       ) {
         const currentPos = uiState.focusedPosition ?? 1;
         const newPos = currentPos === 1 ? 6 : currentPos - 1;
-        setUIState((prev) => ({ ...prev, focusedPosition: newPos }));
+        diceRef.current?.focusDie(newPos);
       }
 
       // Arrow Right / D: Move focus right with wraparound
@@ -136,7 +140,7 @@ export default function Home() {
       ) {
         const currentPos = uiState.focusedPosition ?? 1;
         const newPos = currentPos === 6 ? 1 : currentPos + 1;
-        setUIState((prev) => ({ ...prev, focusedPosition: newPos }));
+        diceRef.current?.focusDie(newPos);
       }
 
       // Arrow Down / S: Select focused die (move to banked)
@@ -185,11 +189,6 @@ export default function Home() {
         handleReRoll();
       }
 
-      // Handle discard unscored (D key)
-      if (event.key.toLowerCase() === "d" && gameState.lastRollSparkled && !uiState.rolling) {
-        handleDiscardUnscored();
-      }
-
       // Handle end turn (Enter)
       if (event.key === "Enter" && canEndTurn(gameState) && !uiState.rolling) {
         handleEndTurn();
@@ -212,7 +211,6 @@ export default function Home() {
       handleEndTurn,
       resetGame,
       selectAll,
-      handleDiscardUnscored,
       setUIState,
     ],
   );
@@ -248,7 +246,6 @@ export default function Home() {
           bankedScore={gameState.bankedScore}
           stagedScore={stagedScore}
           highScore={gameState.highScore}
-          rerollsAvailable={gameState.rerollsAvailable}
           extraDicePool={gameState.extraDicePool}
           threshold={gameState.threshold}
           totalScore={gameState.totalScore}
@@ -256,13 +253,11 @@ export default function Home() {
         />
 
         <Dice
+          ref={diceRef}
           dice={visualState.dice}
           onToggleDie={toggleDie}
           rolling={uiState.rolling}
-          focusedPosition={uiState.focusedPosition}
-          onFocusDie={(position) =>
-            setUIState((prev) => ({ ...prev, focusedPosition: position }))
-          }
+          onFocusDie={setFocusedPosition}
           potentialUpgradePosition={gameState.potentialUpgradePosition}
           upgradeOptions={gameState.upgradeOptions}
           onSelectUpgrade={selectUpgrade}
@@ -279,11 +274,6 @@ export default function Home() {
           onEndTurn={handleEndTurn}
           onReset={resetGame}
           onReRoll={handleReRoll}
-          onAddExtraDie={handleAddExtraDie}
-          onDiscardUnscored={handleDiscardUnscored}
-          extraDicePool={gameState.extraDicePool}
-          diceCount={gameState.dice.length}
-          canDiscardAction={gameState.lastRollSparkled && !gameState.potentialUpgradePosition}
         />
 
         <UpgradesMenu dice={gameState.dice} />

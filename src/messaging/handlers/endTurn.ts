@@ -1,42 +1,19 @@
+import { DIE_UPGRADES } from "../../../src/die-upgrades";
 import {
   calculateThreshold,
   createDice,
   getStagedScore,
 } from "../../../src/game";
-import { STRINGS } from "../../strings";
 import type { GameState, UpgradeOption } from "../../../src/types";
+import { STRINGS } from "../../strings";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
-const ALL_UPGRADES: UpgradeOption[] = [
-  {
-    type: "SCORE_MULTIPLIER",
-    description: STRINGS.upgrades.scoreMultiplier,
-  },
-  {
-    type: "SCORE_BONUS",
-    description: STRINGS.upgrades.scoreBonus,
-  },
-  {
-    type: "BANKED_SCORE_MULTIPLIER",
-    description: STRINGS.upgrades.bankedMultiplier,
-  },
-  {
-    type: "BANKED_SCORE_BONUS",
-    description: STRINGS.upgrades.bankedBonus,
-  },
-  {
-    type: "AUTO_REROLL",
-    description: STRINGS.upgrades.autoReroll,
-  },
-  {
-    type: "TEN_X_MULTIPLIER",
-    description: STRINGS.upgrades.tenXMultiplier,
-  },
-  {
-    type: "SET_BONUS",
-    description: STRINGS.upgrades.setBonus,
-  },
-];
+const ALL_UPGRADES: UpgradeOption[] = Object.values(DIE_UPGRADES).map(
+  (config) => ({
+    type: config.type,
+    description: config.description,
+  })
+);
 
 export function handleEndTurn(
   state: GameState,
@@ -48,7 +25,7 @@ export function handleEndTurn(
     : state.bankedScore + stagedScore;
 
   // Validation (only if not sparkled - sparkle auto-ends turn)
-  if (!command.isSparkled) {
+  if (!command.isSparkled && !command.force) {
     if (state.bankedScore === 0 && stagedScore === 0) {
       return {
         state: {
@@ -127,12 +104,10 @@ export function handleEndTurn(
   // Check for upgrade every 3 turns
   let upgradeOptions: UpgradeOption[] = [];
   let potentialUpgradePosition: number | null = null;
-  let newRerollsAvailable = state.rerollsAvailable;
   let newExtraDicePool = state.extraDicePool;
 
   if (!gameOver && state.turnNumber % 3 === 0) {
-    // Automatically add a reroll and an extra die
-    newRerollsAvailable += 1;
+    // Automatically add an extra die
     newExtraDicePool += 1;
 
     // Select 2 random options from ALL_UPGRADES
@@ -151,11 +126,12 @@ export function handleEndTurn(
       highScore,
       lastRollSparkled: false,
       message: message,
-      rerollsAvailable: newRerollsAvailable,
       scoringRules: state.scoringRules,
       threshold: newThreshold,
       totalScore: newTotalScore,
       turnNumber: nextTurnNumber,
+      rollsInTurn: 0,
+      isGuhkleAttempt: false,
       extraDicePool: newExtraDicePool,
       upgradeOptions,
       pendingUpgradeDieSelection: null,

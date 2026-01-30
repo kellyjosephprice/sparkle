@@ -1,4 +1,4 @@
-import { calculateThreshold, createDice, STARTING_REROLLS } from "../../game";
+import { calculateThreshold, createDice } from "../../game";
 import { DEFAULT_RULES } from "../../scoring";
 import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
@@ -13,11 +13,13 @@ export function handleReset(state: GameState): CommandResult {
       totalScore: 0,
       threshold: calculateThreshold(1),
       turnNumber: 1,
+      rollsInTurn: 0,
+      isGuhkleAttempt: false,
       gameOver: false,
       message: STRINGS.game.newGameStarted,
       scoringRules: DEFAULT_RULES,
-      rerollsAvailable: STARTING_REROLLS,
       lastRollSparkled: false,
+      extraDicePool: 3,
       upgradeOptions: [],
       pendingUpgradeDieSelection: null,
       potentialUpgradePosition: null,

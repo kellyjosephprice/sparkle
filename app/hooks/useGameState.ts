@@ -41,7 +41,7 @@ export function useGameState() {
   }>({
     rolling: false,
     displayDice: gameState.dice,
-    focusedPosition: 1,
+    focusedPosition: null,
     focusedUpgradeIndex: null,
   });
 
@@ -104,7 +104,7 @@ export function useGameState() {
         setTimeout(() => {
           setGameState((currentState: GameState) => {
             const result = gameEngine.processCommand(currentState, event.action);
-            if (event.action.type === "EXECUTE_AUTO_REROLL") {
+            if (event.action.type === "EXECUTE_AUTO_REROLL" || event.action.type === "EXECUTE_GUHKLE_REROLL") {
               startRollAnimation(result.state.dice, 250);
             }
             return result.state;
@@ -188,21 +188,6 @@ export function useGameState() {
     setGameState(result.state);
   }, [gameState]);
 
-  const handleDiscardUnscored = useCallback(() => {
-    if (uiState.rolling || !gameState.lastRollSparkled) return;
-    const result = gameEngine.processCommand(gameState, { type: "DISCARD_UNSCORED" });
-    setGameState(result.state);
-    if (result.events.some(e => e.type === "DICE_ROLLED")) {
-      startRollAnimation(result.state.dice, 250);
-    }
-  }, [gameState, uiState.rolling, startRollAnimation]);
-
-  const handleAddExtraDie = useCallback(() => {
-    if (uiState.rolling || gameState.extraDicePool <= 0 || gameState.dice.length >= 6) return;
-    const result = gameEngine.processCommand(gameState, { type: "ADD_EXTRA_DIE" });
-    setGameState(result.state);
-  }, [gameState, uiState.rolling]);
-
   return {
     gameState,
     uiState,
@@ -214,8 +199,6 @@ export function useGameState() {
     handleEndTurn,
     resetGame,
     selectAll,
-    handleDiscardUnscored,
-    handleAddExtraDie,
     stagedScore: getStagedScore(gameState),
   };
 }

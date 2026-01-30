@@ -1,7 +1,7 @@
 import { createDice, getActiveDice, getBankedDice } from "../../game";
 import { isSparkle } from "../../scoring";
 import { STRINGS } from "../../strings";
-import type { Die, GameState } from "../../types";
+import type { GameState } from "../../types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
 export function handleRoll(state: GameState): CommandResult {
@@ -9,26 +9,39 @@ export function handleRoll(state: GameState): CommandResult {
     return { state, events: [] };
   }
 
-  let activeDice = getActiveDice(state);
-  let newDice = createDice(activeDice.length, activeDice);
-  let sparkled = isSparkle(newDice, state.scoringRules);
+  const rollsInTurn = state.rollsInTurn + 1;
+  const activeDice = getActiveDice(state);
+  const newDice = createDice(activeDice.length, activeDice);
+  const sparkled = isSparkle(newDice, state.scoringRules);
 
-  let message = sparkled
+  const message = sparkled
     ? STRINGS.game.sparkleNoScore
     : STRINGS.game.selectAndBank;
 
   const bankedDice = getBankedDice(state);
+  const events: GameEvent[] = [
+    { type: "DICE_ROLLED", dice: newDice, sparkled },
+  ];
 
-  let newState: GameState = {
+  const newState: GameState = {
     ...state,
     dice: [...bankedDice, ...newDice],
     lastRollSparkled: sparkled,
     message: message,
+    rollsInTurn,
   };
 
-  const events: GameEvent[] = [
-    { type: "DICE_ROLLED", dice: newDice, sparkled },
-  ];
+  // Handle Guhkle (first roll sparkle)
+  if (sparkled && rollsInTurn === 1) {
+    newState.message = STRINGS.game.guhkleTriggered;
+    newState.isGuhkleAttempt = true;
+    events.push({
+      type: "DELAYED_ACTION",
+      action: { type: "EXECUTE_GUHKLE_REROLL" },
+      delay: 1000,
+    });
+    return { state: newState, events };
+  }
 
   // Handle Auto Re-roll upgrade via delayed action
   if (sparkled) {
@@ -78,7 +91,7 @@ export function handleExecuteAutoReroll(
   const bankedDice = updatedDice.filter((d) => d.banked);
   const sparkled = isSparkle(newDice, state.scoringRules);
 
-  const message = `🔄 Auto Re-roll used! ${sparkled ? "Still sparkled! 💥" : "Saved!"}`;
+  const message = sparkled ? STRINGS.game.autoRerollFailed : STRINGS.game.autoRerollSaved;
 
   const newState: GameState = {
     ...state,
@@ -90,5 +103,48 @@ export function handleExecuteAutoReroll(
   return {
     state: newState,
     events: [{ type: "DICE_ROLLED", dice: newDice, sparkled }],
+  };
+}
+
+export function handleExecuteGuhkleReroll(
+  state: GameState,
+): CommandResult {
+  const activeDice = getActiveDice(state);
+  const newDice = createDice(activeDice.length, activeDice);
+  const bankedDice = getBankedDice(state);
+  const sparkled = isSparkle(newDice, state.scoringRules);
+
+  if (sparkled) {
+    // Double Guhkle!
+    // Player can still try to re-roll if they have extra dice.
+    
+    const newState: GameState = {
+      ...state,
+      dice: [...bankedDice, ...newDice],
+      lastRollSparkled: true,
+      message: STRINGS.game.guhkleFailed,
+      isGuhkleAttempt: false,
+    };
+
+    return {
+      state: newState,
+      events: [
+        { type: "DICE_ROLLED", dice: newDice, sparkled: true },
+      ],
+    };
+  }
+
+  // Guhkle saved!
+  const newState: GameState = {
+    ...state,
+    dice: [...bankedDice, ...newDice],
+    lastRollSparkled: false,
+    message: STRINGS.game.guhkleSaved,
+    isGuhkleAttempt: false,
+  };
+
+  return {
+    state: newState,
+    events: [{ type: "DICE_ROLLED", dice: newDice, sparkled: false }],
   };
 }

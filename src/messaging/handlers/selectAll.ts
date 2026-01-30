@@ -1,5 +1,5 @@
-import { calculateScore } from "../../scoring";
 import { getActiveDice } from "../../game";
+import { calculateScore } from "../../scoring";
 import type { GameState } from "../../types";
 import type { CommandResult } from "../types";
 

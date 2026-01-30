@@ -20,6 +20,8 @@ export default function UpgradeSelection({
     <div className="flex gap-4 w-full max-w-lg">
       {options.map((option, idx) => {
         const isFocused = focusedIndex === idx;
+        const label = option.type === "ADDITIONAL_REROLL" ? STRINGS.ui.reroll : STRINGS.ui.upgrades;
+
         return (
           <button
             key={`${option.type}-${idx}`}
@@ -34,7 +36,7 @@ export default function UpgradeSelection({
             `}
           >
             <div className={`font-bold text-sm mb-1 uppercase tracking-tight ${isFocused ? "text-black" : "text-cyan-500"}`}>
-              {option.type === "ADDITIONAL_REROLL" ? STRINGS.ui.reroll : STRINGS.ui.upgrades}
+              {label}
             </div>
             <div className={`text-[10px] leading-tight font-medium ${isFocused ? "text-black/80" : "opacity-70 group-hover:opacity-100"}`}>
               {option.description}

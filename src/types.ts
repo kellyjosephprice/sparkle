@@ -1,25 +1,8 @@
+import { DieUpgrade, UpgradeOption, UpgradeType } from "./die-upgrades";
+
+export type { DieUpgrade, UpgradeOption, UpgradeType };
+
 export type DieValue = 1 | 2 | 3 | 4 | 5 | 6;
-
-export type UpgradeType =
-  | "SCORE_MULTIPLIER" // 2x when this die is scored
-  | "SCORE_BONUS" // 100+ when this die is scored
-  | "BANKED_SCORE_MULTIPLIER" // 2x when banked and more are banked
-  | "BANKED_SCORE_BONUS" // 100+ when banked and more are banked
-  | "ADDITIONAL_REROLL" // +1 Re-roll
-  | "AUTO_REROLL" // 3x Auto re-roll on sparkle
-  | "TEN_X_MULTIPLIER" // 3x 10x multiplier
-  | "SET_BONUS"; // 2x multiplier for each die with this upgrade in a scoring set
-
-export interface DieUpgrade {
-  type: UpgradeType;
-  id: string;
-  remainingUses?: number;
-}
-
-export interface UpgradeOption {
-  type: UpgradeType;
-  description: string;
-}
 
 export interface Die {
   id: number;
@@ -57,11 +40,12 @@ export interface GameState {
   highScore: number;
   lastRollSparkled: boolean;
   message: string;
-  rerollsAvailable: number;
   scoringRules: RuleMap;
   threshold: number;
   totalScore: number;
   turnNumber: number;
+  rollsInTurn: number;
+  isGuhkleAttempt: boolean;
   extraDicePool: number;
   // Upgrade related state
   upgradeOptions: UpgradeOption[];

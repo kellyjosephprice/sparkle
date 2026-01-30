@@ -1,10 +1,9 @@
+import { DIE_UPGRADES } from "./die-upgrades";
 import { calculateScore, DEFAULT_RULES } from "./scoring";
+import { STRINGS } from "./strings";
 import type { Die, DieValue, GameState } from "./types";
 
-import { STRINGS } from "./strings";
-
 export const BASE_THRESHOLD = 100;
-export const STARTING_REROLLS = 3;
 
 export const initialState: GameState = {
   bankedScore: 0,
@@ -13,11 +12,12 @@ export const initialState: GameState = {
   highScore: 0,
   lastRollSparkled: false,
   message: STRINGS.game.initialMessage,
-  rerollsAvailable: STARTING_REROLLS,
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   totalScore: 0,
   turnNumber: 1,
+  rollsInTurn: 0,
+  isGuhkleAttempt: false,
   extraDicePool: 3,
   upgradeOptions: [],
   pendingUpgradeDieSelection: null,
@@ -92,22 +92,28 @@ export function getStagedScore(state: GameState): number {
     // Apply upgrades from dice in this group
     group.dice.forEach((die) => {
       die.upgrades?.forEach((upgrade) => {
-        if (upgrade.type === "SCORE_BONUS") {
-          groupScore += 100;
+        const config = DIE_UPGRADES[upgrade.type];
+        if (!config || config.requiresBanked) return;
+
+        // Apply score bonuses
+        if (config.defaultValue) {
+          groupScore += config.defaultValue;
         }
       });
     });
 
     group.dice.forEach((die) => {
       die.upgrades?.forEach((upgrade) => {
-        if (upgrade.type === "SCORE_MULTIPLIER") {
-          groupScore *= 2;
-        }
-        if (
-          upgrade.type === "TEN_X_MULTIPLIER" &&
-          (upgrade.remainingUses ?? 0) > 0
-        ) {
-          groupScore *= 10;
+        const config = DIE_UPGRADES[upgrade.type];
+        if (!config || config.requiresBanked) return;
+
+        // Apply score multipliers
+        if (config.multiplier) {
+          // Check for limited uses
+          if (config.uses !== undefined && (upgrade.remainingUses ?? 0) <= 0) {
+            return;
+          }
+          groupScore *= config.multiplier;
         }
       });
     });
@@ -134,16 +140,22 @@ export function getStagedScore(state: GameState): number {
 
   bankedDice.forEach((die) => {
     die.upgrades?.forEach((upgrade) => {
-      if (upgrade.type === "BANKED_SCORE_BONUS") {
-        totalTurnScore += 100;
+      const config = DIE_UPGRADES[upgrade.type];
+      if (!config || !config.requiresBanked) return;
+
+      if (config.defaultValue) {
+        totalTurnScore += config.defaultValue;
       }
     });
   });
 
   bankedDice.forEach((die) => {
     die.upgrades?.forEach((upgrade) => {
-      if (upgrade.type === "BANKED_SCORE_MULTIPLIER") {
-        totalTurnScore *= 2;
+      const config = DIE_UPGRADES[upgrade.type];
+      if (!config || !config.requiresBanked) return;
+
+      if (config.multiplier) {
+        totalTurnScore *= config.multiplier;
       }
     });
   });
@@ -177,11 +189,60 @@ export function canRoll(state: GameState): boolean {
 }
 
 export function canReRoll(state: GameState): boolean {
-  return (
-    !state.gameOver &&
-    state.rerollsAvailable > 0 &&
-    getActiveDice(state).length > 0
-  );
+  if (state.gameOver || state.extraDicePool <= 0) return false;
+
+  const activeDice = getActiveDice(state);
+  if (activeDice.length === 0) return false;
+
+  // Find unscored dice
+  // Use calculateScore to find what is SCORING from the active dice
+  // However, active dice might not be separated into scoring sets nicely if we just throw them all in.
+  // Wait, calculateScore finds the BEST scoring combination.
+  // The concept of "unscoring die" implies that AFTER scoring rules are applied, some are left over.
+  // If last roll sparkled, ALL are unscoring.
+  // If last roll didn't sparkle, but we have some leftovers?
+  // Usually re-roll is only available if we have "junk" dice?
+  // The prompt says: "The game randomly selects 5 die to re-roll, which saves the lone 4."
+  // This implies re-roll applies to UNSCORED dice.
+  
+  // If we just rolled and it sparkled, all are unscored.
+  // If we rolled, have some points, but want to re-roll the junk?
+  // The original re-roll only worked on "last roll".
+  // The new logic implies we can re-roll ANY time? "pressing the 'Re-Roll' button... will consume 'Extra Dice' equal to the number of unscoring die on the board."
+  
+  // Identifying unscored dice:
+  // We need to exclude banked dice.
+  // We need to exclude staged dice (since they are presumably scoring).
+  // So we look at Active Non-Staged dice?
+  // But wait, if I roll `1 2 2 3 4 6` (1 is scoring). If I stage 1, I have `2 2 3 4 6` left.
+  // Are those "unscoring"? `2 2` isn't scoring. `3 4 6` aren't.
+  // So yes, generally active (non-banked) dice that are NOT forming a scoring set.
+  // But `calculateScore` on the set of remaining dice returns what CAN score.
+  // If the remaining dice have NO score, they are all unscoring.
+  
+  const activeUnstagedDice = activeDice.filter(d => !d.staged);
+  // Actually, simpler:
+  // If last roll sparkled, all active dice are unscoring.
+  // If not sparkled, user might have selected some dice to stage.
+  // The "unscoring die" are the ones currently on the board that are NOT staged (and presumably the user doesn't want to stage them because they don't score).
+  // Is it possible to re-roll dice that COULD score but user chose not to?
+  // Example: Roll `1 5 2 3`. User stages `1`. Left `5 2 3`. `5` could score.
+  // Does re-roll re-roll the `5` too?
+  // "unscoring die on the board".
+  // I will assume this means "active dice that are not staged".
+  // NOTE: If the user hasn't staged anything yet, but there IS a score (e.g. rolled a 1), and they hit Re-Roll...
+  // Should it re-roll everything? Or just the non-scoring ones?
+  // "number of unscoring die". This implies dice that strictly DO NOT score.
+  
+  // Let's refine "unscoring":
+  // It probably means dice that are NOT contributing to a score.
+  // But `calculateScore` is greedy.
+  // Let's stick to the simplest interpretation for `canReRoll`:
+  // There must be active dice.
+  // We check if there are any active dice.
+  
+  // Also, need to ensure we don't re-roll if EVERYTHING is scored/staged.
+  return activeUnstagedDice.length > 0;
 }
 
 export function canBank(state: GameState): boolean {
@@ -214,3 +275,4 @@ export function canEndTurn(state: GameState): boolean {
     areAllStagedDiceScoring(state)
   );
 }
+

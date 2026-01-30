@@ -60,10 +60,12 @@ describe("Game Selectors", () => {
       gameOver: false,
       message: "",
       scoringRules: DEFAULT_RULES,
-      rerollsAvailable: 2,
       lastRollSparkled: false,
       highScore: 0,
       upgradeOptions: [],
+      extraDicePool: 3,
+      isGuhkleAttempt: false,
+      rollsInTurn: 0,
       pendingUpgradeDieSelection: null,
       potentialUpgradePosition: null,
     };

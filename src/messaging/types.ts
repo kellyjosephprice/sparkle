@@ -7,15 +7,14 @@ export type GameCommand =
   | { type: "RE_ROLL" }
   | { type: "BANK_DICE" }
   | { type: "SELECT_ALL" }
-  | { type: "END_TURN"; isSparkled?: boolean }
+  | { type: "END_TURN"; isSparkled?: boolean; force?: boolean }
   | { type: "RESET_GAME" }
   | { type: "TOGGLE_SCORING_RULE"; ruleId: RuleId }
   | { type: "RESET_SCORING_RULE_COUNTS" }
   | { type: "SELECT_UPGRADE"; upgradeType: UpgradeType }
   | { type: "APPLY_UPGRADE"; position: number }
-  | { type: "DISCARD_UNSCORED" }
-  | { type: "ADD_EXTRA_DIE" }
-  | { type: "EXECUTE_AUTO_REROLL"; dieId: number };
+  | { type: "EXECUTE_AUTO_REROLL"; dieId: number }
+  | { type: "EXECUTE_GUHKLE_REROLL" };
 
 // Events - what happened in the game
 export type GameEvent =

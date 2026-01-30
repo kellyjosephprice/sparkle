@@ -1,3 +1,5 @@
+import { forwardRef,useImperativeHandle, useRef } from "react";
+
 import type { Die as DieType, UpgradeOption, UpgradeType } from "../../src/types";
 import Die from "./Die";
 import UpgradeSelection from "./UpgradeSelection";
@@ -6,25 +8,35 @@ interface DiceSectionsProps {
   dice: DieType[];
   onToggleDie: (id: number) => void;
   rolling: boolean;
-  focusedPosition: number | null;
-  onFocusDie: (position: number) => void;
+  onFocusDie: (position: number | null) => void;
   potentialUpgradePosition?: number | null;
   upgradeOptions?: UpgradeOption[];
   onSelectUpgrade?: (type: UpgradeType) => void;
   focusedUpgradeIndex?: number | null;
 }
 
-export default function Dice({
+export interface DiceRef {
+  focusDie: (position: number) => void;
+}
+
+const Dice = forwardRef<DiceRef, DiceSectionsProps>(({
   dice,
   onToggleDie,
   rolling,
-  focusedPosition,
   onFocusDie,
   potentialUpgradePosition,
   upgradeOptions = [],
   onSelectUpgrade,
   focusedUpgradeIndex = null,
-}: DiceSectionsProps) {
+}, ref) => {
+  const dieRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useImperativeHandle(ref, () => ({
+    focusDie: (position: number) => {
+      dieRefs.current[position - 1]?.focus();
+    },
+  }));
+
   // Sort dice by position for consistent rendering
   const sortedDice = [...dice].sort((a, b) => a.position - b.position);
 
@@ -41,11 +53,12 @@ export default function Dice({
     return die ? (
       <Die
         key={die.id}
+        ref={(el) => { dieRefs.current[index] = el; }}
         die={die}
         onToggleDie={onToggleDie}
         rolling={rolling}
-        focused={focusedPosition === die.position}
         onFocus={() => onFocusDie(die.position)}
+        onBlur={() => onFocusDie(null)}
         isPotentialUpgrade={potentialUpgradePosition === die.position}
       />
     ) : (
@@ -63,11 +76,12 @@ export default function Dice({
       return die ? (
         <Die
           key={die.id}
+          ref={(el) => { dieRefs.current[index] = el; }}
           die={die}
           onToggleDie={onToggleDie}
           rolling={rolling}
-          focused={focusedPosition === die.position}
           onFocus={() => onFocusDie(die.position)}
+          onBlur={() => onFocusDie(null)}
           isPotentialUpgrade={potentialUpgradePosition === die.position}
         />
       ) : (
@@ -99,4 +113,8 @@ export default function Dice({
       </div>
     </div>
   );
-}
+});
+
+Dice.displayName = "Dice";
+
+export default Dice;

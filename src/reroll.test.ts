@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { canReRoll, STARTING_REROLLS } from "./game";
+import { canReRoll } from "./game";
 import { gameEngine } from "./messaging";
 import { STRINGS } from "./strings";
 import type { GameState } from "./types";
@@ -15,30 +15,26 @@ describe("Re-Roll Mechanic", () => {
     state = resetResult.state;
   });
 
-  it(`should start with ${STARTING_REROLLS} re-rolls available`, () => {
-    expect(state.rerollsAvailable).toBe(STARTING_REROLLS);
+  it("should start with 3 extra dice available", () => {
+    expect(state.extraDicePool).toBe(3);
   });
 
-  it("should decrement re-roll count when used", () => {
+  it("should consume extra dice when re-rolling", () => {
     // Roll dice first to have active dice
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
+    // Assume 6 dice. If we re-roll, we re-roll min(6, 3) = 3 dice.
+    // Cost is 3.
 
-    // Use re-roll
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
+    expect(result.state.extraDicePool).toBe(0);
   });
 
-  it("should not allow re-roll when count is 0", () => {
-    // Roll and use all re-rolls
+  it("should not allow re-roll when extra dice pool is 0", () => {
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
-    for (let i = 0; i < STARTING_REROLLS; i++) {
-        state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
-    }
+    state.extraDicePool = 0;
 
-    // Try to re-roll again
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    expect(result.state.message).toBe(STRINGS.errors.noRerolls);
-    expect(result.state.rerollsAvailable).toBe(0);
+    expect(result.state.message).toBe(STRINGS.errors.noExtraDice);
   });
 
   it("should preserve banked dice when re-rolling", () => {
@@ -75,30 +71,29 @@ describe("Re-Roll Mechanic", () => {
     // Manually simulate sparkle state
     state = { ...state, lastRollSparkled: true };
 
-    // canReRoll should return true if re-rolls available
+    // canReRoll should return true if extra dice available
     expect(canReRoll(state)).toBe(true);
 
     // Should be able to use re-roll
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
+    // Assuming 6 dice and 3 extra dice, cost is 3
+    expect(result.state.extraDicePool).toBe(0);
   });
 
-  it("should reset re-roll count on new game", () => {
-    // Use re-roll
+  it("should reset extra dice count on new game", () => {
+    // Use extra dice
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
     state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
-    expect(state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
+    expect(state.extraDicePool).toBe(0);
 
     // Reset game
     const result = gameEngine.processCommand(state, { type: "RESET_GAME" });
-    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS);
+    expect(result.state.extraDicePool).toBe(3);
   });
 
-  it("canReRoll should return false when no re-rolls available", () => {
+  it("canReRoll should return false when no extra dice available", () => {
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
-    for (let i = 0; i < STARTING_REROLLS; i++) {
-        state = gameEngine.processCommand(state, { type: "RE_ROLL" }).state;
-    }
+    state.extraDicePool = 0;
 
     expect(canReRoll(state)).toBe(false);
   });
@@ -110,16 +105,10 @@ describe("Re-Roll Mechanic", () => {
 
   it("should create new dice when re-rolling", () => {
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
-    const activeDiceCount = state.dice.filter((d) => !d.banked).length;
-
+    // 6 dice.
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    const newActiveDiceCount = result.state.dice.filter(
-      (d) => !d.banked,
-    ).length;
-
-    // Should have same number of active dice
-    expect(newActiveDiceCount).toBe(activeDiceCount);
-    // Re-roll count should be decremented
-    expect(result.state.rerollsAvailable).toBe(STARTING_REROLLS - 1);
+    // 3 extra dice used. 3 dice re-rolled. 3 kept.
+    // Total dice count should still be 6.
+    expect(result.state.dice.length).toBe(6);
   });
 });

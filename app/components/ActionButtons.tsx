@@ -8,11 +8,8 @@ interface ActionButtonsProps {
   onEndTurn: () => void;
   onReset: () => void;
   onReRoll: () => void;
-  onAddExtraDie: () => void;
-  onDiscardUnscored: () => void;
-  extraDicePool: number;
-  diceCount: number;
-  canDiscardAction: boolean;
+  extraDicePool?: never; // Deprecated
+  diceCount?: never; // Deprecated
 }
 
 export default function ActionButtons({
@@ -23,11 +20,6 @@ export default function ActionButtons({
   onEndTurn,
   onReset,
   onReRoll,
-  onAddExtraDie,
-  onDiscardUnscored,
-  extraDicePool,
-  diceCount,
-  canDiscardAction,
 }: ActionButtonsProps) {
   const buttonClass = [
     "px-4",
@@ -61,24 +53,6 @@ export default function ActionButtons({
         title={STRINGS.ui.rerollTooltip}
       >
         {STRINGS.ui.reroll}
-      </button>
-
-      <button
-        onClick={onDiscardUnscored}
-        disabled={!canDiscardAction}
-        className={buttonClass}
-        title={STRINGS.ui.discardTooltip}
-      >
-        {STRINGS.ui.discard}
-      </button>
-
-      <button
-        onClick={onAddExtraDie}
-        disabled={extraDicePool <= 0 || diceCount >= 6}
-        className={buttonClass}
-        title={STRINGS.ui.extraDieTooltip}
-      >
-        {STRINGS.ui.extraDie(extraDicePool)}
       </button>
 
       <button

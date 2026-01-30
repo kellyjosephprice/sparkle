@@ -1,14 +1,16 @@
+import { forwardRef } from "react";
+
 import type { Die } from "../../src/types";
 
 interface DiceProps {
   die: Die;
   onToggleDie: (id: number) => void;
   rolling?: boolean;
-  focused?: boolean;
   onFocus?: () => void;
+  onBlur?: () => void;
 }
 
-const DiceFace = ({ value, staged }: { value: number; staged: boolean }) => {
+const DiceFace = ({ value }: { value: number }) => {
   const dots =
     {
       1: ["center"],
@@ -48,14 +50,14 @@ const DiceFace = ({ value, staged }: { value: number; staged: boolean }) => {
   );
 };
 
-export default function Die({
+const DieComponent = forwardRef<HTMLButtonElement, DiceProps & { isPotentialUpgrade?: boolean }>(({
   die,
   onToggleDie,
   rolling = false,
-  focused = false,
   onFocus,
+  onBlur,
   isPotentialUpgrade = false,
-}: DiceProps & { isPotentialUpgrade?: boolean }) {
+}, ref) => {
   const upgradeCount = die.upgrades?.length || 0;
 
   const getUpgradeColor = () => {
@@ -72,15 +74,17 @@ export default function Die({
 
   return (
     <button
+      ref={ref}
       key={die.id}
       onClick={() => {
-        onFocus?.(); // Set focus on click
         onToggleDie(die.id);
       }}
+      onFocus={onFocus}
+      onBlur={onBlur}
       disabled={die.banked || rolling}
       className={`
             w-16 h-16 border-2 transition-all rounded-xl relative
-            ${focused ? "shadow-lg shadow-amber-500/50" : ""}
+            focus:outline-none focus:shadow-lg focus:shadow-amber-500/50
             ${rolling && !die.banked ? "animate-roll" : ""}
             ${isPotentialUpgrade ? "ring-4 ring-cyan-400 animate-pulse z-20" : ""}
             ${
@@ -104,8 +108,11 @@ export default function Die({
 
       <DiceFace
         value={die.value}
-        staged={die.staged || (!isDarkBackground && !die.banked)}
       />
     </button>
   );
-}
+});
+
+DieComponent.displayName = "Die";
+
+export default DieComponent;

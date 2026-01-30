@@ -5,8 +5,8 @@ import {
   getStagedScore,
 } from "../../../src/game";
 import { calculateScore } from "../../../src/scoring";
-import { STRINGS } from "../../strings";
 import type { GameState, RuleMap } from "../../../src/types";
+import { STRINGS } from "../../strings";
 import type { CommandResult } from "../types";
 
 export function handleBank(state: GameState): CommandResult {
