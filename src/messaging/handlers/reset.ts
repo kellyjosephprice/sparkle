@@ -16,7 +16,7 @@ export function handleReset(state: GameState): CommandResult {
       bankedScore: 0,
       totalScore: 0,
       threshold: calculateThreshold(1),
-      turnNumber: 1,
+      turnNumber: 0,
       rollsInTurn: 0,
       isGuhkleAttempt: false,
       gameOver: false,

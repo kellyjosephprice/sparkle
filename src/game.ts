@@ -16,7 +16,7 @@ export const initialState: GameState = {
   scoringRules: DEFAULT_RULES,
   threshold: calculateThreshold(1),
   totalScore: 0,
-  turnNumber: 1,
+  turnNumber: 0,
   rollsInTurn: 0,
   isGuhkleAttempt: false,
   extraDicePool: STARTING_EXTRA_DICE,
@@ -30,9 +30,8 @@ export const initialState: GameState = {
 
 export function calculateThreshold(turnNumber: number): number {
   const level = Math.floor(turnNumber / 3);
-  if (level === 0) return 100;
-  if (level <= 3) return 1000 * level;
-  return 10000 * (level - 3);
+
+  return 10 ** (2 + level);
 }
 
 export function getNextThresholdInfo(turnNumber: number): {
@@ -42,9 +41,10 @@ export function getNextThresholdInfo(turnNumber: number): {
   const currentLevel = Math.floor(turnNumber / 3);
   const nextLevel = currentLevel + 1;
   const nextThresholdTurn = nextLevel * 3;
+
   return {
     turn: nextThresholdTurn,
-    value: 100 * Math.pow(10, nextLevel),
+    value: calculateThreshold(nextThresholdTurn),
   };
 }
 

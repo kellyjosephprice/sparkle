@@ -129,17 +129,25 @@ describe("Game Selectors", () => {
   });
 
   describe("calculateThreshold", () => {
-    it("should calculate threshold for turn 1", () => {
-      expect(calculateThreshold(1)).toBe(100);
-    });
+    const tests = [
+      [0, 100],
+      [1, 100],
+      [2, 100],
+      [3, 1000],
+      [4, 1000],
+      [5, 1000],
+      [6, 10000],
+      [9, 100000],
+      [12, 1000000],
+      [15, 10000000],
+    ];
 
-    it("should calculate threshold for turn 2", () => {
-      expect(calculateThreshold(2)).toBe(100);
-    });
-
-    it("should calculate threshold for turn 3", () => {
-      expect(calculateThreshold(3)).toBe(1000);
-    });
+    it.each(tests)(
+      "should calculate threshold for turn %i as %i",
+      (level, threshold) => {
+        expect(calculateThreshold(level)).toBe(threshold);
+      },
+    );
   });
 
   describe("canRoll", () => {
@@ -156,7 +164,7 @@ describe("Game Selectors", () => {
 
     it("should return true when banked score > 0 even if no staged dice", () => {
       state.bankedScore = 100;
-      state.dice.forEach(d => d.staged = false);
+      state.dice.forEach((d) => (d.staged = false));
       expect(canRoll(state)).toBe(true);
     });
   });

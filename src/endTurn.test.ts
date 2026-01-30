@@ -8,7 +8,9 @@ describe("End Turn Logic", () => {
   let state: GameState;
 
   beforeEach(() => {
-    const result = gameEngine.processCommand({} as GameState, { type: "RESET_GAME" });
+    const result = gameEngine.processCommand({} as GameState, {
+      type: "RESET_GAME",
+    });
     state = result.state;
   });
 
@@ -34,7 +36,7 @@ describe("End Turn Logic", () => {
 
     const result = gameEngine.processCommand(state, { type: "END_TURN" });
     expect(result.state.totalScore).toBe(1000);
-    expect(result.state.turnNumber).toBe(2);
+    expect(result.state.turnNumber).toBe(1);
   });
 
   it("should allow end turn on sparkle and lose turn points", () => {
@@ -45,13 +47,13 @@ describe("End Turn Logic", () => {
 
     expect(canEndTurn(state)).toBe(true);
 
-    const result = gameEngine.processCommand(state, { 
-      type: "END_TURN", 
-      isSparkled: true 
+    const result = gameEngine.processCommand(state, {
+      type: "END_TURN",
+      isSparkled: true,
     });
 
     expect(result.state.totalScore).toBe(1500); // Turn points lost
-    expect(result.state.turnNumber).toBe(2);
+    expect(result.state.turnNumber).toBe(1);
     expect(result.state.gameOver).toBe(false); // Above threshold
     expect(result.state.message).toContain("Lost turn points");
   });
@@ -64,9 +66,9 @@ describe("End Turn Logic", () => {
 
     expect(canEndTurn(state)).toBe(true);
 
-    const result = gameEngine.processCommand(state, { 
-      type: "END_TURN", 
-      isSparkled: true 
+    const result = gameEngine.processCommand(state, {
+      type: "END_TURN",
+      isSparkled: true,
     });
 
     expect(result.state.totalScore).toBe(500);

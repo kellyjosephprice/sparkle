@@ -25,7 +25,7 @@ function getScoringDice(state: GameState, strategy: StrategyConfig): Die[] {
 
   if (strategy.scoringStrategy === "minimal") {
     const bestGroup = result.groups.reduce((prev, curr) =>
-      curr.dice.length < prev.dice.length ? curr : prev,
+      curr.dice.length > prev.dice.length ? curr : prev,
     );
     return bestGroup.dice;
   } else {
