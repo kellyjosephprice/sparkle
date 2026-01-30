@@ -10,7 +10,14 @@ interface DiceProps {
   onBlur?: () => void;
 }
 
-const DiceFace = ({ value }: { value: number }) => {
+const DiceFace = ({ value }: { value: Die["value"] }) => {
+  if (value === "spark") {
+    return (
+      <div className="flex items-center justify-center w-full h-full text-3xl">
+        ✨
+      </div>
+    );
+  }
   const dots =
     {
       1: ["center"],
@@ -26,7 +33,7 @@ const DiceFace = ({ value }: { value: number }) => {
         "bottom-left",
         "bottom-right",
       ],
-    }[value] || [];
+    }[value as number] || [];
 
   const dotPositions: Record<string, string> = {
     "top-left": "top-[20%] left-[20%]",
@@ -61,6 +68,7 @@ const DieComponent = forwardRef<HTMLButtonElement, DiceProps & { isPotentialUpgr
   const upgradeCount = die.upgrades?.length || 0;
 
   const getUpgradeColor = () => {
+    if (die.isSparkDie) return "bg-zinc-900 border-zinc-700 text-white";
     if (upgradeCount === 0) return "bg-amber-50 border-amber-200 text-black";
     if (upgradeCount >= 1 && upgradeCount <= 2)
       return "bg-yellow-600 border-yellow-600 text-black";
@@ -70,7 +78,7 @@ const DieComponent = forwardRef<HTMLButtonElement, DiceProps & { isPotentialUpgr
   };
 
   const upgradeColorClass = getUpgradeColor();
-  const isDarkBackground = upgradeCount >= 6;
+  const isDarkBackground = upgradeCount >= 6 || die.isSparkDie;
 
   return (
     <button

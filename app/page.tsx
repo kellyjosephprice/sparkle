@@ -37,9 +37,12 @@ export default function Home() {
     [toggleDie],
   );
 
-  const setFocusedPosition = useCallback((position: number | null) => {
-      setUIState(prev => ({ ...prev, focusedPosition: position }));
-  }, [setUIState]);
+  const setFocusedPosition = useCallback(
+    (position: number | null) => {
+      setUIState((prev) => ({ ...prev, focusedPosition: position }));
+    },
+    [setUIState],
+  );
 
   // Handle keyboard events
   const handleKeyDown = useCallback(
@@ -54,7 +57,6 @@ export default function Home() {
           "3",
           "4",
           "5",
-          "6",
           " ",
           "Enter",
           "Backspace",
@@ -66,6 +68,7 @@ export default function Home() {
           "w",
           "a",
           "s",
+          "d",
         ].includes(event.key) &&
         !event.shiftKey &&
         !event.ctrlKey &&
@@ -90,12 +93,16 @@ export default function Home() {
           setUIState((prev) => ({
             ...prev,
             focusedUpgradeIndex:
-              prev.focusedUpgradeIndex === null || prev.focusedUpgradeIndex === 0
+              prev.focusedUpgradeIndex === null ||
+              prev.focusedUpgradeIndex === 0
                 ? gameState.upgradeOptions.length - 1
                 : 0,
           }));
         }
-        if (event.key === "ArrowRight" || (event.key.toLowerCase() === "d" && !gameState.lastRollSparkled)) {
+        if (
+          event.key === "ArrowRight" ||
+          (event.key.toLowerCase() === "d" && !gameState.lastRollFizzled)
+        ) {
           setUIState((prev) => ({
             ...prev,
             focusedUpgradeIndex:
@@ -106,18 +113,23 @@ export default function Home() {
           }));
         }
 
-        if ((event.key === "Enter" || event.key === " ") && uiState.focusedUpgradeIndex !== null) {
-          selectUpgrade(gameState.upgradeOptions[uiState.focusedUpgradeIndex].type);
+        if (
+          (event.key === "Enter" || event.key === " ") &&
+          uiState.focusedUpgradeIndex !== null
+        ) {
+          selectUpgrade(
+            gameState.upgradeOptions[uiState.focusedUpgradeIndex].type,
+          );
         }
 
         return; // Disable other keys while upgrading
       }
 
-      // Handle die selection (keys 1-6) - Also sets focus
-      if (event.key >= "1" && event.key <= "6") {
+      // Handle die selection (keys 1-5) - Also sets focus
+      if (event.key >= "1" && event.key <= "5") {
         const position = parseInt(event.key);
         diceRef.current?.focusDie(position);
-        
+
         const die = gameState.dice.find((d) => d.position === position);
         if (die && !die.banked && !uiState.rolling) {
           handleDieInteraction(die.id);
@@ -130,36 +142,37 @@ export default function Home() {
         !uiState.rolling
       ) {
         const currentPos = uiState.focusedPosition ?? 1;
-        let newPos = currentPos === 1 ? 6 : currentPos - 1;
-        
+        let newPos = currentPos === 1 ? 5 : currentPos - 1;
+
         // Find next non-banked die (loop until found or back to start)
         let attempts = 0;
-        while (attempts < 6) {
-          const die = gameState.dice.find(d => d.position === newPos);
+        while (attempts < 5) {
+          const die = gameState.dice.find((d) => d.position === newPos);
           if (die && !die.banked) break;
-          
-          newPos = newPos === 1 ? 6 : newPos - 1;
+
+          newPos = newPos === 1 ? 5 : newPos - 1;
           attempts++;
         }
-        
+
         diceRef.current?.focusDie(newPos);
       }
 
       // Arrow Right / D: Move focus right with wraparound
       if (
-        (event.key === "ArrowRight" || (event.key.toLowerCase() === "d" && !gameState.lastRollSparkled)) &&
+        (event.key === "ArrowRight" ||
+          (event.key.toLowerCase() === "d" && !gameState.lastRollFizzled)) &&
         !uiState.rolling
       ) {
         const currentPos = uiState.focusedPosition ?? 1;
-        let newPos = currentPos === 6 ? 1 : currentPos + 1;
+        let newPos = currentPos === 5 ? 1 : currentPos + 1;
 
         // Find next non-banked die (loop until found or back to start)
         let attempts = 0;
-        while (attempts < 6) {
-          const die = gameState.dice.find(d => d.position === newPos);
+        while (attempts < 5) {
+          const die = gameState.dice.find((d) => d.position === newPos);
           if (die && !die.banked) break;
-          
-          newPos = newPos === 6 ? 1 : newPos + 1;
+
+          newPos = newPos === 5 ? 1 : newPos + 1;
           attempts++;
         }
 
@@ -202,13 +215,17 @@ export default function Home() {
       if (event.key === " " && !uiState.rolling) {
         if (canRoll(gameState)) {
           handleRoll();
-        } else if (canReRoll(gameState) && gameState.lastRollSparkled) {
+        } else if (canReRoll(gameState) && gameState.lastRollFizzled) {
           handleReRoll();
         }
       }
 
       // Handle re-roll (R key)
-      if (event.key.toLowerCase() === "r" && canReRoll(gameState) && !uiState.rolling) {
+      if (
+        event.key.toLowerCase() === "r" &&
+        canReRoll(gameState) &&
+        !uiState.rolling
+      ) {
         handleReRoll();
       }
 
@@ -255,7 +272,7 @@ export default function Home() {
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-baseline mb-8">
           <h1 className="text-4xl font-bold text-white tracking-tighter">
-            {STRINGS.game.title}
+            {STRINGS.game.title} ✨
           </h1>
           <Link
             href="/rules"
@@ -292,9 +309,15 @@ export default function Home() {
         {gameState.message && <MessageBanner message={gameState.message} />}
 
         <ActionButtons
-          canRollAction={canRoll(gameState) && !gameState.potentialUpgradePosition}
-          canEndTurnAction={canEndTurn(gameState) && !gameState.potentialUpgradePosition}
-          canReRollAction={canReRoll(gameState) && !gameState.potentialUpgradePosition}
+          canRollAction={
+            canRoll(gameState) && !gameState.potentialUpgradePosition
+          }
+          canEndTurnAction={
+            canEndTurn(gameState) && !gameState.potentialUpgradePosition
+          }
+          canReRollAction={
+            canReRoll(gameState) && !gameState.potentialUpgradePosition
+          }
           onRoll={handleRoll}
           onEndTurn={handleEndTurn}
           onReset={resetGame}

@@ -27,12 +27,18 @@ export function handleBank(state: GameState): CommandResult {
     };
   }
 
-  const { scoredDice, scoringRuleIds } = calculateScore(
+  const { scoredDice, scoringRuleIds, groups } = calculateScore(
     stagedDice,
     state.scoringRules,
   );
 
-  // Decrement charges for limited use upgrades (like TEN_X_MULTIPLIER)
+  // Check for sets to certify
+  const hasNewSet = groups.some((g) => g.ruleId === "set");
+  const certificationNeededValue = hasNewSet
+    ? groups.find((g) => g.ruleId === "set")!.value
+    : state.certificationNeededValue;
+
+  // Decrement charges for limited use upgrades
   const stagedWithDecrementedCharges = stagedDice.map((die) => {
     const isScoring = scoredDice.some((sd) => sd.id === die.id);
     if (!isScoring) return die;
@@ -79,18 +85,19 @@ export function handleBank(state: GameState): CommandResult {
   });
 
   if (allDiceUsed) {
-    // Hot dice: clear banked dice and roll new dice
+    // Landslide: clear banked dice and roll new dice
     const newDice = createDice(state.dice.length, updatedDiceState);
     return {
       state: {
         ...state,
         dice: newDice,
         bankedScore: newBankedScore,
-        message: STRINGS.game.hotDice(stagedScore, state.dice.length),
+        message: STRINGS.game.landslide,
         scoringRules: updatedRules,
-        lastRollSparkled: false,
+        lastRollFizzled: false,
         hotDiceCount: state.hotDiceCount + 1,
         permanentMultiplier: (state.permanentMultiplier ?? 1) + 1,
+        certificationNeededValue,
       },
       events: [{ type: "DICE_BANKED", score: stagedScore, hotDice: true }],
     };
@@ -105,7 +112,8 @@ export function handleBank(state: GameState): CommandResult {
         bankedScore: newBankedScore,
         message: STRINGS.game.bankedPoints(stagedScore),
         scoringRules: updatedRules,
-        lastRollSparkled: false,
+        lastRollFizzled: false,
+        certificationNeededValue,
       },
       events: [{ type: "DICE_BANKED", score: stagedScore, hotDice: false }],
     };

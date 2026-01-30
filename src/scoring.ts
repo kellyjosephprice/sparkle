@@ -1,203 +1,49 @@
 import { STRINGS } from "./strings";
 import type { Die, DieValue, Rule, RuleId, RuleMap } from "./types";
 
-type Counts = Map<DieValue, Die[]>;
-
-type RuleChecker = (counts: Counts) => {
-  match: boolean;
-  score: number;
-  scoredDice: Die[];
-};
-
-const singleOneChecker: RuleChecker = (counts) => {
-  const ones = counts.get(1) || [];
-
-  return {
-    match: ones.length > 0,
-    score: ones.length * 100,
-    scoredDice: ones,
-  };
-};
-
-const singleFiveChecker: RuleChecker = (counts) => {
-  const fives = counts.get(5) || [];
-
-  return {
-    match: fives.length > 0,
-    score: fives.length * 50,
-    scoredDice: fives,
-  };
-};
-
-const threeOfKindChecker: RuleChecker = (counts) => {
-  let score = 0;
-  let match = false;
-  const scoredDice: Die[] = [];
-
-  counts.forEach((set, value) => {
-    if (set.length !== 3) return;
-
-    score += value === 1 ? 1000 : value * 100;
-    match = true;
-    scoredDice.push(...set);
-  });
-
-  return { match, score, scoredDice };
-};
-
-const fourOfKindChecker: RuleChecker = (counts) => {
-  let score = 0;
-  let match = false;
-  const scoredDice: Die[] = [];
-
-  counts.forEach((set, value) => {
-    if (set.length !== 4) return;
-
-    score += value === 1 ? 1100 : 1000;
-    match = true;
-    scoredDice.push(...set);
-  });
-
-  return { match, score, scoredDice };
-};
-
-const fiveOfKindChecker: RuleChecker = (counts) => {
-  let score = 0;
-  let match = false;
-  const scoredDice: Die[] = [];
-
-  counts.forEach((set) => {
-    if (set.length !== 5) return;
-
-    score += 2000;
-    match = true;
-    scoredDice.push(...set);
-  });
-
-  return { match, score, scoredDice };
-};
-
-const sixOfKindChecker: RuleChecker = (counts) => {
-  let score = 0;
-  let match = false;
-  const scoredDice: Die[] = [];
-
-  counts.forEach((set) => {
-    if (set.length !== 6) return;
-
-    score += 3000;
-    match = true;
-    scoredDice.push(...set);
-  });
-
-  return { match, score, scoredDice };
-};
-
-const straightChecker: RuleChecker = (counts) => {
-  const match = counts.size === 6;
-
-  return {
-    match,
-    score: 2500,
-    scoredDice: [...counts.values()].flatMap((s) => s),
-  };
-};
-
-const threePairsChecker: RuleChecker = (counts) => {
-  const pairs = Array.from(counts.values()).filter((set) => set.length === 2);
-  const match = pairs.length === 3;
-
-  return { match, score: 1500, scoredDice: pairs.flatMap((pair) => pair) };
-};
-
-const ruleCheckers: Record<RuleId, RuleChecker> = {
-  single_one: singleOneChecker,
-  single_five: singleFiveChecker,
-  three_of_kind: threeOfKindChecker,
-  four_of_kind: fourOfKindChecker,
-  five_of_kind: fiveOfKindChecker,
-  six_of_kind: sixOfKindChecker,
-  straight: straightChecker,
-  three_pairs: threePairsChecker,
-};
-
 export const DEFAULT_RULES: Record<RuleId, Rule> = {
   single_one: {
     id: "single_one",
     description: STRINGS.rules.one,
-    score: 100,
+    score: 10,
     enabled: true,
     activationCount: 0,
   },
   single_five: {
     id: "single_five",
     description: STRINGS.rules.five,
-    score: 50,
+    score: 5,
     enabled: true,
     activationCount: 0,
   },
-  three_of_kind: {
-    id: "three_of_kind",
-    description: STRINGS.rules.threeOfKind,
-    score: STRINGS.rules.threeOfKindScore,
+  set: {
+    id: "set",
+    description: "Three of a kind (or 2 + Spark)",
+    score: "n*10 or 100",
     enabled: true,
     activationCount: 0,
   },
-  four_of_kind: {
-    id: "four_of_kind",
-    description: STRINGS.rules.fourOfKind,
-    score: "1000",
+  heap: {
+    id: "heap",
+    description: "Five of a kind (or 4 + Spark)",
+    score: "n*100 or 1000",
     enabled: true,
     activationCount: 0,
   },
-  five_of_kind: {
-    id: "five_of_kind",
-    description: STRINGS.rules.fiveOfKind,
-    score: "2000",
+  landslide: {
+    id: "landslide",
+    description: "All 5 dice score",
+    score: 0,
     enabled: true,
     activationCount: 0,
   },
-  six_of_kind: {
-    id: "six_of_kind",
-    description: STRINGS.rules.sixOfKind,
-    score: "3000",
-    enabled: true,
-    activationCount: 0,
-  },
-  straight: {
-    id: "straight",
-    description: STRINGS.rules.straight,
-    score: 2500,
-    enabled: true,
-    activationCount: 0,
-  },
-  three_pairs: {
-    id: "three_pairs",
-    description: STRINGS.rules.threePairs,
-    score: 1500,
-    enabled: true,
-    activationCount: 0,
-  },
-};
-
-const countDice = (dice: Die[]): Counts => {
-  return dice.reduce<Counts>((memo, die) => {
-    const count = memo.get(die.value);
-
-    if (count) {
-      count.push(die);
-    } else {
-      memo.set(die.value, [die]);
-    }
-
-    return memo;
-  }, new Map() as Counts);
 };
 
 export interface ScoringGroup {
   ruleId: RuleId;
   score: number;
   dice: Die[];
+  value: DieValue;
 }
 
 export function calculateScore(
@@ -213,48 +59,100 @@ export function calculateScore(
     return { score: 0, scoringRuleIds: [], scoredDice: [], groups: [] };
 
   let totalScore = 0;
-  const unscoredDice = new Set<Die>(selectedDice);
+  const unscoredDice = [...selectedDice];
   const scoringRuleIds: RuleId[] = [];
   const groups: ScoringGroup[] = [];
-  let counts = countDice([...unscoredDice.values()]);
 
-  // Priority order: higher combinations first
-  const priorityOrder: RuleId[] = [
-    "six_of_kind",
-    "five_of_kind",
-    "four_of_kind",
-    "straight",
-    "three_pairs",
-    "three_of_kind",
-    "single_one",
-    "single_five",
-  ];
-
-  for (const ruleId of priorityOrder) {
-    const rule = rules[ruleId];
-    if (!rule || !rule.enabled) continue;
-
-    const checker = ruleCheckers[ruleId];
-    const result = checker(counts);
-
-    if (result.match && result.score > 0) {
-      totalScore += result.score;
-      scoringRuleIds.push(ruleId);
-      groups.push({
-        ruleId,
-        score: result.score,
-        dice: result.scoredDice,
+  // Helper to find and remove dice
+  const pullDice = (value: DieValue, count: number, includeSpark: boolean): Die[] | null => {
+    const matches = unscoredDice.filter(d => d.value === value);
+    const spark = unscoredDice.find(d => d.value === "spark");
+    
+    if (includeSpark && spark && matches.length >= count - 1) {
+      const taken = matches.slice(0, count - 1);
+      const result = [...taken, spark];
+      result.forEach(d => {
+        const idx = unscoredDice.indexOf(d);
+        if (idx > -1) unscoredDice.splice(idx, 1);
       });
+      return result;
+    } else if (matches.length >= count) {
+      const taken = matches.slice(0, count);
+      taken.forEach(d => {
+        const idx = unscoredDice.indexOf(d);
+        if (idx > -1) unscoredDice.splice(idx, 1);
+      });
+      return taken;
+    }
+    return null;
+  };
 
-      result.scoredDice.forEach((die) => unscoredDice.delete(die));
-      counts = countDice([...unscoredDice.values()]);
+  const spark = unscoredDice.find(d => d.value === "spark");
+
+  // 1. Heaps (5 of a kind)
+  const values: DieValue[] = [1, 2, 4, 5, 6];
+  for (const v of values) {
+    // If 4 matches + Spark, it MUST be a heap
+    const heap = pullDice(v, 5, true);
+    if (heap) {
+      const score = v === 1 ? 1000 : (v as number) * 100;
+      totalScore += score;
+      scoringRuleIds.push("heap");
+      groups.push({ ruleId: "heap", score, dice: heap, value: v });
+      break; // Only one heap possible with 5 dice
     }
   }
+
+  // 2. Sets (3 of a kind)
+  // Re-check values for sets after possible heap
+  for (const v of values) {
+    // If 2 matches + Spark, it MUST be a set
+    const set = pullDice(v, 3, true);
+    if (set) {
+      const score = v === 1 ? 100 : (v as number) * 10;
+      totalScore += score;
+      scoringRuleIds.push("set");
+      groups.push({ ruleId: "set", score, dice: set, value: v });
+    }
+  }
+
+  // 3. Singles (1, 5, or Spark as 1/5)
+  // Spark can be 1 (10pts) or 5 (5pts). We'll take 1 if it's left.
+  const remainingSpark = unscoredDice.find(d => d.value === "spark");
+  if (remainingSpark) {
+     const idx = unscoredDice.indexOf(remainingSpark);
+     unscoredDice.splice(idx, 1);
+     totalScore += 10;
+     scoringRuleIds.push("single_one");
+     groups.push({ ruleId: "single_one", score: 10, dice: [remainingSpark], value: 1 });
+  }
+
+  // Ones
+  let one;
+  while ((one = unscoredDice.find(d => d.value === 1))) {
+    const idx = unscoredDice.indexOf(one);
+    unscoredDice.splice(idx, 1);
+    totalScore += 10;
+    scoringRuleIds.push("single_one");
+    groups.push({ ruleId: "single_one", score: 10, dice: [one], value: 1 });
+  }
+
+  // Fives
+  let five;
+  while ((five = unscoredDice.find(d => d.value === 5))) {
+    const idx = unscoredDice.indexOf(five);
+    unscoredDice.splice(idx, 1);
+    totalScore += 5;
+    scoringRuleIds.push("single_five");
+    groups.push({ ruleId: "single_five", score: 5, dice: [five], value: 5 });
+  }
+
+  const scoredDice = selectedDice.filter(d => !unscoredDice.includes(d));
 
   return {
     score: totalScore,
     scoringRuleIds,
-    scoredDice: selectedDice.filter((die) => !unscoredDice.has(die)),
+    scoredDice,
     groups,
   };
 }
@@ -266,7 +164,7 @@ export function hasAnyScore(
   return calculateScore(dice, rules).score > 0;
 }
 
-export function isSparkle(
+export function isFizzle(
   dice: Die[],
   rules: RuleMap = DEFAULT_RULES,
 ): boolean {

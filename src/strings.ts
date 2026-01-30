@@ -6,24 +6,26 @@ export const STRINGS = {
     selectAndBank: "Select scoring dice and bank them, or roll again!",
     bankedPoints: (score: number) =>
       `Banked ${score} points! Roll again or end turn.`,
-    hotDice: (score: number, count: number) =>
-      `Banked ${score} points! Hot dice! Rolling all ${count} dice again...`,
+    landslide: `What a landslide! Keep rolling...`,
     turnOver: (score: number) => `Turn over! You scored ${score} points!`,
     rerollsRemaining: (count: number) =>
       `Re-rolled! ${count} re-roll(s) remaining.`,
-    sparkleNoScore: "✨ SPARKLE! No scoring dice! Use a re-roll if available.",
-    sparkleStillSparkled: (count: number) =>
-      `✨ SPARKLE! Still sparkled! Use a re-roll if available (${count} Extra Dice left).`,
-    gameOver: (score: number) => `✨ SPARKLE! Game Over! Final score: ${score}`,
-    sparkleContinue: (score: number) =>
-      `✨ SPARKLE! Lost turn points, but you can continue! Total: ${score}`,
+    fizzleNoScore: "💀 FIZZLE! No scoring dice! Use a re-roll if available.",
+    fizzleStillFizzled: (count: number) =>
+      `💀 FIZZLE! Still fizzled! Use a re-roll if available (${count} Extra Dice left).`,
+    gameOver: (score: number) => `💀 FIZZLE! Game Over! Final score: ${score}`,
+    fizzleContinue: (score: number) =>
+      `💀 FIZZLE! Lost turn points, but you can continue! Total: ${score}`,
     autoRerollSaved: "🔄 Auto Re-roll used! Saved!",
-    autoRerollFailed: "🔄 Auto Re-roll used! Still sparkled! ✨",
+    autoRerollFailed: "🔄 Auto Re-roll used! Still fizzled! 💀",
     upgradeApplied: "Upgrade applied!",
     bonusRerollAdded: "Bonus re-roll added!",
-    guhkleTriggered: "😲 GUHKLE! First roll sparkle! Auto re-rolling...",
+    guhkleTriggered: "😲 GUHKLE! First roll fizzle! Auto re-rolling...",
     guhkleSaved: "😅 GUHKLE! Scored on re-roll!",
-    guhkleFailed: "💀 DOUBLE GUHKLE! Still sparkled!",
+    guhkleFailed: "💀 DOUBLE GUHKLE! Still fizzled!",
+    certificationNeeded: (value: string | number) =>
+      `Set of ${value} needs certification! Roll and score to clear.`,
+    certificationIgnored: "Ignored matching dice! Re-rolling...",
   },
   errors: {
     selectDice: "Select some dice first!",
@@ -35,24 +37,25 @@ export const STRINGS = {
     noRerolls: "No re-rolls available!",
     noExtraDice: "No extra dice available!",
     boardFull: "Board is already full!",
+    certificationActive: "You must certify your set first!",
   },
   rules: {
-    header: "Sparkle Rules",
+    header: "Cosmic Wimpout Rules",
     scoringHeader: "Scoring Rules",
     shortcutsHeader: "Keyboard Shortcuts",
-    one: "1",
-    five: "5",
-    threeOfKind: "Three of a kind",
-    threeOfKindScore: "1000 (111) or value×100",
-    fourOfKind: "4444",
-    fiveOfKind: "55555",
-    sixOfKind: "666666",
-    straight: "123456",
-    threePairs: "112233",
+    one: "1 (10 pts)",
+    five: "5 (5 pts)",
+    threeOfKind: "Set (3 of a kind)",
+    threeOfKindScore: "n×10 (111=100)",
+    fourOfKind: "N/A",
+    fiveOfKind: "Heap (5 of a kind)",
+    sixOfKind: "N/A",
+    straight: "N/A",
+    threePairs: "N/A",
   },
   ui: {
     turn: "Turn",
-    nextLevel: (turn: number) => `Next Level: Turn ${turn}`,
+    nextLevel: (turn: number) => `Turn ${turn}`,
     rerolls: "Re-Rolls",
     extraDice: "Extra Dice",
     highScore: "High Score",
@@ -83,7 +86,7 @@ export const STRINGS = {
       bankedMultiplier: "2x total turn score when this die is banked",
       bankedBonus: "+500 total turn score when this die is banked",
       autoReroll:
-        "Automatically re-rolls this die if it causes a Sparkle (3 uses)",
+        "Automatically re-rolls this die if it causes a Fizzle (3 uses)",
       setBonus:
         "Increases score by N^3 where N is number of Set Bonus dice in the scoring set",
       extraDie: "Immediately gain +1 Extra Die",

@@ -27,6 +27,7 @@ describe("Game Selectors", () => {
           banked: false,
           position: 1,
           upgrades: [],
+          isSparkDie: true,
         },
         {
           id: 2,
@@ -35,14 +36,16 @@ describe("Game Selectors", () => {
           banked: false,
           position: 2,
           upgrades: [],
+          isSparkDie: false,
         },
         {
           id: 3,
-          value: 3,
+          value: 4,
           staged: false,
           banked: true,
           position: 3,
           upgrades: [],
+          isSparkDie: false,
         },
         {
           id: 4,
@@ -51,6 +54,7 @@ describe("Game Selectors", () => {
           banked: true,
           position: 4,
           upgrades: [],
+          isSparkDie: false,
         },
       ],
       bankedScore: 0,
@@ -60,11 +64,13 @@ describe("Game Selectors", () => {
       gameOver: false,
       message: "",
       scoringRules: DEFAULT_RULES,
-      lastRollSparkled: false,
+      lastRollFizzled: false,
       highScore: 0,
       upgradeOptions: [],
       extraDicePool: 3,
       hotDiceCount: 0,
+      permanentMultiplier: 1,
+      certificationNeededValue: null,
       isGuhkleAttempt: false,
       rollsInTurn: 0,
       pendingUpgradeDieSelection: null,
@@ -113,6 +119,7 @@ describe("Game Selectors", () => {
           banked: false,
           position: 1,
           upgrades: [],
+          isSparkDie: true,
         },
         {
           id: 2,
@@ -121,25 +128,22 @@ describe("Game Selectors", () => {
           banked: false,
           position: 2,
           upgrades: [],
+          isSparkDie: false,
         },
       ];
       const score = getStagedScore(state);
-      expect(score).toBe(150); // 100 (for 1) + 50 (for 5)
+      expect(score).toBe(15); // 10 (for 1) + 5 (for 5)
     });
   });
 
   describe("calculateThreshold", () => {
     const tests = [
-      [0, 100],
       [1, 100],
-      [2, 100],
-      [3, 1000],
-      [4, 1000],
-      [5, 1000],
-      [6, 10000],
-      [9, 100000],
-      [12, 1000000],
-      [15, 10000000],
+      [2, 200],
+      [3, 400],
+      [4, 800],
+      [5, 1600],
+      [6, 3200],
     ];
 
     it.each(tests)(
@@ -179,6 +183,7 @@ describe("Game Selectors", () => {
           banked: false,
           position: 1,
           upgrades: [],
+          isSparkDie: true,
         },
         {
           id: 2,
@@ -187,6 +192,7 @@ describe("Game Selectors", () => {
           banked: false,
           position: 2,
           upgrades: [],
+          isSparkDie: false,
         },
       ];
       expect(canBank(state)).toBe(false);
@@ -201,14 +207,16 @@ describe("Game Selectors", () => {
           banked: false,
           position: 1,
           upgrades: [],
+          isSparkDie: true,
         },
         {
           id: 2,
-          value: 3,
+          value: 4,
           staged: true,
           banked: false,
           position: 2,
           upgrades: [],
+          isSparkDie: false,
         },
       ];
       expect(canBank(state)).toBe(false);
@@ -223,6 +231,7 @@ describe("Game Selectors", () => {
           banked: false,
           position: 1,
           upgrades: [],
+          isSparkDie: true,
         },
         {
           id: 2,
@@ -231,6 +240,7 @@ describe("Game Selectors", () => {
           banked: false,
           position: 2,
           upgrades: [],
+          isSparkDie: false,
         },
       ];
       expect(canBank(state)).toBe(true);
@@ -243,9 +253,9 @@ describe("Game Selectors", () => {
       expect(canEndTurn(state)).toBe(false);
     });
 
-    it("should return false when points don't meet threshold", () => {
+    it("should return false when certification is needed", () => {
       state.bankedScore = 1000;
-      state.threshold = 2000;
+      state.certificationNeededValue = 2;
       expect(canEndTurn(state)).toBe(false);
     });
 
@@ -256,8 +266,8 @@ describe("Game Selectors", () => {
       expect(canEndTurn(state)).toBe(true);
     });
 
-    it("should return true when sparkled regardless of threshold", () => {
-      state.lastRollSparkled = true;
+    it("should return true when fizzled", () => {
+      state.lastRollFizzled = true;
       state.totalScore = 0;
       state.threshold = 1000;
       expect(canEndTurn(state)).toBe(true);
@@ -266,12 +276,12 @@ describe("Game Selectors", () => {
 
   describe("createDice", () => {
     it("should create specified number of dice", () => {
-      const dice = createDice(6);
-      expect(dice).toHaveLength(6);
+      const dice = createDice(5);
+      expect(dice).toHaveLength(5);
     });
 
     it("should create unstaged and unbanked dice", () => {
-      const dice = createDice(6);
+      const dice = createDice(5);
       dice.forEach((die) => {
         expect(die.staged).toBe(false);
         expect(die.banked).toBe(false);
@@ -279,7 +289,7 @@ describe("Game Selectors", () => {
     });
 
     it("should assign positions to dice", () => {
-      const dice = createDice(6);
+      const dice = createDice(5);
       dice.forEach((die, index) => {
         expect(die.position).toBe(index + 1);
       });

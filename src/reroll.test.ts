@@ -15,8 +15,8 @@ describe("Re-Roll Mechanic", () => {
     state = resetResult.state;
   });
 
-  it("should start with 6 extra dice available", () => {
-    expect(state.extraDicePool).toBe(6);
+  it("should start with 5 extra dice available", () => {
+    expect(state.extraDicePool).toBe(5);
   });
 
   it("should consume extra dice when re-rolling", () => {
@@ -24,6 +24,7 @@ describe("Re-Roll Mechanic", () => {
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
 
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
+    // Cost is 5 (all active dice)
     expect(result.state.extraDicePool).toBe(0);
   });
 
@@ -41,7 +42,7 @@ describe("Re-Roll Mechanic", () => {
 
     // Find a scoring die and bank it
     const scoringDie = state.dice.find(
-      (d) => (d.value === 1 || d.value === 5) && !d.banked,
+      (d) => (d.value === 1 || d.value === 5 || d.value === "spark") && !d.banked,
     );
 
     if (scoringDie) {
@@ -62,19 +63,18 @@ describe("Re-Roll Mechanic", () => {
     }
   });
 
-  it("should allow re-roll after sparkle", () => {
+  it("should allow re-roll after fizzle", () => {
     // Roll dice
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
 
-    // Manually simulate sparkle state
-    state = { ...state, lastRollSparkled: true };
+    // Manually simulate fizzle state
+    state = { ...state, lastRollFizzled: true, extraDicePool: 5 };
 
     // canReRoll should return true if extra dice available
     expect(canReRoll(state)).toBe(true);
 
     // Should be able to use re-roll
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    // Assuming 6 dice and 3 extra dice, cost is 3
     expect(result.state.extraDicePool).toBe(0);
   });
 
@@ -86,7 +86,7 @@ describe("Re-Roll Mechanic", () => {
 
     // Reset game
     const result = gameEngine.processCommand(state, { type: "RESET_GAME" });
-    expect(result.state.extraDicePool).toBe(6);
+    expect(result.state.extraDicePool).toBe(5);
   });
 
   it("canReRoll should return false when no extra dice available", () => {
@@ -103,10 +103,7 @@ describe("Re-Roll Mechanic", () => {
 
   it("should create new dice when re-rolling", () => {
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
-    // 6 dice.
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
-    // 3 extra dice used. 3 dice re-rolled. 3 kept.
-    // Total dice count should still be 6.
-    expect(result.state.dice.length).toBe(6);
+    expect(result.state.dice.length).toBe(5);
   });
 });

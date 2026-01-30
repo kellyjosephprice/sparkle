@@ -1,5 +1,5 @@
 import { createDice, getActiveDice, getBankedDice } from "../../game";
-import { isSparkle } from "../../scoring";
+import { isFizzle } from "../../scoring";
 import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
 import type { CommandResult, GameCommand, GameEvent } from "../types";
@@ -11,29 +11,54 @@ export function handleRoll(state: GameState): CommandResult {
 
   const rollsInTurn = state.rollsInTurn + 1;
   const activeDice = getActiveDice(state);
-  const newDice = createDice(activeDice.length, activeDice);
-  const sparkled = isSparkle(newDice, state.scoringRules);
+  
+  // Logic for Certification: "If any of the re-rolled dice have the same value as the set, you must ignore that roll and re-roll."
+  let newDice = createDice(activeDice.length, activeDice);
+  let ignored = false;
+  if (state.certificationNeededValue !== null) {
+    while (newDice.some(d => d.value === state.certificationNeededValue)) {
+      ignored = true;
+      newDice = createDice(activeDice.length, activeDice);
+    }
+  }
 
-  const message = sparkled
-    ? STRINGS.game.sparkleNoScore
+  const fizzled = isFizzle(newDice, state.scoringRules);
+
+  let message = fizzled
+    ? STRINGS.game.fizzleNoScore
     : STRINGS.game.selectAndBank;
+
+  if (ignored) {
+    message = STRINGS.game.certificationIgnored + " " + message;
+  }
 
   const bankedDice = getBankedDice(state);
   const events: GameEvent[] = [
-    { type: "DICE_ROLLED", dice: newDice, sparkled },
+    { type: "DICE_ROLLED", dice: newDice, sparkled: fizzled }, // sparkled here means fizzled in the event type
   ];
 
   const newState: GameState = {
     ...state,
     dice: [...bankedDice, ...newDice],
-    lastRollSparkled: sparkled,
+    lastRollFizzled: fizzled,
     message: message,
     rollsInTurn,
   };
 
-  // Handle Guhkle (first roll sparkle AND 6 dice)
-  if (sparkled && rollsInTurn === 1 && activeDice.length === 6) {
-    newState.message = STRINGS.game.guhkleTriggered;
+  // If we were certifying and we scored, certification is cleared
+  if (state.certificationNeededValue !== null && !fizzled) {
+    newState.certificationNeededValue = null;
+  }
+
+  // Handle free extra die on fizzle with 5 dice
+  if (fizzled && newDice.length === 5) {
+    newState.extraDicePool += 1;
+    newState.message += " (+1 Extra Die!)";
+  }
+
+  // Handle Guhkle (first roll fizzle AND 5 dice)
+  if (fizzled && rollsInTurn === 1 && activeDice.length === 5) {
+    newState.message = STRINGS.game.guhkleTriggered + " (+1 Extra Die!)";
     newState.isGuhkleAttempt = true;
     events.push({
       type: "DELAYED_ACTION",
@@ -43,14 +68,8 @@ export function handleRoll(state: GameState): CommandResult {
     return { state: newState, events };
   }
 
-  // Handle free extra die on sparkle with 6 dice
-  if (sparkled && newDice.length === 6) {
-    newState.extraDicePool += 1;
-    newState.message += " (+1 Extra Die!)"; // Crude message append, can improve
-  }
-
   // Handle Auto Re-roll upgrade via delayed action
-  if (sparkled) {
+  if (fizzled) {
     const autoRerollDie = newDice.find((d) =>
       d.upgrades.some(
         (u) => u.type === "AUTO_REROLL" && (u.remainingUses ?? 0) > 0,
@@ -61,7 +80,7 @@ export function handleRoll(state: GameState): CommandResult {
       events.push({
         type: "DELAYED_ACTION",
         action: { type: "EXECUTE_AUTO_REROLL", dieId: autoRerollDie.id },
-        delay: 600, // Slightly more than animation duration
+        delay: 600,
       });
     }
   }
@@ -78,7 +97,6 @@ export function handleExecuteAutoReroll(
 
   if (!die || die.banked) return { state, events: [] };
 
-  // Find the upgrade and decrement uses
   const updatedDice = state.dice.map((d) =>
     d.id === dieId
       ? {
@@ -93,22 +111,34 @@ export function handleExecuteAutoReroll(
   );
 
   const activeDice = updatedDice.filter((d) => !d.banked);
-  const newDice = createDice(activeDice.length, activeDice);
-  const bankedDice = updatedDice.filter((d) => d.banked);
-  const sparkled = isSparkle(newDice, state.scoringRules);
+  let newDice = createDice(activeDice.length, activeDice);
+  
+  // Re-apply certification ignore logic if applicable
+  if (state.certificationNeededValue !== null) {
+    while (newDice.some(d => d.value === state.certificationNeededValue)) {
+      newDice = createDice(activeDice.length, activeDice);
+    }
+  }
 
-  const message = sparkled ? STRINGS.game.autoRerollFailed : STRINGS.game.autoRerollSaved;
+  const bankedDice = updatedDice.filter((d) => d.banked);
+  const fizzled = isFizzle(newDice, state.scoringRules);
+
+  const message = fizzled ? STRINGS.game.autoRerollFailed : STRINGS.game.autoRerollSaved;
 
   const newState: GameState = {
     ...state,
     dice: [...bankedDice, ...newDice],
-    lastRollSparkled: sparkled,
+    lastRollFizzled: fizzled,
     message,
   };
+  
+  if (state.certificationNeededValue !== null && !fizzled) {
+    newState.certificationNeededValue = null;
+  }
 
   return {
     state: newState,
-    events: [{ type: "DICE_ROLLED", dice: newDice, sparkled }],
+    events: [{ type: "DICE_ROLLED", dice: newDice, sparkled: fizzled }],
   };
 }
 
@@ -116,18 +146,22 @@ export function handleExecuteGuhkleReroll(
   state: GameState,
 ): CommandResult {
   const activeDice = getActiveDice(state);
-  const newDice = createDice(activeDice.length, activeDice);
-  const bankedDice = getBankedDice(state);
-  const sparkled = isSparkle(newDice, state.scoringRules);
+  let newDice = createDice(activeDice.length, activeDice);
+  
+  if (state.certificationNeededValue !== null) {
+    while (newDice.some(d => d.value === state.certificationNeededValue)) {
+      newDice = createDice(activeDice.length, activeDice);
+    }
+  }
 
-  if (sparkled) {
-    // Double Guhkle!
-    // Player can still try to re-roll if they have extra dice.
-    
+  const bankedDice = getBankedDice(state);
+  const fizzled = isFizzle(newDice, state.scoringRules);
+
+  if (fizzled) {
     const newState: GameState = {
       ...state,
       dice: [...bankedDice, ...newDice],
-      lastRollSparkled: true,
+      lastRollFizzled: true,
       message: STRINGS.game.guhkleFailed,
       isGuhkleAttempt: false,
     };
@@ -140,13 +174,13 @@ export function handleExecuteGuhkleReroll(
     };
   }
 
-  // Guhkle saved!
   const newState: GameState = {
     ...state,
     dice: [...bankedDice, ...newDice],
-    lastRollSparkled: false,
+    lastRollFizzled: false,
     message: STRINGS.game.guhkleSaved,
     isGuhkleAttempt: false,
+    certificationNeededValue: null,
   };
 
   return {

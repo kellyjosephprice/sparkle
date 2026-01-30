@@ -1,7 +1,7 @@
 import { createDice, getActiveDice, getBankedDice, getStagedDice } from "../../game";
-import { isSparkle } from "../../scoring";
+import { isFizzle } from "../../scoring";
 import { STRINGS } from "../../strings";
-import type { Die, GameState } from "../../types";
+import type { GameState } from "../../types";
 import type { CommandResult } from "../types";
 
 export function handleReRoll(state: GameState): CommandResult {
@@ -19,7 +19,6 @@ export function handleReRoll(state: GameState): CommandResult {
   }
 
   // Calculate cost and how many dice we can re-roll
-  const diceCount = activeUnstagedDice.length;
   const extraDiceAvailable = state.extraDicePool;
   
   if (extraDiceAvailable <= 0) {
@@ -29,66 +28,50 @@ export function handleReRoll(state: GameState): CommandResult {
     };
   }
 
-  const numToReroll = Math.min(diceCount, extraDiceAvailable);
-  const cost = numToReroll;
-
-  // Select dice to re-roll
-  let diceToReroll: Die[] = [];
-  let diceToKeep: Die[] = [];
-
-  if (numToReroll === diceCount) {
-    // Re-roll all
-    diceToReroll = activeUnstagedDice;
-  } else {
-    // Randomly select subset
-    // Shuffle activeUnstagedDice
-    const shuffled = [...activeUnstagedDice].sort(() => Math.random() - 0.5);
-    diceToReroll = shuffled.slice(0, numToReroll);
-    diceToKeep = shuffled.slice(numToReroll);
+  // Cost is 1 extra die per re-roll of any number of dice? 
+  // No, the previous logic was cost = activeUnstagedDice.length.
+  // I will stick to cost = 1 per die for now as it makes more sense with "Extra Dice Pool".
+  const cost = activeUnstagedDice.length;
+  if (cost > extraDiceAvailable) {
+     return {
+      state: { ...state, message: STRINGS.errors.noExtraDice },
+      events: [{ type: "ERROR", message: STRINGS.errors.noExtraDice }],
+    };
   }
 
   // Create new dice for the ones being re-rolled
-  // We pass diceToReroll to createDice to preserve positions/upgrades of those specific dice
-  const newRolledDice = createDice(diceToReroll.length, diceToReroll);
+  const newRolledDice = createDice(activeUnstagedDice.length, activeUnstagedDice);
   
-  // Combine: Banked + Staged + Kept (Unstaged) + New Rolled (Unstaged)
+  // Combine: Banked + Staged + Kept (Unstaged - none) + New Rolled (Unstaged)
   const stagedDice = getStagedDice(state);
   const bankedDice = getBankedDice(state);
   
-  // The new active dice pool for scoring check includes Staged + Kept + NewRolled
-  // Wait, isSparkle checks the passed dice. Usually we check ALL active dice.
-  // But if I staged some, they are scoring. So the combined set definitely has score.
-  // Sparkle usually only matters if I have NO scoring dice.
-  // If I have staged dice, I am safe from Sparkle.
-  // If I have NO staged dice (e.g. bust), then we check the new combined set (Kept + NewRolled).
-  
-  const currentActiveDice = [...stagedDice, ...diceToKeep, ...newRolledDice];
-  const sparkled = isSparkle(currentActiveDice, state.scoringRules);
+  const currentActiveDice = [...stagedDice, ...newRolledDice];
+  const fizzled = isFizzle(currentActiveDice, state.scoringRules);
 
   const newExtraDicePool = extraDiceAvailable - cost;
+  
+  const allNewDice = [...bankedDice, ...stagedDice, ...newRolledDice];
+  
+  const message = fizzled
+    ? STRINGS.game.fizzleNoScore
+    : STRINGS.game.rerollsRemaining(newExtraDicePool);
 
-  // Re-assemble all dice
-  // We need to ensure the order/positions are correct or at least unique IDs are preserved.
-  // createDice generates new IDs? No, it uses nextDieId++.
-  // But we want to preserve the IDs of the KEPT dice.
-  
-  const allNewDice = [...bankedDice, ...stagedDice, ...diceToKeep, ...newRolledDice];
-  // Sort by position to keep UI stable? Dice component handles positioning by `die.position`.
-  
-  const message = sparkled
-    ? STRINGS.game.sparkleNoScore
-    : STRINGS.game.rerollsRemaining(newExtraDicePool).replace("re-roll(s) remaining", "Extra Dice left"); 
-    // TODO: Update string to reflect Extra Dice concept properly
+  const newState: GameState = {
+    ...state,
+    dice: allNewDice,
+    extraDicePool: newExtraDicePool,
+    lastRollFizzled: fizzled,
+    message: message,
+  };
+
+  // Clear certification if we were in it and now we have a score
+  if (state.certificationNeededValue !== null && !fizzled) {
+    newState.certificationNeededValue = null;
+  }
 
   return {
-    state: {
-      ...state,
-      dice: allNewDice,
-      extraDicePool: newExtraDicePool,
-      lastRollSparkled: sparkled,
-      message: message,
-    },
+    state: newState,
     events: [{ type: "DICE_REROLLED", dice: newRolledDice }],
   };
 }
-

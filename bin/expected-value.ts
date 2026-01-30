@@ -45,7 +45,7 @@ function simulateTurn(state: GameState, strategy: StrategyConfig): GameState {
     iterations++;
     if (iterations > 500) return { ...currentState, gameOver: true };
 
-    if (currentState.lastRollSparkled) {
+    if (currentState.lastRollFizzled) {
       if (currentState.extraDicePool > 0) {
         currentState = gameEngine.processCommand(currentState, {
           type: "RE_ROLL",

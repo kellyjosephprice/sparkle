@@ -2,26 +2,24 @@ import { DieUpgrade, UpgradeOption, UpgradeType } from "./die-upgrades";
 
 export type { DieUpgrade, UpgradeOption, UpgradeType };
 
-export type DieValue = 1 | 2 | 3 | 4 | 5 | 6;
+export type DieValue = 1 | 2 | 4 | 5 | 6 | "spark";
 
 export interface Die {
   id: number;
   value: DieValue;
   staged: boolean;
   banked: boolean;
-  position: number; // Persistent position (1-6)
+  position: number; // Persistent position (1-5)
   upgrades: DieUpgrade[];
+  isSparkDie: boolean;
 }
 
 export type RuleId =
   | "single_one"
   | "single_five"
-  | "three_of_kind"
-  | "four_of_kind"
-  | "five_of_kind"
-  | "six_of_kind"
-  | "straight"
-  | "three_pairs";
+  | "set"
+  | "heap"
+  | "landslide";
 
 export interface Rule {
   id: RuleId;
@@ -38,7 +36,7 @@ export interface GameState {
   dice: Die[];
   gameOver: boolean;
   highScore: number;
-  lastRollSparkled: boolean;
+  lastRollFizzled: boolean;
   message: string;
   scoringRules: RuleMap;
   threshold: number;
@@ -49,6 +47,8 @@ export interface GameState {
   extraDicePool: number;
   hotDiceCount: number;
   permanentMultiplier: number;
+  // Certification logic
+  certificationNeededValue: DieValue | null;
   // Upgrade related state
   upgradeOptions: UpgradeOption[];
   pendingUpgradeDieSelection: UpgradeType | null;

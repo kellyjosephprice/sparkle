@@ -12,7 +12,7 @@ export function handleReset(state: GameState): CommandResult {
   return {
     state: {
       ...state,
-      dice: createDice(6),
+      dice: createDice(5),
       bankedScore: 0,
       totalScore: 0,
       threshold: calculateThreshold(1),
@@ -22,8 +22,9 @@ export function handleReset(state: GameState): CommandResult {
       gameOver: false,
       message: STRINGS.game.newGameStarted,
       scoringRules: DEFAULT_RULES,
-      lastRollSparkled: false,
+      lastRollFizzled: false,
       extraDicePool: STARTING_EXTRA_DICE,
+      certificationNeededValue: null,
       upgradeOptions: [],
       pendingUpgradeDieSelection: null,
       potentialUpgradePosition: null,

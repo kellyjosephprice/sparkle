@@ -73,7 +73,7 @@ export function handleEndTurn(
   const gameOver =
     command.isSparkled === true && newTotalScore < state.threshold;
 
-  // Increment threshold level if we've passed the current threshold
+  // Increment threshold level
   const newThreshold = calculateThreshold(nextTurnNumber);
 
   const highScore = Math.max(state.highScore, newTotalScore);
@@ -83,14 +83,14 @@ export function handleEndTurn(
     if (gameOver) {
       message = STRINGS.game.gameOver(newTotalScore);
     } else {
-      message = STRINGS.game.sparkleContinue(newTotalScore);
+      message = STRINGS.game.fizzleContinue(newTotalScore);
     }
   } else {
     message = STRINGS.game.turnOver(totalTurnScore);
   }
 
   // Create new dice for next turn (if not game over)
-  const newDice = gameOver ? state.dice : createDice(state.dice.length, state.dice);
+  const newDice = gameOver ? state.dice : createDice(5, state.dice);
 
   const events: GameEvent[] = [
     {
@@ -124,7 +124,7 @@ export function handleEndTurn(
       dice: newDice,
       gameOver: gameOver,
       highScore,
-      lastRollSparkled: false,
+      lastRollFizzled: false,
       message: message,
       scoringRules: state.scoringRules,
       threshold: newThreshold,
@@ -134,6 +134,8 @@ export function handleEndTurn(
       isGuhkleAttempt: false,
       extraDicePool: newExtraDicePool,
       hotDiceCount: 0,
+      permanentMultiplier: state.permanentMultiplier,
+      certificationNeededValue: null,
       upgradeOptions,
       pendingUpgradeDieSelection: null,
       potentialUpgradePosition,

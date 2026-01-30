@@ -46,8 +46,8 @@ const Dice = forwardRef<DiceRef, DiceSectionsProps>(({
     (die) => die.staged || die.banked,
   );
 
-  // Create arrays with placeholders for all 6 positions
-  const activeDiceWithPlaceholders = Array.from({ length: 6 }, (_, index) => {
+  // Create arrays with placeholders for all 5 positions
+  const activeDiceWithPlaceholders = Array.from({ length: 5 }, (_, index) => {
     const position = index + 1;
     const die = activeDice.find((d) => d.position === position);
     return die ? (
@@ -69,7 +69,7 @@ const Dice = forwardRef<DiceRef, DiceSectionsProps>(({
   const hasUpgradeOptions = upgradeOptions.length > 0;
 
   const stagedOrBankedWithPlaceholders = Array.from(
-    { length: 6 },
+    { length: 5 },
     (_, index) => {
       const position = index + 1;
       const die = stagedOrBankedDice.find((d) => d.position === position);
@@ -93,7 +93,7 @@ const Dice = forwardRef<DiceRef, DiceSectionsProps>(({
   return (
     <div className="mb-6 border-2 border-gray-900 rounded-xl overflow-hidden">
       <div className="p-6">
-        <div className="grid grid-cols-6 justify-items-center">
+        <div className="grid grid-cols-5 justify-items-center">
           {activeDiceWithPlaceholders}
         </div>
       </div>
@@ -106,7 +106,7 @@ const Dice = forwardRef<DiceRef, DiceSectionsProps>(({
             focusedIndex={focusedUpgradeIndex}
           />
         ) : (
-          <div className="grid grid-cols-6 justify-items-center w-full">
+          <div className="grid grid-cols-5 justify-items-center w-full">
             {stagedOrBankedWithPlaceholders}
           </div>
         )}

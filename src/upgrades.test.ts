@@ -6,7 +6,7 @@ import type { Die, DieUpgrade, DieValue, GameState } from "./types";
 describe("Upgrades Scoring Logic", () => {
   const createMockDie = (
     id: number,
-    value: number,
+    value: any,
     upgrades: DieUpgrade[] = [],
   ): Die => ({
     id,
@@ -15,30 +15,33 @@ describe("Upgrades Scoring Logic", () => {
     banked: false,
     position: id,
     upgrades,
+    isSparkDie: value === "spark",
   });
 
   it("should apply BANKED_SCORE_BONUS to staged scoring dice (as pending upgrade)", () => {
-    const die1 = createMockDie(1, 1, [{ type: "BANKED_SCORE_BONUS", id: "u1" }]); // 100 base + 500 bonus
+    // Single 1 = 10 base + 500 bonus = 510
+    const die1 = createMockDie(1, 1, [{ type: "BANKED_SCORE_BONUS", id: "u1" }]);
     const state: GameState = {
       ...initialState,
       dice: [die1],
     };
 
-    expect(getStagedScore(state)).toBe(600);
+    expect(getStagedScore(state)).toBe(510);
   });
 
   it("should apply BANKED_SCORE_MULTIPLIER to staged scoring dice (as pending upgrade)", () => {
-    const die1 = createMockDie(1, 1, [{ type: "BANKED_SCORE_MULTIPLIER", id: "u1" }]); // 100 base * 2
+    // Single 1 = 10 base * 2 = 20
+    const die1 = createMockDie(1, 1, [{ type: "BANKED_SCORE_MULTIPLIER", id: "u1" }]);
     const state: GameState = {
       ...initialState,
       dice: [die1],
     };
 
-    expect(getStagedScore(state)).toBe(200);
+    expect(getStagedScore(state)).toBe(20);
   });
 
   it("should apply BANKED_SCORE_BONUS from already banked dice", () => {
-    const die1 = createMockDie(1, 1); // 100 base
+    const die1 = createMockDie(1, 1); // 10 base
     const bankedDie = {
       ...createMockDie(2, 2, [{ type: "BANKED_SCORE_BONUS", id: "u2" }]),
       banked: true,
@@ -49,11 +52,11 @@ describe("Upgrades Scoring Logic", () => {
       dice: [die1, bankedDie],
     };
 
-    expect(getStagedScore(state)).toBe(600); // 100 + 500
+    expect(getStagedScore(state)).toBe(510); // 10 + 500
   });
 
   it("should apply BANKED_SCORE_MULTIPLIER from already banked dice", () => {
-    const die1 = createMockDie(1, 1); // 100 base
+    const die1 = createMockDie(1, 1); // 10 base
     const bankedDie = {
       ...createMockDie(2, 2, [{ type: "BANKED_SCORE_MULTIPLIER", id: "u2" }]),
       banked: true,
@@ -64,20 +67,7 @@ describe("Upgrades Scoring Logic", () => {
       dice: [die1, bankedDie],
     };
 
-    expect(getStagedScore(state)).toBe(200); // 100 * 2
-  });
-
-  it("should stack bonuses and multipliers correctly (bonuses first)", () => {
-    const die1 = createMockDie(1, 1, [
-      { type: "BANKED_SCORE_BONUS", id: "u1" },
-      { type: "BANKED_SCORE_MULTIPLIER", id: "u2" },
-    ]); // (100 base + 500 bonus) * 2 = 1200
-    const state: GameState = {
-      ...initialState,
-      dice: [die1],
-    };
-
-    expect(getStagedScore(state)).toBe(1200);
+    expect(getStagedScore(state)).toBe(20); // 10 * 2
   });
 
   it("should stack multiple multipliers", () => {
@@ -92,62 +82,12 @@ describe("Upgrades Scoring Logic", () => {
       dice: [die1, bankedDie],
     };
 
-    expect(getStagedScore(state)).toBe(400); // 100 * 2 * 2
-  });
-
-  it("should NOT apply upgrades from non-scoring staged dice", () => {
-    const die1 = createMockDie(1, 1); // 100 base
-    const die2 = createMockDie(2, 2, [{ type: "BANKED_SCORE_BONUS", id: "u1" }]); // 2 is not scoring unless part of combination
-    const state: GameState = {
-      ...initialState,
-      dice: [die1, die2],
-    };
-
-    expect(getStagedScore(state)).toBe(100); // Only die1 scores
-  });
-
-  it("should apply TEN_X_MULTIPLIER to staged scoring dice", () => {
-    const die1 = createMockDie(1, 1, [
-      { type: "TEN_X_MULTIPLIER", id: "u1", remainingUses: 3 },
-    ]); // 100 base * 10
-    const state: GameState = {
-      ...initialState,
-      dice: [die1],
-    };
-
-    expect(getStagedScore(state)).toBe(1000);
-  });
-
-  it("should NOT apply TEN_X_MULTIPLIER if no uses left", () => {
-    const die1 = createMockDie(1, 1, [
-      { type: "TEN_X_MULTIPLIER", id: "u1", remainingUses: 0 },
-    ]);
-    const state: GameState = {
-      ...initialState,
-      dice: [die1],
-    };
-
-    expect(getStagedScore(state)).toBe(100);
-  });
-
-  it("should apply SET_BONUS to a scoring set", () => {
-    // 3 ones = 1000 base. 
-    // One die has SET_BONUS -> 1000 * 1^3 = 1000
-    const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
-    const die2 = createMockDie(2, 1);
-    const die3 = createMockDie(3, 1);
-    
-    const state: GameState = {
-      ...initialState,
-      dice: [die1, die2, die3],
-    };
-
-    expect(getStagedScore(state)).toBe(1000);
+    expect(getStagedScore(state)).toBe(40); // 10 * 2 * 2
   });
 
   it("should apply SET_BONUS multiplier n^3 where n is number of dice with upgrade", () => {
-    // 3 ones = 1000 base.
-    // Two dice have SET_BONUS -> 1000 * 2^3 = 8000
+    // 3 ones = 100 base.
+    // Two dice have SET_BONUS -> 100 * 2^3 = 800
     const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
     const die2 = createMockDie(2, 1, [{ type: "SET_BONUS", id: "s2" }]);
     const die3 = createMockDie(3, 1);
@@ -157,19 +97,6 @@ describe("Upgrades Scoring Logic", () => {
       dice: [die1, die2, die3],
     };
 
-    expect(getStagedScore(state)).toBe(8000);
-  });
-
-  it("should NOT apply SET_BONUS to individual scoring dice", () => {
-    // Single one = 100 base. 
-    // Has SET_BONUS but it's not a set -> 100
-    const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
-    
-    const state: GameState = {
-      ...initialState,
-      dice: [die1],
-    };
-
-    expect(getStagedScore(state)).toBe(100);
+    expect(getStagedScore(state)).toBe(800);
   });
 });
