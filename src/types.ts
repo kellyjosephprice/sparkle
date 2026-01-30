@@ -48,6 +48,7 @@ export interface GameState {
   isGuhkleAttempt: boolean;
   extraDicePool: number;
   hotDiceCount: number;
+  permanentMultiplier: number;
   // Upgrade related state
   upgradeOptions: UpgradeOption[];
   pendingUpgradeDieSelection: UpgradeType | null;

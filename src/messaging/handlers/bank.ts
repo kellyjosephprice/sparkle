@@ -90,6 +90,7 @@ export function handleBank(state: GameState): CommandResult {
         scoringRules: updatedRules,
         lastRollSparkled: false,
         hotDiceCount: state.hotDiceCount + 1,
+        permanentMultiplier: (state.permanentMultiplier ?? 1) + 1,
       },
       events: [{ type: "DICE_BANKED", score: stagedScore, hotDice: true }],
     };

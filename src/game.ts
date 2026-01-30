@@ -21,6 +21,7 @@ export const initialState: GameState = {
   isGuhkleAttempt: false,
   extraDicePool: STARTING_EXTRA_DICE,
   hotDiceCount: 0,
+  permanentMultiplier: 1,
   upgradeOptions: [],
   pendingUpgradeDieSelection: null,
   potentialUpgradePosition: null,
@@ -147,8 +148,8 @@ export function getTurnModifiers(state: GameState): {
     });
   });
 
-  multiplier = product + (state.hotDiceCount ?? 0);
-
+  multiplier = product + (state.hotDiceCount ?? 0) * (state.permanentMultiplier ?? 1);
+  
   return { multiplier, bonus };
 }
 
@@ -279,8 +280,8 @@ export function getStagedScore(state: GameState): number {
   });
 
   // Apply Hot Dice Modifier to the Multiplier
-  const totalMultiplier = multiplierProduct + (state.hotDiceCount ?? 0);
-
+  const totalMultiplier = (multiplierProduct + (state.hotDiceCount ?? 0)) * (state.permanentMultiplier ?? 1);
+  
   totalTurnScore *= totalMultiplier;
 
   return totalTurnScore;

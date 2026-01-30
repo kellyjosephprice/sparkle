@@ -35,8 +35,8 @@ export const DIE_UPGRADES: Record<UpgradeType, UpgradeConfig> = {
   },
   EXTRA_DIE: {
     type: "EXTRA_DIE",
-    description: STRINGS.upgrades.descriptions.extraDie,
-    label: STRINGS.upgrades.labels.extraDie,
+    description: "Immediately gain +6 Extra Dice",
+    label: "+6 Extra Dice",
   },
   AUTO_REROLL: {
     type: "AUTO_REROLL",

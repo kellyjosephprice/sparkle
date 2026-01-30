@@ -31,8 +31,8 @@ export function handleRoll(state: GameState): CommandResult {
     rollsInTurn,
   };
 
-  // Handle Guhkle (first roll sparkle)
-  if (sparkled && rollsInTurn === 1) {
+  // Handle Guhkle (first roll sparkle AND 6 dice)
+  if (sparkled && rollsInTurn === 1 && activeDice.length === 6) {
     newState.message = STRINGS.game.guhkleTriggered;
     newState.isGuhkleAttempt = true;
     events.push({
@@ -41,6 +41,12 @@ export function handleRoll(state: GameState): CommandResult {
       delay: 1000,
     });
     return { state: newState, events };
+  }
+
+  // Handle free extra die on sparkle with 6 dice
+  if (sparkled && newDice.length === 6) {
+    newState.extraDicePool += 1;
+    newState.message += " (+1 Extra Die!)"; // Crude message append, can improve
   }
 
   // Handle Auto Re-roll upgrade via delayed action

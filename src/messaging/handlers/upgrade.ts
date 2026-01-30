@@ -10,16 +10,16 @@ export function handleSelectUpgrade(
   const upgradeType = command.upgradeType;
   const position = state.potentialUpgradePosition;
 
-  if (upgradeType === "ADDITIONAL_REROLL") {
+  if ((upgradeType as string) === "EXTRA_DIE") {
     return {
       state: {
         ...state,
-        extraDicePool: state.extraDicePool + 1,
+        extraDicePool: state.extraDicePool + 6,
         upgradeOptions: [],
         potentialUpgradePosition: null,
-        message: STRINGS.game.bonusRerollAdded.replace("re-roll", "Extra Die"), // Hacky but works for now
+        message: "Added 6 Extra Dice!",
       },
-      events: [{ type: "UPGRADE_SELECTED", upgradeType: "ADDITIONAL_REROLL" }],
+      events: [{ type: "UPGRADE_SELECTED", upgradeType: "EXTRA_DIE" }],
     };
   }
 

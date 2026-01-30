@@ -130,7 +130,18 @@ export default function Home() {
         !uiState.rolling
       ) {
         const currentPos = uiState.focusedPosition ?? 1;
-        const newPos = currentPos === 1 ? 6 : currentPos - 1;
+        let newPos = currentPos === 1 ? 6 : currentPos - 1;
+        
+        // Find next non-banked die (loop until found or back to start)
+        let attempts = 0;
+        while (attempts < 6) {
+          const die = gameState.dice.find(d => d.position === newPos);
+          if (die && !die.banked) break;
+          
+          newPos = newPos === 1 ? 6 : newPos - 1;
+          attempts++;
+        }
+        
         diceRef.current?.focusDie(newPos);
       }
 
@@ -140,7 +151,18 @@ export default function Home() {
         !uiState.rolling
       ) {
         const currentPos = uiState.focusedPosition ?? 1;
-        const newPos = currentPos === 6 ? 1 : currentPos + 1;
+        let newPos = currentPos === 6 ? 1 : currentPos + 1;
+
+        // Find next non-banked die (loop until found or back to start)
+        let attempts = 0;
+        while (attempts < 6) {
+          const die = gameState.dice.find(d => d.position === newPos);
+          if (die && !die.banked) break;
+          
+          newPos = newPos === 6 ? 1 : newPos + 1;
+          attempts++;
+        }
+
         diceRef.current?.focusDie(newPos);
       }
 
