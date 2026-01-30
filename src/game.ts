@@ -4,6 +4,7 @@ import { STRINGS } from "./strings";
 import type { Die, DieValue, GameState } from "./types";
 
 export const BASE_THRESHOLD = 100;
+export const STARTING_EXTRA_DICE = 6;
 
 export const initialState: GameState = {
   bankedScore: 0,
@@ -18,7 +19,8 @@ export const initialState: GameState = {
   turnNumber: 1,
   rollsInTurn: 0,
   isGuhkleAttempt: false,
-  extraDicePool: 3,
+  extraDicePool: STARTING_EXTRA_DICE,
+  hotDiceCount: 0,
   upgradeOptions: [],
   pendingUpgradeDieSelection: null,
   potentialUpgradePosition: null,
@@ -75,6 +77,79 @@ export function getBankedDice(state: GameState): Die[] {
 
 export function getStagedDice(state: GameState): Die[] {
   return state.dice.filter((d) => d.staged && !d.banked);
+}
+
+export function getTurnModifiers(state: GameState): {
+  multiplier: number;
+  bonus: number;
+} {
+  const stagedDice = getStagedDice(state);
+  const bankedDice = getBankedDice(state);
+  let bonus = 0;
+  let multiplier = 1;
+
+  // Calculate local multipliers and bonuses from staged dice groups
+  // We need to group them to check set bonuses correctly
+  // But wait, getStagedScore calculates local group bonuses.
+  // The user asked for "Bonus" and "Multiplier" display.
+  // Does "Bonus" include Local Group Bonuses? e.g. Single 1 = 100.
+  // "as you select scoring dice the bonus will increase commensurately"
+  // This implies if I select a Single 1, something increases.
+  // If "Bonus" is just the point value, then `stagedScore` IS the bonus?
+  // But they asked for Multiplier AND Bonus separate from Score.
+  // "Below the score display".
+  // Score Display shows "Banked Score" and "Staged Score".
+  // If I have 100 staged. Bonus = 0. Multiplier = x1.
+  // If I have a die with "+100 Bonus".
+  // Staged Score = 200. Bonus = 100. Multiplier = x1.
+  // This seems to be the intent.
+  // So "Bonus" is the sum of `defaultValue` modifiers.
+  // And "Multiplier" is the global multiplier.
+
+  // 1. Bonuses from upgrades
+  // We need to know which staged dice are scoring to apply their upgrades
+  // (non-scoring staged dice shouldn't contribute, but `stagedDice` implies selected)
+  // `areAllStagedDiceScoring` checks this.
+  // We can assume user only selects scoring dice (or we only count scoring ones).
+  // Let's use `calculateScore` to be safe for staged dice.
+
+  const { scoredDice } = calculateScore(stagedDice, state.scoringRules);
+  const effectiveStagedDice = scoredDice;
+
+  // Process Bonuses (defaultValue)
+  [...effectiveStagedDice, ...bankedDice].forEach((die) => {
+    die.upgrades.forEach((u) => {
+      const config = DIE_UPGRADES[u.type];
+      if (!config) return;
+
+      // If requiresBanked, only count if banked OR staged (as "potential")
+      // User said "as you select scoring dice the bonus will increase"
+      // So we count it for staged dice too.
+      if (config.defaultValue) {
+        bonus += config.defaultValue;
+      }
+    });
+  });
+
+  // Process Multipliers
+  // Logic: Product of all multipliers + HotDiceCount
+  let product = 1;
+  [...effectiveStagedDice, ...bankedDice].forEach((die) => {
+    die.upgrades.forEach((u) => {
+      const config = DIE_UPGRADES[u.type];
+      if (!config) return;
+
+      if (config.multiplier) {
+        // Check uses
+        if (config.uses !== undefined && (u.remainingUses ?? 0) <= 0) return;
+        product *= config.multiplier;
+      }
+    });
+  });
+
+  multiplier = product + (state.hotDiceCount ?? 0);
+
+  return { multiplier, bonus };
 }
 
 export function getStagedScore(state: GameState): number {
@@ -136,8 +211,31 @@ export function getStagedScore(state: GameState): number {
   });
 
   // Apply upgrades from dice already banked this turn to the TOTAL turn score
+  // AND apply pending upgrades from staged dice that require banking (since we are calculating value FOR banking)
+
   const bankedDice = getBankedDice(state);
 
+  // Only consider staged dice that are actually SCORING
+  // We already calculated this in `result`
+  const scoringStagedDiceIds = new Set(result.scoredDice.map((d) => d.id));
+
+  // Also include staged dice upgrades that require banking
+  const stagedRequiringBank = stagedDice
+    .filter((d) => scoringStagedDiceIds.has(d.id))
+    .flatMap((d) =>
+      d.upgrades
+        .filter((u) => {
+          const c = DIE_UPGRADES[u.type];
+          return c && c.requiresBanked;
+        })
+        .map((u) => ({ die: d, upgrade: u })),
+    );
+
+  // Collect all upgrades that apply to Total Score (Global Modifiers)
+  // 1. Banked dice upgrades
+  // 2. Staged dice upgrades that require banking
+
+  // Apply Bonuses first
   bankedDice.forEach((die) => {
     die.upgrades?.forEach((upgrade) => {
       const config = DIE_UPGRADES[upgrade.type];
@@ -149,16 +247,41 @@ export function getStagedScore(state: GameState): number {
     });
   });
 
+  stagedRequiringBank.forEach(({ upgrade }) => {
+    const config = DIE_UPGRADES[upgrade.type];
+    if (config.defaultValue) {
+      totalTurnScore += config.defaultValue;
+    }
+  });
+
+  // Apply Multipliers
+  let multiplierProduct = 1;
+
   bankedDice.forEach((die) => {
     die.upgrades?.forEach((upgrade) => {
       const config = DIE_UPGRADES[upgrade.type];
       if (!config || !config.requiresBanked) return;
 
       if (config.multiplier) {
-        totalTurnScore *= config.multiplier;
+        multiplierProduct *= config.multiplier;
       }
     });
   });
+
+  stagedRequiringBank.forEach(({ upgrade }) => {
+    const config = DIE_UPGRADES[upgrade.type];
+    if (config.multiplier) {
+      // Check uses?
+      if (config.uses !== undefined && (upgrade.remainingUses ?? 0) <= 0)
+        return;
+      multiplierProduct *= config.multiplier;
+    }
+  });
+
+  // Apply Hot Dice Modifier to the Multiplier
+  const totalMultiplier = multiplierProduct + (state.hotDiceCount ?? 0);
+
+  totalTurnScore *= totalMultiplier;
 
   return totalTurnScore;
 }
@@ -177,14 +300,18 @@ export function canRoll(state: GameState): boolean {
   const stagedScore = getStagedScore(state);
 
   // Can roll if:
-  // 1. Normal roll: Have staged dice that score (will be auto-banked)
-  // 2. All staged dice must be scoring
+  // 1. We have active dice to roll
+  // 2. Game is not over
+  // 3. Last roll wasn't a sparkle
+  // 4. AND EITHER:
+  //    a. We have staged dice that are scoring (standard play)
+  //    b. We have banked score (user banked, now rolling remaining dice)
   return (
     activeDice.length > 0 &&
     !state.gameOver &&
     !state.lastRollSparkled &&
-    stagedScore > 0 &&
-    areAllStagedDiceScoring(state)
+    ((stagedScore > 0 && areAllStagedDiceScoring(state)) ||
+      state.bankedScore > 0)
   );
 }
 
@@ -194,54 +321,7 @@ export function canReRoll(state: GameState): boolean {
   const activeDice = getActiveDice(state);
   if (activeDice.length === 0) return false;
 
-  // Find unscored dice
-  // Use calculateScore to find what is SCORING from the active dice
-  // However, active dice might not be separated into scoring sets nicely if we just throw them all in.
-  // Wait, calculateScore finds the BEST scoring combination.
-  // The concept of "unscoring die" implies that AFTER scoring rules are applied, some are left over.
-  // If last roll sparkled, ALL are unscoring.
-  // If last roll didn't sparkle, but we have some leftovers?
-  // Usually re-roll is only available if we have "junk" dice?
-  // The prompt says: "The game randomly selects 5 die to re-roll, which saves the lone 4."
-  // This implies re-roll applies to UNSCORED dice.
-  
-  // If we just rolled and it sparkled, all are unscored.
-  // If we rolled, have some points, but want to re-roll the junk?
-  // The original re-roll only worked on "last roll".
-  // The new logic implies we can re-roll ANY time? "pressing the 'Re-Roll' button... will consume 'Extra Dice' equal to the number of unscoring die on the board."
-  
-  // Identifying unscored dice:
-  // We need to exclude banked dice.
-  // We need to exclude staged dice (since they are presumably scoring).
-  // So we look at Active Non-Staged dice?
-  // But wait, if I roll `1 2 2 3 4 6` (1 is scoring). If I stage 1, I have `2 2 3 4 6` left.
-  // Are those "unscoring"? `2 2` isn't scoring. `3 4 6` aren't.
-  // So yes, generally active (non-banked) dice that are NOT forming a scoring set.
-  // But `calculateScore` on the set of remaining dice returns what CAN score.
-  // If the remaining dice have NO score, they are all unscoring.
-  
-  const activeUnstagedDice = activeDice.filter(d => !d.staged);
-  // Actually, simpler:
-  // If last roll sparkled, all active dice are unscoring.
-  // If not sparkled, user might have selected some dice to stage.
-  // The "unscoring die" are the ones currently on the board that are NOT staged (and presumably the user doesn't want to stage them because they don't score).
-  // Is it possible to re-roll dice that COULD score but user chose not to?
-  // Example: Roll `1 5 2 3`. User stages `1`. Left `5 2 3`. `5` could score.
-  // Does re-roll re-roll the `5` too?
-  // "unscoring die on the board".
-  // I will assume this means "active dice that are not staged".
-  // NOTE: If the user hasn't staged anything yet, but there IS a score (e.g. rolled a 1), and they hit Re-Roll...
-  // Should it re-roll everything? Or just the non-scoring ones?
-  // "number of unscoring die". This implies dice that strictly DO NOT score.
-  
-  // Let's refine "unscoring":
-  // It probably means dice that are NOT contributing to a score.
-  // But `calculateScore` is greedy.
-  // Let's stick to the simplest interpretation for `canReRoll`:
-  // There must be active dice.
-  // We check if there are any active dice.
-  
-  // Also, need to ensure we don't re-roll if EVERYTHING is scored/staged.
+  const activeUnstagedDice = activeDice.filter((d) => !d.staged);
   return activeUnstagedDice.length > 0;
 }
 
@@ -275,4 +355,3 @@ export function canEndTurn(state: GameState): boolean {
     areAllStagedDiceScoring(state)
   );
 }
-

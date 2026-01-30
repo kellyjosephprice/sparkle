@@ -47,6 +47,7 @@ export interface GameState {
   rollsInTurn: number;
   isGuhkleAttempt: boolean;
   extraDicePool: number;
+  hotDiceCount: number;
   // Upgrade related state
   upgradeOptions: UpgradeOption[];
   pendingUpgradeDieSelection: UpgradeType | null;

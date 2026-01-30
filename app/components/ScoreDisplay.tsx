@@ -9,6 +9,8 @@ interface ScoreDisplayProps {
   threshold: number;
   totalScore: number;
   turnNumber: number;
+  multiplier: number;
+  bonus: number;
 }
 
 export default function ScoreDisplay({
@@ -19,6 +21,8 @@ export default function ScoreDisplay({
   threshold,
   totalScore,
   turnNumber,
+  multiplier,
+  bonus,
 }: ScoreDisplayProps) {
   const potentialScore = totalScore + bankedScore + stagedScore;
   const temperature = potentialScore - threshold;
@@ -68,6 +72,16 @@ export default function ScoreDisplay({
         <div>
           <div className="text-amber-50/40">{STRINGS.ui.stagedScore}</div>
           <div className="text-2xl font-bold text-amber-50">{stagedScore}</div>
+        </div>
+      </div>
+      <div className="flex gap-8 mb-8 text-sm justify-center border-t border-white/10 pt-4">
+        <div className="flex flex-col items-center">
+          <div className="text-amber-50/40">Multiplier</div>
+          <div className="text-xl font-bold text-amber-50">x{multiplier}</div>
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="text-amber-50/40">Bonus</div>
+          <div className="text-xl font-bold text-amber-50">+{bonus}</div>
         </div>
       </div>
     </>

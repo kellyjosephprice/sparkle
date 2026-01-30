@@ -133,6 +133,7 @@ export function handleEndTurn(
       rollsInTurn: 0,
       isGuhkleAttempt: false,
       extraDicePool: newExtraDicePool,
+      hotDiceCount: 0,
       upgradeOptions,
       pendingUpgradeDieSelection: null,
       potentialUpgradePosition,

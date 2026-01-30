@@ -25,6 +25,7 @@ export default function Home() {
     resetGame,
     selectAll,
     stagedScore,
+    turnStats,
   } = useGameState();
 
   const diceRef = useRef<DiceRef>(null);
@@ -250,6 +251,8 @@ export default function Home() {
           threshold={gameState.threshold}
           totalScore={gameState.totalScore}
           turnNumber={gameState.turnNumber}
+          multiplier={turnStats.multiplier}
+          bonus={turnStats.bonus}
         />
 
         <Dice

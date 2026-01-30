@@ -1,4 +1,8 @@
-import { calculateThreshold, createDice } from "../../game";
+import {
+  calculateThreshold,
+  createDice,
+  STARTING_EXTRA_DICE,
+} from "../../game";
 import { DEFAULT_RULES } from "../../scoring";
 import { STRINGS } from "../../strings";
 import type { GameState } from "../../types";
@@ -19,7 +23,7 @@ export function handleReset(state: GameState): CommandResult {
       message: STRINGS.game.newGameStarted,
       scoringRules: DEFAULT_RULES,
       lastRollSparkled: false,
-      extraDicePool: 3,
+      extraDicePool: STARTING_EXTRA_DICE,
       upgradeOptions: [],
       pendingUpgradeDieSelection: null,
       potentialUpgradePosition: null,

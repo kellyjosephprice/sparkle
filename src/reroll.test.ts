@@ -15,15 +15,13 @@ describe("Re-Roll Mechanic", () => {
     state = resetResult.state;
   });
 
-  it("should start with 3 extra dice available", () => {
-    expect(state.extraDicePool).toBe(3);
+  it("should start with 6 extra dice available", () => {
+    expect(state.extraDicePool).toBe(6);
   });
 
   it("should consume extra dice when re-rolling", () => {
     // Roll dice first to have active dice
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
-    // Assume 6 dice. If we re-roll, we re-roll min(6, 3) = 3 dice.
-    // Cost is 3.
 
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
     expect(result.state.extraDicePool).toBe(0);
@@ -88,7 +86,7 @@ describe("Re-Roll Mechanic", () => {
 
     // Reset game
     const result = gameEngine.processCommand(state, { type: "RESET_GAME" });
-    expect(result.state.extraDicePool).toBe(3);
+    expect(result.state.extraDicePool).toBe(6);
   });
 
   it("canReRoll should return false when no extra dice available", () => {

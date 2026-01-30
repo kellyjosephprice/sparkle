@@ -5,7 +5,8 @@ export type UpgradeType =
   | "BANKED_SCORE_BONUS" // 100+ when banked and more are banked
   | "EXTRA_DIE" // +1 Extra Die
   | "AUTO_REROLL" // 3x Auto re-roll on sparkle
-  | "SET_BONUS"; // 2x multiplier for each die with this upgrade in a scoring set
+  | "SET_BONUS" // 2x multiplier for each die with this upgrade in a scoring set
+  | "TEN_X_MULTIPLIER"; // 10x multiplier (1 use)
 
 export interface UpgradeConfig {
   type: UpgradeType;
@@ -29,7 +30,7 @@ export const DIE_UPGRADES: Record<UpgradeType, UpgradeConfig> = {
     type: "BANKED_SCORE_BONUS",
     description: STRINGS.upgrades.descriptions.bankedBonus,
     label: STRINGS.upgrades.labels.bankedBonus,
-    defaultValue: 100,
+    defaultValue: 500,
     requiresBanked: true,
   },
   EXTRA_DIE: {
@@ -47,6 +48,14 @@ export const DIE_UPGRADES: Record<UpgradeType, UpgradeConfig> = {
     type: "SET_BONUS",
     description: STRINGS.upgrades.descriptions.setBonus,
     label: STRINGS.upgrades.labels.setBonus,
+  },
+  TEN_X_MULTIPLIER: {
+    type: "TEN_X_MULTIPLIER",
+    description: "Multiplies score by 10x (1 use)",
+    label: "10x",
+    multiplier: 10,
+    uses: 1,
+    requiresBanked: true,
   },
 };
 

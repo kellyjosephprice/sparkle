@@ -81,7 +81,7 @@ export const STRINGS = {
   upgrades: {
     descriptions: {
       bankedMultiplier: "2x total turn score when this die is banked",
-      bankedBonus: "+100 total turn score when this die is banked",
+      bankedBonus: "+500 total turn score when this die is banked",
       autoReroll:
         "Automatically re-rolls this die if it causes a Sparkle (3 uses)",
       setBonus:
@@ -90,7 +90,7 @@ export const STRINGS = {
     },
     labels: {
       bankedMultiplier: "2x Banked",
-      bankedBonus: "+100 Banked",
+      bankedBonus: "+500 Banked",
       autoReroll: "Auto Reroll",
       setBonus: "Set Bonus",
       extraDie: "Extra Die",

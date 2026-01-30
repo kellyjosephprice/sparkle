@@ -64,6 +64,7 @@ describe("Game Selectors", () => {
       highScore: 0,
       upgradeOptions: [],
       extraDicePool: 3,
+      hotDiceCount: 0,
       isGuhkleAttempt: false,
       rollsInTurn: 0,
       pendingUpgradeDieSelection: null,
@@ -151,6 +152,12 @@ describe("Game Selectors", () => {
     it("should return false when game is over", () => {
       state.gameOver = true;
       expect(canRoll(state)).toBe(false);
+    });
+
+    it("should return true when banked score > 0 even if no staged dice", () => {
+      state.bankedScore = 100;
+      state.dice.forEach(d => d.staged = false);
+      expect(canRoll(state)).toBe(true);
     });
   });
 

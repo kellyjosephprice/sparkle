@@ -89,6 +89,7 @@ export function handleBank(state: GameState): CommandResult {
         message: STRINGS.game.hotDice(stagedScore, state.dice.length),
         scoringRules: updatedRules,
         lastRollSparkled: false,
+        hotDiceCount: state.hotDiceCount + 1,
       },
       events: [{ type: "DICE_BANKED", score: stagedScore, hotDice: true }],
     };

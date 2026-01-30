@@ -9,6 +9,7 @@ import {
   createDice,
   getStagedDice,
   getStagedScore,
+  getTurnModifiers,
   initialState,
 } from "../../src/game";
 import type { GameEvent } from "../../src/messaging";
@@ -21,7 +22,15 @@ export function useGameState() {
       const saved = localStorage.getItem("sparkle_game_state");
       if (saved) {
         try {
-          return JSON.parse(saved);
+          return {
+            ...initialState,
+            ...JSON.parse(saved),
+            // Ensure nested objects/arrays are also merged correctly if needed,
+            // but for now simple top-level defaults for new fields is enough.
+            // Specifically ensuring new fields like hotDiceCount are present
+            hotDiceCount: JSON.parse(saved).hotDiceCount ?? initialState.hotDiceCount,
+            extraDicePool: JSON.parse(saved).extraDicePool ?? initialState.extraDicePool,
+          };
         } catch (e) {
           console.error("Failed to parse saved game state", e);
         }
@@ -200,5 +209,6 @@ export function useGameState() {
     resetGame,
     selectAll,
     stagedScore: getStagedScore(gameState),
+    turnStats: getTurnModifiers(gameState),
   };
 }
