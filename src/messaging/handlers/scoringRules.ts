@@ -1,4 +1,6 @@
-import type { GameState, RuleMap } from "../../types";
+import type { GameState, RuleMap } from "@/src/game/types";
+import { Rule } from "@/src/game/types";
+
 import type { CommandResult, GameCommand } from "../types";
 
 export function handleToggleRule(
@@ -21,13 +23,12 @@ export function handleToggleRule(
 }
 
 export function handleResetRuleCounts(state: GameState): CommandResult {
-  const newRules: RuleMap = Object.values(state.scoringRules).reduce(
-    (acc, rule) => {
-      acc[rule.id] = { ...rule, activationCount: 0 };
-      return acc;
-    },
-    {} as RuleMap,
-  );
+  const newRules: RuleMap = Object.values<Rule>(
+    state.scoringRules,
+  ).reduce<RuleMap>((acc, rule: Rule) => {
+    acc[rule.id] = { ...rule, activationCount: 0 };
+    return acc;
+  }, {} as RuleMap);
 
   return {
     state: {

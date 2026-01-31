@@ -1,4 +1,4 @@
-import { STRINGS } from "./strings";
+import { STRINGS } from "../strings";
 
 export type UpgradeType =
   | "BANKED_SCORE_MULTIPLIER" // 2x when banked and more are banked

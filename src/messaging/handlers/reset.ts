@@ -2,10 +2,11 @@ import {
   calculateThreshold,
   createDice,
   STARTING_EXTRA_DICE,
-} from "../../game";
-import { DEFAULT_RULES } from "../../scoring";
-import { STRINGS } from "../../strings";
-import type { GameState } from "../../types";
+} from "@/src/game";
+import { DEFAULT_RULES } from "@/src/game/scoring";
+import type { GameState } from "@/src/game/types";
+import { STRINGS } from "@/src/strings";
+
 import type { CommandResult } from "../types";
 
 export function handleReset(state: GameState): CommandResult {

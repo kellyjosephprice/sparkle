@@ -1,4 +1,4 @@
-import { STRINGS } from "./strings";
+import { STRINGS } from "../strings";
 import type { Die, DieValue, Rule, RuleId, RuleMap } from "./types";
 
 export const DEFAULT_RULES: Record<RuleId, Rule> = {
@@ -64,21 +64,25 @@ export function calculateScore(
   const groups: ScoringGroup[] = [];
 
   // Helper to find and remove dice
-  const pullDice = (value: DieValue, count: number, includeSpark: boolean): Die[] | null => {
-    const matches = unscoredDice.filter(d => d.value === value);
-    const spark = unscoredDice.find(d => d.value === "spark");
-    
+  const pullDice = (
+    value: DieValue,
+    count: number,
+    includeSpark: boolean,
+  ): Die[] | null => {
+    const matches = unscoredDice.filter((d) => d.value === value);
+    const spark = unscoredDice.find((d) => d.value === "spark");
+
     if (includeSpark && spark && matches.length >= count - 1) {
       const taken = matches.slice(0, count - 1);
       const result = [...taken, spark];
-      result.forEach(d => {
+      result.forEach((d) => {
         const idx = unscoredDice.indexOf(d);
         if (idx > -1) unscoredDice.splice(idx, 1);
       });
       return result;
     } else if (matches.length >= count) {
       const taken = matches.slice(0, count);
-      taken.forEach(d => {
+      taken.forEach((d) => {
         const idx = unscoredDice.indexOf(d);
         if (idx > -1) unscoredDice.splice(idx, 1);
       });
@@ -87,7 +91,7 @@ export function calculateScore(
     return null;
   };
 
-  const spark = unscoredDice.find(d => d.value === "spark");
+  const spark = unscoredDice.find((d) => d.value === "spark");
 
   // 1. Heaps (5 of a kind)
   const values: DieValue[] = [1, 2, 4, 5, 6];
@@ -118,18 +122,23 @@ export function calculateScore(
 
   // 3. Singles (1, 5, or Spark as 1/5)
   // Spark can be 1 (10pts) or 5 (5pts). We'll take 1 if it's left.
-  const remainingSpark = unscoredDice.find(d => d.value === "spark");
+  const remainingSpark = unscoredDice.find((d) => d.value === "spark");
   if (remainingSpark) {
-     const idx = unscoredDice.indexOf(remainingSpark);
-     unscoredDice.splice(idx, 1);
-     totalScore += 10;
-     scoringRuleIds.push("single_one");
-     groups.push({ ruleId: "single_one", score: 10, dice: [remainingSpark], value: 1 });
+    const idx = unscoredDice.indexOf(remainingSpark);
+    unscoredDice.splice(idx, 1);
+    totalScore += 10;
+    scoringRuleIds.push("single_one");
+    groups.push({
+      ruleId: "single_one",
+      score: 10,
+      dice: [remainingSpark],
+      value: 1,
+    });
   }
 
   // Ones
   let one;
-  while ((one = unscoredDice.find(d => d.value === 1))) {
+  while ((one = unscoredDice.find((d) => d.value === 1))) {
     const idx = unscoredDice.indexOf(one);
     unscoredDice.splice(idx, 1);
     totalScore += 10;
@@ -139,7 +148,7 @@ export function calculateScore(
 
   // Fives
   let five;
-  while ((five = unscoredDice.find(d => d.value === 5))) {
+  while ((five = unscoredDice.find((d) => d.value === 5))) {
     const idx = unscoredDice.indexOf(five);
     unscoredDice.splice(idx, 1);
     totalScore += 5;
@@ -147,7 +156,7 @@ export function calculateScore(
     groups.push({ ruleId: "single_five", score: 5, dice: [five], value: 5 });
   }
 
-  const scoredDice = selectedDice.filter(d => !unscoredDice.includes(d));
+  const scoredDice = selectedDice.filter((d) => !unscoredDice.includes(d));
 
   return {
     score: totalScore,
@@ -164,10 +173,7 @@ export function hasAnyScore(
   return calculateScore(dice, rules).score > 0;
 }
 
-export function isFizzle(
-  dice: Die[],
-  rules: RuleMap = DEFAULT_RULES,
-): boolean {
+export function isFizzle(dice: Die[], rules: RuleMap = DEFAULT_RULES): boolean {
   return !hasAnyScore(dice, rules);
 }
 

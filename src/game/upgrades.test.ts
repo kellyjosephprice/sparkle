@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getStagedScore, initialState } from "./game";
+import { getStagedScore, initialState } from "./index";
 import type { Die, DieUpgrade, DieValue, GameState } from "./types";
 
 describe("Upgrades Scoring Logic", () => {
@@ -20,7 +20,9 @@ describe("Upgrades Scoring Logic", () => {
 
   it("should apply BANKED_SCORE_BONUS to staged scoring dice (as pending upgrade)", () => {
     // Single 1 = 10 base + 500 bonus = 510
-    const die1 = createMockDie(1, 1, [{ type: "BANKED_SCORE_BONUS", id: "u1" }]);
+    const die1 = createMockDie(1, 1, [
+      { type: "BANKED_SCORE_BONUS", id: "u1" },
+    ]);
     const state: GameState = {
       ...initialState,
       dice: [die1],
@@ -31,7 +33,9 @@ describe("Upgrades Scoring Logic", () => {
 
   it("should apply BANKED_SCORE_MULTIPLIER to staged scoring dice (as pending upgrade)", () => {
     // Single 1 = 10 base * 2 = 20
-    const die1 = createMockDie(1, 1, [{ type: "BANKED_SCORE_MULTIPLIER", id: "u1" }]);
+    const die1 = createMockDie(1, 1, [
+      { type: "BANKED_SCORE_MULTIPLIER", id: "u1" },
+    ]);
     const state: GameState = {
       ...initialState,
       dice: [die1],
@@ -71,7 +75,9 @@ describe("Upgrades Scoring Logic", () => {
   });
 
   it("should stack multiple multipliers", () => {
-    const die1 = createMockDie(1, 1, [{ type: "BANKED_SCORE_MULTIPLIER", id: "u1" }]);
+    const die1 = createMockDie(1, 1, [
+      { type: "BANKED_SCORE_MULTIPLIER", id: "u1" },
+    ]);
     const bankedDie = {
       ...createMockDie(2, 2, [{ type: "BANKED_SCORE_MULTIPLIER", id: "u2" }]),
       banked: true,
@@ -91,7 +97,7 @@ describe("Upgrades Scoring Logic", () => {
     const die1 = createMockDie(1, 1, [{ type: "SET_BONUS", id: "s1" }]);
     const die2 = createMockDie(2, 1, [{ type: "SET_BONUS", id: "s2" }]);
     const die3 = createMockDie(3, 1);
-    
+
     const state: GameState = {
       ...initialState,
       dice: [die1, die2, die3],

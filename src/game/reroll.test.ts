@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { canReRoll } from "./game";
-import { gameEngine } from "./messaging";
-import { STRINGS } from "./strings";
+import { gameEngine } from "../messaging";
+import { STRINGS } from "../strings";
+import { canReRoll } from "./index";
 import type { GameState } from "./types";
 
 describe("Re-Roll Mechanic", () => {
@@ -42,7 +42,8 @@ describe("Re-Roll Mechanic", () => {
 
     // Find a scoring die and bank it
     const scoringDie = state.dice.find(
-      (d) => (d.value === 1 || d.value === 5 || d.value === "spark") && !d.banked,
+      (d) =>
+        (d.value === 1 || d.value === 5 || d.value === "spark") && !d.banked,
     );
 
     if (scoringDie) {

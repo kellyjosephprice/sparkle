@@ -1,6 +1,7 @@
-import { getActiveDice } from "../../game";
-import { calculateScore } from "../../scoring";
-import type { GameState } from "../../types";
+import { getActiveDice } from "@/src/game";
+import { calculateScore } from "@/src/game/scoring";
+import type { GameState } from "@/src/game/types";
+
 import type { CommandResult } from "../types";
 
 export function handleSelectAll(state: GameState): CommandResult {

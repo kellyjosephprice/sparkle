@@ -9,7 +9,6 @@ import ActionButtons from "./components/ActionButtons";
 import Dice, { DiceRef } from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
 import ScoreDisplay from "./components/ScoreDisplay";
-import UpgradesMenu from "./components/UpgradesMenu";
 import { useGameState } from "./hooks/useGameState";
 
 export default function Home() {
@@ -323,8 +322,6 @@ export default function Home() {
           onReset={resetGame}
           onReRoll={handleReRoll}
         />
-
-        <UpgradesMenu dice={gameState.dice} />
       </div>
     </div>
   );

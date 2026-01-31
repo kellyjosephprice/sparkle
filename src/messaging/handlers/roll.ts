@@ -1,7 +1,8 @@
-import { createDice, getActiveDice, getBankedDice } from "../../game";
-import { isFizzle } from "../../scoring";
-import { STRINGS } from "../../strings";
-import type { GameState } from "../../types";
+import { STRINGS } from "@/src//strings";
+import { createDice, getActiveDice, getBankedDice } from "@/src/game";
+import { isFizzle } from "@/src/game/scoring";
+import type { GameState } from "@/src/game/types";
+
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
 export function handleRoll(state: GameState): CommandResult {
@@ -11,12 +12,12 @@ export function handleRoll(state: GameState): CommandResult {
 
   const rollsInTurn = state.rollsInTurn + 1;
   const activeDice = getActiveDice(state);
-  
+
   // Logic for Certification: "If any of the re-rolled dice have the same value as the set, you must ignore that roll and re-roll."
   let newDice = createDice(activeDice.length, activeDice);
   let ignored = false;
   if (state.certificationNeededValue !== null) {
-    while (newDice.some(d => d.value === state.certificationNeededValue)) {
+    while (newDice.some((d) => d.value === state.certificationNeededValue)) {
       ignored = true;
       newDice = createDice(activeDice.length, activeDice);
     }
@@ -112,10 +113,10 @@ export function handleExecuteAutoReroll(
 
   const activeDice = updatedDice.filter((d) => !d.banked);
   let newDice = createDice(activeDice.length, activeDice);
-  
+
   // Re-apply certification ignore logic if applicable
   if (state.certificationNeededValue !== null) {
-    while (newDice.some(d => d.value === state.certificationNeededValue)) {
+    while (newDice.some((d) => d.value === state.certificationNeededValue)) {
       newDice = createDice(activeDice.length, activeDice);
     }
   }
@@ -123,7 +124,9 @@ export function handleExecuteAutoReroll(
   const bankedDice = updatedDice.filter((d) => d.banked);
   const fizzled = isFizzle(newDice, state.scoringRules);
 
-  const message = fizzled ? STRINGS.game.autoRerollFailed : STRINGS.game.autoRerollSaved;
+  const message = fizzled
+    ? STRINGS.game.autoRerollFailed
+    : STRINGS.game.autoRerollSaved;
 
   const newState: GameState = {
     ...state,
@@ -131,7 +134,7 @@ export function handleExecuteAutoReroll(
     lastRollFizzled: fizzled,
     message,
   };
-  
+
   if (state.certificationNeededValue !== null && !fizzled) {
     newState.certificationNeededValue = null;
   }
@@ -142,14 +145,12 @@ export function handleExecuteAutoReroll(
   };
 }
 
-export function handleExecuteGuhkleReroll(
-  state: GameState,
-): CommandResult {
+export function handleExecuteGuhkleReroll(state: GameState): CommandResult {
   const activeDice = getActiveDice(state);
   let newDice = createDice(activeDice.length, activeDice);
-  
+
   if (state.certificationNeededValue !== null) {
-    while (newDice.some(d => d.value === state.certificationNeededValue)) {
+    while (newDice.some((d) => d.value === state.certificationNeededValue)) {
       newDice = createDice(activeDice.length, activeDice);
     }
   }
@@ -168,9 +169,7 @@ export function handleExecuteGuhkleReroll(
 
     return {
       state: newState,
-      events: [
-        { type: "DICE_ROLLED", dice: newDice, sparkled: true },
-      ],
+      events: [{ type: "DICE_ROLLED", dice: newDice, sparkled: true }],
     };
   }
 

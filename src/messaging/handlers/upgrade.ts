@@ -1,6 +1,7 @@
-import { DIE_UPGRADES } from "../../die-upgrades";
-import { STRINGS } from "../../strings";
-import type { GameState } from "../../types";
+import { DIE_UPGRADES } from "@/src/game/die-upgrades";
+import type { GameState } from "@/src/game/types";
+import { STRINGS } from "@/src/strings";
+
 import type { CommandResult, GameCommand } from "../types";
 
 export function handleSelectUpgrade(

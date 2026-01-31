@@ -1,18 +1,15 @@
-import { DIE_UPGRADES } from "../../../src/die-upgrades";
-import {
-  calculateThreshold,
-  createDice,
-  getStagedScore,
-} from "../../../src/game";
-import type { GameState, UpgradeOption } from "../../../src/types";
-import { STRINGS } from "../../strings";
+import { calculateThreshold, createDice, getStagedScore } from "@/src/game";
+import { DIE_UPGRADES } from "@/src/game/die-upgrades";
+import type { GameState, UpgradeOption } from "@/src/game/types";
+import { STRINGS } from "@/src/strings";
+
 import type { CommandResult, GameCommand, GameEvent } from "../types";
 
 const ALL_UPGRADES: UpgradeOption[] = Object.values(DIE_UPGRADES).map(
   (config) => ({
     type: config.type,
     description: config.description,
-  })
+  }),
 );
 
 export function handleEndTurn(
@@ -54,12 +51,18 @@ export function handleEndTurn(
       return {
         state: {
           ...state,
-          message: STRINGS.errors.thresholdNotMet(state.threshold, newTotalScore),
+          message: STRINGS.errors.thresholdNotMet(
+            state.threshold,
+            newTotalScore,
+          ),
         },
         events: [
           {
             type: "ERROR",
-            message: STRINGS.errors.thresholdNotMet(state.threshold, newTotalScore),
+            message: STRINGS.errors.thresholdNotMet(
+              state.threshold,
+              newTotalScore,
+            ),
           },
         ],
       };

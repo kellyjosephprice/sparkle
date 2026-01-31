@@ -3,10 +3,11 @@ import {
   getActiveDice,
   getStagedDice,
   getStagedScore,
-} from "../../../src/game";
-import { calculateScore } from "../../../src/scoring";
-import type { GameState, RuleMap } from "../../../src/types";
-import { STRINGS } from "../../strings";
+} from "@/src/game";
+import { calculateScore } from "@/src/game/scoring";
+import type { GameState, RuleMap } from "@/src/game/types";
+import { STRINGS } from "@/src/strings";
+
 import type { CommandResult } from "../types";
 
 export function handleBank(state: GameState): CommandResult {

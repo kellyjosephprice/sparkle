@@ -10,7 +10,7 @@ import {
   getBankedDice,
   getStagedDice,
   getStagedScore,
-} from "./game";
+} from "./index";
 import { DEFAULT_RULES } from "./scoring";
 import type { GameState } from "./types";
 

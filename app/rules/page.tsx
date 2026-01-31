@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 
-import { DEFAULT_RULES } from "../../src/scoring";
-import { STRINGS } from "../../src/strings";
+import { DEFAULT_RULES } from "@/src/game/scoring";
+import { STRINGS } from "@/src/strings";
 
 export default function RulesPage() {
   const hotkeys = [
@@ -21,7 +21,9 @@ export default function RulesPage() {
     <div className="min-h-screen bg-black p-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-baseline mb-8">
-          <h1 className="text-4xl font-bold text-white tracking-tighter">{STRINGS.rules.header}</h1>
+          <h1 className="text-4xl font-bold text-white tracking-tighter">
+            {STRINGS.rules.header}
+          </h1>
           <Link
             href="/"
             className="text-cyan-500 hover:text-cyan-400 underline underline-offset-4 text-sm font-medium transition-colors"
@@ -32,12 +34,16 @@ export default function RulesPage() {
 
         <div className="space-y-12">
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">{STRINGS.rules.scoringHeader}</h2>
+            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">
+              {STRINGS.rules.scoringHeader}
+            </h2>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-gray-700 text-left">
                   <th className="py-2 text-white font-medium">Rule</th>
-                  <th className="py-2 text-white font-medium text-right">Score</th>
+                  <th className="py-2 text-white font-medium text-right">
+                    Score
+                  </th>
                 </tr>
               </thead>
               <tbody className="text-gray-400">
@@ -45,7 +51,9 @@ export default function RulesPage() {
                   <tr key={rule.id} className="border-b border-gray-800">
                     <td className="py-2">{rule.description}</td>
                     <td className="py-2 text-right text-white tabular-nums">
-                      {typeof rule.score === "number" ? rule.score.toLocaleString() : rule.score}
+                      {typeof rule.score === "number"
+                        ? rule.score.toLocaleString()
+                        : rule.score}
                     </td>
                   </tr>
                 ))}
@@ -54,19 +62,25 @@ export default function RulesPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">{STRINGS.rules.shortcutsHeader}</h2>
+            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">
+              {STRINGS.rules.shortcutsHeader}
+            </h2>
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-gray-700 text-left">
                   <th className="py-2 text-white font-medium">Action</th>
-                  <th className="py-2 text-white font-medium text-right">Key</th>
+                  <th className="py-2 text-white font-medium text-right">
+                    Key
+                  </th>
                 </tr>
               </thead>
               <tbody className="text-gray-400">
                 {hotkeys.map((hk) => (
                   <tr key={hk.key} className="border-b border-gray-800">
                     <td className="py-2">{hk.action}</td>
-                    <td className="py-2 text-right font-mono text-white">{hk.key}</td>
+                    <td className="py-2 text-right font-mono text-white">
+                      {hk.key}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -74,15 +88,29 @@ export default function RulesPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">{STRINGS.ui.upgrades}</h2>
+            <h2 className="text-xl font-bold text-white mb-4 border-b border-white/20 pb-2">
+              {STRINGS.ui.upgrades}
+            </h2>
             <p className="text-gray-400 leading-relaxed">
               {STRINGS.upgrades.upgradeChoice}
             </p>
             <ul className="list-disc list-inside text-gray-400 mt-2 space-y-1">
-              <li><span className="text-white">Score Multiplier:</span> {STRINGS.upgrades.scoreMultiplier}</li>
-              <li><span className="text-white">Score Bonus:</span> {STRINGS.upgrades.scoreBonus}</li>
-              <li><span className="text-white">Banked Multiplier:</span> {STRINGS.upgrades.bankedMultiplier}</li>
-              <li><span className="text-white">Banked Bonus:</span> {STRINGS.upgrades.bankedBonus}</li>
+              <li>
+                <span className="text-white">Score Multiplier:</span>{" "}
+                {STRINGS.upgrades.scoreMultiplier}
+              </li>
+              <li>
+                <span className="text-white">Score Bonus:</span>{" "}
+                {STRINGS.upgrades.scoreBonus}
+              </li>
+              <li>
+                <span className="text-white">Banked Multiplier:</span>{" "}
+                {STRINGS.upgrades.bankedMultiplier}
+              </li>
+              <li>
+                <span className="text-white">Banked Bonus:</span>{" "}
+                {STRINGS.upgrades.bankedBonus}
+              </li>
             </ul>
           </section>
         </div>

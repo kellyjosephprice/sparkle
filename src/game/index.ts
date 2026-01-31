@@ -1,6 +1,6 @@
+import { STRINGS } from "../strings";
 import { DIE_UPGRADES } from "./die-upgrades";
 import { calculateScore, DEFAULT_RULES } from "./scoring";
-import { STRINGS } from "./strings";
 import type { Die, DieValue, GameState } from "./types";
 
 export const STARTING_EXTRA_DICE = 5;
@@ -32,7 +32,7 @@ export const initialState: GameState = {
 export function calculateThreshold(turnNumber: number): number {
   if (turnNumber <= 1) return 100;
   const value = 100 * Math.pow(2, turnNumber - 1);
-  
+
   return roundToSigFigs(value, 2);
 }
 
@@ -58,13 +58,13 @@ export function createDice(count: number, existingDice?: Die[]): Die[] {
   return Array.from({ length: count }, (_, i) => {
     const existingDie = existingDice?.[i];
     const isSparkDie = existingDie?.isSparkDie ?? (i === 0 && count === 5);
-    
+
     let value: DieValue;
     if (isSparkDie) {
-       const faces: DieValue[] = [1, 2, 4, 5, 6, "spark"];
-       value = faces[Math.floor(Math.random() * faces.length)];
+      const faces: DieValue[] = [1, 2, 4, 5, 6, "spark"];
+      value = faces[Math.floor(Math.random() * faces.length)];
     } else {
-       value = (Math.floor(Math.random() * 6) + 1) as DieValue;
+      value = (Math.floor(Math.random() * 6) + 1) as DieValue;
     }
 
     return {
@@ -217,7 +217,7 @@ export function getStagedScore(state: GameState): number {
 
   // Apply Global Multipliers
   const totalMultiplier = multiplierProduct * (state.permanentMultiplier ?? 1);
-  
+
   totalTurnScore *= totalMultiplier;
 
   return totalTurnScore;
@@ -288,7 +288,6 @@ export function canEndTurn(state: GameState): boolean {
   // Otherwise, must have points
   // AND all staged dice must be scoring
   return (
-    (state.bankedScore > 0 || stagedScore > 0) &&
-    areAllStagedDiceScoring(state)
+    (state.bankedScore > 0 || stagedScore > 0) && areAllStagedDiceScoring(state)
   );
 }
