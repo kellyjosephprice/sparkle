@@ -1,6 +1,6 @@
 # Sparkle
 
-A dice scoring game - inspired heavily by [comsic wimpout](https://cosmicwimpout.com/).
+A dice scoring game - inspired heavily by [cosmic wimpout](https://cosmicwimpout.com/).
 
 ## About
 
