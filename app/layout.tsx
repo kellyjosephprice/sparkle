@@ -2,6 +2,8 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 
+import { GameProvider } from "./context/GameContext";
+
 export const metadata: Metadata = {
   title: "Sparkle",
   description: "A dice scoring game",
@@ -20,7 +22,9 @@ export default function RootLayout({
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚄</text></svg>"
         />
       </head>
-      <body className={`antialiased bg-black text-amber-50`}>{children}</body>
+      <body className={`antialiased bg-black text-amber-50`}>
+        <GameProvider>{children}</GameProvider>
+      </body>
     </html>
   );
 }

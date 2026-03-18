@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef } from "react";
 
 import { canEndTurn, canReRoll, canRoll } from "../src/game";
+import { Die } from "../src/game/types";
 import { STRINGS } from "../src/strings";
 import ActionButtons from "./components/ActionButtons";
 import Dice, { DiceRef } from "./components/Dice";
 import MessageBanner from "./components/MessageBanner";
 import ScoreDisplay from "./components/ScoreDisplay";
-import { useGameState } from "./hooks/useGameState";
+import { useGame } from "./context/GameContext";
 
 export default function Home() {
   const {
@@ -25,7 +26,7 @@ export default function Home() {
     selectAll,
     stagedScore,
     turnStats,
-  } = useGameState();
+  } = useGame();
 
   const diceRef = useRef<DiceRef>(null);
 
@@ -129,7 +130,7 @@ export default function Home() {
         const position = parseInt(event.key);
         diceRef.current?.focusDie(position);
 
-        const die = gameState.dice.find((d) => d.position === position);
+        const die = gameState.dice.find((d: Die) => d.position === position);
         if (die && !die.banked && !uiState.rolling) {
           handleDieInteraction(die.id);
         }
@@ -146,7 +147,7 @@ export default function Home() {
         // Find next non-banked die (loop until found or back to start)
         let attempts = 0;
         while (attempts < 5) {
-          const die = gameState.dice.find((d) => d.position === newPos);
+          const die = gameState.dice.find((d: Die) => d.position === newPos);
           if (die && !die.banked) break;
 
           newPos = newPos === 1 ? 5 : newPos - 1;
@@ -168,7 +169,7 @@ export default function Home() {
         // Find next non-banked die (loop until found or back to start)
         let attempts = 0;
         while (attempts < 5) {
-          const die = gameState.dice.find((d) => d.position === newPos);
+          const die = gameState.dice.find((d: Die) => d.position === newPos);
           if (die && !die.banked) break;
 
           newPos = newPos === 5 ? 1 : newPos + 1;
@@ -188,7 +189,7 @@ export default function Home() {
           selectAll();
         } else {
           const die = gameState.dice.find(
-            (d) => d.position === uiState.focusedPosition,
+            (d: Die) => d.position === uiState.focusedPosition,
           );
           if (die && !die.banked && !die.staged) {
             handleDieInteraction(die.id);
@@ -203,7 +204,7 @@ export default function Home() {
         !uiState.rolling
       ) {
         const die = gameState.dice.find(
-          (d) => d.position === uiState.focusedPosition,
+          (d: Die) => d.position === uiState.focusedPosition,
         );
         if (die && !die.banked && die.staged) {
           handleDieInteraction(die.id);

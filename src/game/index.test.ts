@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-  calculateThreshold,
   canBank,
   canEndTurn,
   canRoll,
@@ -12,6 +11,7 @@ import {
   getStagedScore,
 } from "./index";
 import { DEFAULT_RULES } from "./scoring";
+import { calculateThreshold } from "./threshold";
 import type { GameState } from "./types";
 
 describe("Game Selectors", () => {
@@ -138,12 +138,16 @@ describe("Game Selectors", () => {
 
   describe("calculateThreshold", () => {
     const tests = [
-      [1, 100],
-      [2, 200],
-      [3, 400],
-      [4, 800],
-      [5, 1600],
-      [6, 3200],
+      [0, 50],
+      [1, 50],
+      [2, 50],
+      [3, 100],
+      [4, 100],
+      [5, 100],
+      [6, 200],
+      [9, 400],
+      [12, 800],
+      [15, 1600],
     ];
 
     it.each(tests)(

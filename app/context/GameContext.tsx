@@ -1,77 +1,70 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React, { createContext, ReactNode,useCallback, useContext, useEffect, useState } from "react";
 
-import {
-  canEndTurn,
-  canReRoll,
-  canRoll,
-  createDice,
-  getStagedDice,
-  getStagedScore,
-  getTurnModifiers,
-  initialState,
-} from "../../src/game";
-import type { GameEvent } from "../../src/messaging";
-import { eventBus, gameEngine } from "../../src/messaging";
-import type { Die, GameState, UpgradeType } from "../../src/types";
+import { canEndTurn, canReRoll, canRoll, createDice, getStagedDice, getStagedScore, getTurnModifiers,initialState } from "@/src/game";
+import { Die, GameState, UpgradeType } from "@/src/game/types";
+import { eventBus, gameEngine, GameEvent } from "@/src/messaging";
 
-export function useGameState() {
-  const [gameState, setGameState] = useState<GameState>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("sparkle_game_state");
-      if (saved) {
-        try {
-          return {
-            ...initialState,
-            ...JSON.parse(saved),
-            // Ensure nested objects/arrays are also merged correctly if needed,
-            // but for now simple top-level defaults for new fields is enough.
-            // Specifically ensuring new fields like hotDiceCount are present
-            hotDiceCount: JSON.parse(saved).hotDiceCount ?? initialState.hotDiceCount,
-            extraDicePool: JSON.parse(saved).extraDicePool ?? initialState.extraDicePool,
-          };
-        } catch (e) {
-          console.error("Failed to parse saved game state", e);
-        }
-      }
-    }
-    return {
-      ...initialState,
-      dice: createDice(6),
-    };
-  });
+interface UIState {
+  rolling: boolean;
+  displayDice: Die[];
+  focusedPosition: number | null;
+  focusedUpgradeIndex: number | null;
+}
 
-  const [uiState, setUIState] = useState<{
-    rolling: boolean;
-    displayDice: Die[];
-    focusedPosition: number | null;
-    focusedUpgradeIndex: number | null;
-  }>({
+interface GameContextType {
+  gameState: GameState;
+  uiState: UIState;
+  setUIState: React.Dispatch<React.SetStateAction<UIState>>;
+  toggleDie: (id: number) => void;
+  selectUpgrade: (type: UpgradeType) => void;
+  handleRoll: () => void;
+  handleReRoll: () => void;
+  handleEndTurn: () => void;
+  resetGame: () => void;
+  selectAll: () => void;
+  stagedScore: number;
+  turnStats: { multiplier: number; bonus: number };
+}
+
+const GameContext = createContext<GameContextType | undefined>(undefined);
+
+export function GameProvider({ children }: { children: ReactNode }) {
+  const [gameState, setGameState] = useState<GameState>(() => ({
+    ...initialState,
+    dice: createDice(6),
+  }));
+
+  const [uiState, setUIState] = useState<UIState>({
     rolling: false,
     displayDice: gameState.dice,
     focusedPosition: null,
     focusedUpgradeIndex: null,
   });
 
-  // Persist game state
-  useEffect(() => {
-    localStorage.setItem("sparkle_game_state", JSON.stringify(gameState));
-    if (gameState.highScore > 0) {
-      localStorage.setItem("sparkle_high_score", gameState.highScore.toString());
-    }
-  }, [gameState]);
-
-  // Sync high score from local storage on mount (if not in game state)
+  // Load high score from local storage
   useEffect(() => {
     const savedHighScore = localStorage.getItem("sparkle_high_score");
     if (savedHighScore) {
       const parsed = parseInt(savedHighScore, 10);
-      if (parsed > gameState.highScore) {
-        setGameState(prev => ({ ...prev, highScore: parsed }));
+      if (!isNaN(parsed)) {
+        setGameState(prev => {
+          if (parsed > prev.highScore) {
+            return { ...prev, highScore: parsed };
+          }
+          return prev;
+        });
       }
     }
   }, []);
+
+  // Persist high score
+  useEffect(() => {
+    if (gameState.highScore > 0) {
+      localStorage.setItem("sparkle_high_score", gameState.highScore.toString());
+    }
+  }, [gameState.highScore]);
 
   const shuffleDiceValue = (die: Die): Die => {
     return die.banked
@@ -144,7 +137,6 @@ export function useGameState() {
     if (uiState.rolling || !canRoll(gameState)) return;
 
     let currentState = gameState;
-    // Auto-bank staged
     const staged = getStagedDice(gameState);
     if (staged.length > 0) {
       const result = gameEngine.processCommand(gameState, { type: "BANK_DICE" });
@@ -197,7 +189,7 @@ export function useGameState() {
     setGameState(result.state);
   }, [gameState]);
 
-  return {
+  const value = {
     gameState,
     uiState,
     setUIState,
@@ -211,4 +203,14 @@ export function useGameState() {
     stagedScore: getStagedScore(gameState),
     turnStats: getTurnModifiers(gameState),
   };
+
+  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+}
+
+export function useGame() {
+  const context = useContext(GameContext);
+  if (context === undefined) {
+    throw new Error("useGame must be used within a GameProvider");
+  }
+  return context;
 }

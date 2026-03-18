@@ -2,7 +2,7 @@ import { DieUpgrade, UpgradeOption, UpgradeType } from "./die-upgrades";
 
 export type { DieUpgrade, UpgradeOption, UpgradeType };
 
-export type DieValue = 1 | 2 | 4 | 5 | 6 | "spark";
+export type DieValue = 1 | 2 | 3 | 4 | 5 | 6 | "spark";
 
 export interface Die {
   id: number;
@@ -37,6 +37,7 @@ export interface GameState {
   gameOver: boolean;
   highScore: number;
   lastRollFizzled: boolean;
+  lastRollSparkled: boolean;
   message: string;
   scoringRules: RuleMap;
   threshold: number;

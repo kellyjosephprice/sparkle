@@ -1,9 +1,6 @@
-import {
-  calculateThreshold,
-  createDice,
-  STARTING_EXTRA_DICE,
-} from "@/src/game";
+import { createDice, STARTING_EXTRA_DICE } from "@/src/game";
 import { DEFAULT_RULES } from "@/src/game/scoring";
+import { calculateThreshold } from "@/src/game/threshold";
 import type { GameState } from "@/src/game/types";
 import { STRINGS } from "@/src/strings";
 

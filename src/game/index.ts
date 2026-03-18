@@ -3,6 +3,9 @@ import { DIE_UPGRADES } from "./die-upgrades";
 import { calculateScore, DEFAULT_RULES } from "./scoring";
 import type { Die, DieValue, GameState } from "./types";
 
+export type { Die, DieValue, GameState };
+export * from "./types";
+
 export const STARTING_EXTRA_DICE = 5;
 
 export const initialState: GameState = {
@@ -11,6 +14,7 @@ export const initialState: GameState = {
   gameOver: false,
   highScore: 0,
   lastRollFizzled: false,
+  lastRollSparkled: false,
   message: STRINGS.game.initialMessage,
   scoringRules: DEFAULT_RULES,
   threshold: 100,
@@ -29,29 +33,6 @@ export const initialState: GameState = {
 
 // Utility/Selector Functions
 
-export function calculateThreshold(turnNumber: number): number {
-  if (turnNumber <= 1) return 100;
-  const value = 100 * Math.pow(2, turnNumber - 1);
-
-  return roundToSigFigs(value, 2);
-}
-
-function roundToSigFigs(num: number, sigFigs: number): number {
-  if (num === 0) return 0;
-  return parseFloat(num.toPrecision(sigFigs));
-}
-
-export function getNextThresholdInfo(turnNumber: number): {
-  turn: number;
-  value: number;
-} {
-  const nextTurn = turnNumber + 1;
-  return {
-    turn: nextTurn,
-    value: calculateThreshold(nextTurn),
-  };
-}
-
 let nextDieId = Date.now();
 
 export function createDice(count: number, existingDice?: Die[]): Die[] {
@@ -61,7 +42,7 @@ export function createDice(count: number, existingDice?: Die[]): Die[] {
 
     let value: DieValue;
     if (isSparkDie) {
-      const faces: DieValue[] = [1, 2, 4, 5, 6, "spark"];
+      const faces: DieValue[] = [1, 2, 3, 4, 5, 6, "spark"];
       value = faces[Math.floor(Math.random() * faces.length)];
     } else {
       value = (Math.floor(Math.random() * 6) + 1) as DieValue;

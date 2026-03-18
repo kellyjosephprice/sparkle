@@ -81,16 +81,21 @@ export const STRINGS = {
     newGame: "New Game",
     newGameTooltip: "New game (Backspace)",
   },
-  upgrades: {
-    descriptions: {
-      bankedMultiplier: "2x total turn score when this die is banked",
-      bankedBonus: "+500 total turn score when this die is banked",
-      autoReroll:
-        "Automatically re-rolls this die if it causes a Fizzle (3 uses)",
-      setBonus:
-        "Increases score by N^3 where N is number of Set Bonus dice in the scoring set",
-      extraDie: "Immediately gain +1 Extra Die",
-    },
+    upgrades: {
+      upgradeChoice: "Choose from powerful upgrades when they appear!",
+      scoreMultiplier: "Multiplies the score of the die or set",
+      scoreBonus: "Adds a flat bonus to the score",
+      bankedMultiplier: "2x total turn score when banked",
+      bankedBonus: "+500 total turn score when banked",
+      descriptions: {
+        bankedMultiplier: "2x total turn score when this die is banked",
+        bankedBonus: "+500 total turn score when this die is banked",
+        autoReroll:
+          "Automatically re-rolls this die if it causes a Fizzle (3 uses)",
+        setBonus:
+          "Increases score by N^3 where N is number of Set Bonus dice in the scoring set",
+        extraDie: "Immediately gain +1 Extra Die",
+      },
     labels: {
       bankedMultiplier: "2x Banked",
       bankedBonus: "+500 Banked",

@@ -59,7 +59,7 @@ describe("Re-Roll Mechanic", () => {
       const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
 
       // Banked dice should remain
-      const newBankedCount = result.state.dice.filter((d) => d.banked).length;
+      const newBankedCount = result.state.dice.filter((d: any) => d.banked).length;
       expect(newBankedCount).toBe(bankedCount);
     }
   });
@@ -106,5 +106,24 @@ describe("Re-Roll Mechanic", () => {
     state = gameEngine.processCommand(state, { type: "ROLL_DICE" }).state;
     const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
     expect(result.state.dice.length).toBe(5);
+  });
+
+  it("should allow partial re-roll and prioritize spark", () => {
+    state.extraDicePool = 1;
+    state.dice = [
+      { id: 1, value: 2, staged: false, banked: false, position: 1, upgrades: [], isSparkDie: false },
+      { id: 2, value: "spark", staged: false, banked: false, position: 2, upgrades: [], isSparkDie: true },
+    ];
+
+    const result = gameEngine.processCommand(state, { type: "RE_ROLL" });
+    
+    expect(result.state.extraDicePool).toBe(0);
+    // The spark die should have been re-rolled (new id or different object, but here handleReRoll uses createDice)
+    // createDice creates new IDs.
+    const rerolledSpark = result.state.dice.find((d: any) => d.position === 2);
+    const keptDie = result.state.dice.find((d: any) => d.position === 1);
+    
+    expect(keptDie?.id).toBe(1); // Kept
+    expect(rerolledSpark?.id).not.toBe(2); // Re-rolled
   });
 });

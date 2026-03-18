@@ -1,6 +1,6 @@
 import { STRINGS } from "@/src//strings";
 import { createDice, getActiveDice, getBankedDice } from "@/src/game";
-import { isFizzle } from "@/src/game/scoring";
+import { calculateScore,isFizzle } from "@/src/game/scoring";
 import type { GameState } from "@/src/game/types";
 
 import type { CommandResult, GameCommand, GameEvent } from "../types";
@@ -24,10 +24,14 @@ export function handleRoll(state: GameState): CommandResult {
   }
 
   const fizzled = isFizzle(newDice, state.scoringRules);
+  const { scoredDice } = calculateScore(newDice, state.scoringRules);
+  const sparkled = !fizzled && scoredDice.length === newDice.length;
 
   let message = fizzled
     ? STRINGS.game.fizzleNoScore
-    : STRINGS.game.selectAndBank;
+    : sparkled
+      ? STRINGS.game.landslide
+      : STRINGS.game.selectAndBank;
 
   if (ignored) {
     message = STRINGS.game.certificationIgnored + " " + message;
@@ -35,13 +39,14 @@ export function handleRoll(state: GameState): CommandResult {
 
   const bankedDice = getBankedDice(state);
   const events: GameEvent[] = [
-    { type: "DICE_ROLLED", dice: newDice, sparkled: fizzled }, // sparkled here means fizzled in the event type
+    { type: "DICE_ROLLED", dice: newDice, sparkled: sparkled },
   ];
 
   const newState: GameState = {
     ...state,
     dice: [...bankedDice, ...newDice],
     lastRollFizzled: fizzled,
+    lastRollSparkled: sparkled,
     message: message,
     rollsInTurn,
   };

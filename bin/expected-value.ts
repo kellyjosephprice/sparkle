@@ -1,13 +1,14 @@
 import {
-  calculateThreshold,
   createDice,
   getActiveDice,
   getStagedScore,
   initialState,
-} from "../src/game";
+} from "@/src/game";
+import { calculateScore } from "@/src/game/scoring";
+import { calculateThreshold } from "@/src/game/threshold";
+import { Die, GameState } from "@/src/game/types";
+
 import { gameEngine } from "../src/messaging/gameEngine";
-import { calculateScore } from "../src/scoring";
-import { Die, GameState } from "../src/types";
 
 const SIMULATIONS = 1000;
 const MAX_TURNS = 60;

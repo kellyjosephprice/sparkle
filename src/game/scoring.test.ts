@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { calculateScore, isFizzle } from "./scoring";
 import type { Die } from "./types";
 
@@ -56,6 +57,10 @@ describe("calculateScore", () => {
 
     it("should score three 6s as 60 points", () => {
       expect(calculateScore(makeDice([6, 6, 6])).score).toBe(60);
+    });
+
+    it("should score three 3s as 30 points", () => {
+      expect(calculateScore(makeDice([3, 3, 3])).score).toBe(30);
     });
 
     it("should score Set with Spark (2, 2, spark) as 20 points", () => {

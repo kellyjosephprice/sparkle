@@ -1,5 +1,6 @@
-import { calculateThreshold, createDice, getStagedScore } from "@/src/game";
+import { createDice, getStagedScore } from "@/src/game";
 import { DIE_UPGRADES } from "@/src/game/die-upgrades";
+import { calculateThreshold } from "@/src/game/threshold";
 import type { GameState, UpgradeOption } from "@/src/game/types";
 import { STRINGS } from "@/src/strings";
 

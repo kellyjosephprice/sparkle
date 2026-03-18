@@ -1,4 +1,4 @@
-import { getNextThresholdInfo } from "../../src/game";
+import { getNextThresholdInfo } from "../../src/game/threshold";
 import { STRINGS } from "../../src/strings";
 
 interface ScoreDisplayProps {

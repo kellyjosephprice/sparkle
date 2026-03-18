@@ -1,4 +1,4 @@
-import type { Die, GameState, RuleId, UpgradeType } from "../types";
+import type { Die, GameState, RuleId, UpgradeType } from "../game/types";
 
 // Commands - what the UI wants to do
 export type GameCommand =

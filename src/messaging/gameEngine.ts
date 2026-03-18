@@ -1,4 +1,4 @@
-import type { GameState } from "../types";
+import type { GameState } from "../game/types";
 import { eventBus } from "./eventBus";
 import {
   handleApplyUpgrade,

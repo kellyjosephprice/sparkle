@@ -24,7 +24,7 @@ export function handleReRoll(state: GameState): CommandResult {
     return { state, events: [] };
   }
 
-  // Calculate cost and how many dice we can re-roll
+  // Calculate how many dice we can re-roll
   const extraDiceAvailable = state.extraDicePool;
 
   if (extraDiceAvailable <= 0) {
@@ -34,36 +34,40 @@ export function handleReRoll(state: GameState): CommandResult {
     };
   }
 
-  // Cost is 1 extra die per re-roll of any number of dice?
-  // No, the previous logic was cost = activeUnstagedDice.length.
-  // I will stick to cost = 1 per die for now as it makes more sense with "Extra Dice Pool".
-  const cost = activeUnstagedDice.length;
-  if (cost > extraDiceAvailable) {
-    return {
-      state: { ...state, message: STRINGS.errors.noExtraDice },
-      events: [{ type: "ERROR", message: STRINGS.errors.noExtraDice }],
-    };
-  }
+  // Prioritize Spark for re-rolling
+  const sortedActiveUnstaged = [...activeUnstagedDice].sort((a, b) => {
+    if (a.value === "spark") return -1;
+    if (b.value === "spark") return 1;
+    return 0;
+  });
+
+  const numToReroll = Math.min(activeUnstagedDice.length, extraDiceAvailable);
+  const diceToReroll = sortedActiveUnstaged.slice(0, numToReroll);
+  const diceToKeep = sortedActiveUnstaged.slice(numToReroll);
+
+  const cost = numToReroll;
 
   // Create new dice for the ones being re-rolled
-  const newRolledDice = createDice(
-    activeUnstagedDice.length,
-    activeUnstagedDice,
-  );
+  const newRolledDice = createDice(diceToReroll.length, diceToReroll);
 
-  // Combine: Banked + Staged + Kept (Unstaged - none) + New Rolled (Unstaged)
+  // Combine: Banked + Staged + Kept + New Rolled
   const stagedDice = getStagedDice(state);
   const bankedDice = getBankedDice(state);
 
-  const currentActiveDice = [...stagedDice, ...newRolledDice];
+  const currentActiveDice = [...stagedDice, ...diceToKeep, ...newRolledDice];
   const fizzled = isFizzle(currentActiveDice, state.scoringRules);
 
   const newExtraDicePool = extraDiceAvailable - cost;
 
-  const allNewDice = [...bankedDice, ...stagedDice, ...newRolledDice];
+  const allNewDice = [
+    ...bankedDice,
+    ...stagedDice,
+    ...diceToKeep,
+    ...newRolledDice,
+  ];
 
   const message = fizzled
-    ? STRINGS.game.fizzleNoScore
+    ? STRINGS.game.fizzleStillFizzled(newExtraDicePool)
     : STRINGS.game.rerollsRemaining(newExtraDicePool);
 
   const newState: GameState = {

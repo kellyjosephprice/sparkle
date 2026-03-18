@@ -94,7 +94,7 @@ export function calculateScore(
   const spark = unscoredDice.find((d) => d.value === "spark");
 
   // 1. Heaps (5 of a kind)
-  const values: DieValue[] = [1, 2, 4, 5, 6];
+  const values: DieValue[] = [1, 2, 3, 4, 5, 6];
   for (const v of values) {
     // If 4 matches + Spark, it MUST be a heap
     const heap = pullDice(v, 5, true);
